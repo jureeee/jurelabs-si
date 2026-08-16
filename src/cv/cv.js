@@ -586,7 +586,18 @@ nav?.addEventListener("pointerover", (e) => {
 
 // --- nastavitve --------------------------------------------------------------
 const kazalec = installCursor();
-const magnet = installMagnetic();
+// Gumbi se nagnejo mocneje, kapsule okoli njih sibkeje - ucinek se sesteje.
+const magnetGumbi = installMagnetic(
+  ".nav button, .dock-icon, .prof-gumb, .prof-zavihek, .prof-zapri, .nast-zapri, .nast-nazaj, .spust-gumb",
+  0.22
+);
+const magnetKapsule = installMagnetic(".nav, .dock, .profil, .prof-zgodba", 0.09);
+const magnet = {
+  nastavi(v) {
+    magnetGumbi.nastavi(v);
+    magnetKapsule.nastavi(v);
+  },
+};
 
 const profil = installProfile({
   onOdprt: () => { zamrznjeno = true; },
@@ -625,9 +636,15 @@ function uporabiNastavitve() {
   velikostMul = nastavitve.velikostZvezd / 21;
   resize();
 
-  // Steklo: brez loma ostane navadna motna ploskev. Prosojnost je alfa
-  // podlage, ki jo bere ves UI prek --dg-tint.
-  document.documentElement.classList.toggle("brez-stekla", !nastavitve.steklo);
+  // Tema. Svetla je resena z obratom platna, ne z drugim izrisom - glej
+  // opombo v index.html.
+  const sistemSvetla =
+    nastavitve.tema === "sistem"
+      ? window.matchMedia("(prefers-color-scheme: light)").matches
+      : nastavitve.tema === "svetla";
+  document.documentElement.dataset.tema = sistemSvetla ? "svetla" : "temna";
+
+  // Prosojnost je alfa podlage, ki jo bere ves UI prek --dg-tint.
   document.documentElement.style.setProperty(
     "--dg-tint",
     `rgba(30, 35, 44, ${(nastavitve.prosojnost / 100).toFixed(3)})`

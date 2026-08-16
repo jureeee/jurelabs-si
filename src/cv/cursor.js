@@ -255,10 +255,17 @@ export function installCursor() {
  * cez ploskev in ne vsako slicico, ker getBoundingClientRect prisili
  * brskalnik v izracun postavitve.
  */
-const MAGNET = 0.22;
 const MAGNET_DOMET = 1.45;
 
-export function installMagnetic(selektor = ".nav button, .dock-icon, .prof-gumb, .prof-zavihek, .prof-zapri, .nast-zapri, .nast-nazaj, .spust-gumb") {
+/**
+ * @param {string} selektor ploskve, ki se nagnejo proti kazalcu
+ * @param {number} jakost   koliksen del poti do kazalca prehodijo
+ *
+ * Kapsule dobijo nizjo jakost kot gumbi v njih. Ker se premakneta oba, se
+ * ucinek sesteje in gumb pod kazalcem gre najdlje - vmesnik se nagne kot
+ * celota, namesto da bi posamezni gumb plaval sam zase.
+ */
+export function installMagnetic(selektor, jakost = 0.22) {
   if (window.matchMedia("(hover: none)").matches) return { nastavi() {} };
   let vklopljen = true;
 
@@ -297,8 +304,8 @@ export function installMagnetic(selektor = ".nav button, .dock-icon, .prof-gumb,
   (function slicica() {
     requestAnimationFrame(slicica);
     if (!aktiven) return;
-    x += (cx * MAGNET - x) * 0.2;
-    y += (cy * MAGNET - y) * 0.2;
+    x += (cx * jakost - x) * 0.2;
+    y += (cy * jakost - y) * 0.2;
     aktiven.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0)`;
   })();
 

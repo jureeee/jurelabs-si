@@ -37,7 +37,6 @@ const IKONA_KLJUKICA =
 
 /** Trenutne vrednosti. Spreminjajo jih vrstice, bere jih stran. */
 export const nastavitve = {
-  steklo: true,
   prosojnost: 5,
   tema: "temna",
   ozadje: "galaksija",
@@ -253,7 +252,6 @@ function stranGlavna(pojdi) {
       {
         naslovek: "Videz",
         vrstice: [
-          { ime: "Liquid Refractor UI", opis: "Lom svetlobe ob robovih ploskev", kontrola: stikalo("steklo") },
           { ime: "Prosojnost", kontrola: drsnik("prosojnost", { min: 0, max: 30, enota: "%" }) },
           {
             ime: "Tema",
