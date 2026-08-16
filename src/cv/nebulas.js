@@ -28,14 +28,14 @@ import * as THREE from "three";
 
 /** Koliko razlicnih meglic izpecemo in koliko jih postavimo v sceno. */
 const RAZLICIC = 3;
-const KOSOV = 11;
+const KOSOV = 14;
 
 /** Stranica izpecene teksture. */
 const LOCLJIVOST = 320;
 
 /** Velikost meglice kot delez polmera galaksije. */
-const VELIKOST_MIN = 1.3;
-const VELIKOST_MAX = 2.8;
+const VELIKOST_MIN = 0.13;
+const VELIKOST_MAX = 0.3;
 
 /**
  * Kje se meglice zadrzujejo, v polmerih galaksije.
@@ -46,12 +46,12 @@ const VELIKOST_MAX = 2.8;
  * razporejene v obroc okoli diska, zato jih je ob vsakem kotu nekaj v vidnem
  * polju.
  */
-const ODMIK_MIN = 1.05;
-const ODMIK_MAX = 1.9;
+const ODMIK_MIN = 0.3;
+const ODMIK_MAX = 1.05;
 
 /** Kako mocno so vidne. Nizko namenoma - so ozadje, ne motiv. */
-const MOC_MIN = 0.6;
-const MOC_MAX = 0.95;
+const MOC_MIN = 0.55;
+const MOC_MAX = 0.9;
 
 /** Barvni pari: sredica in obrobje. */
 /**
@@ -174,8 +174,16 @@ const fragmentShader = `
     vsota = clamp(vsota, 0.0, 1.0);
 
     // Krozna zabrisanost: brez nje bi imela meglica robove svojega kvadrata.
-    float rob = 1.0 - smoothstep(0.55, 1.0, length(uv));
+    float d = length(uv);
+    float rob = 1.0 - smoothstep(0.55, 1.0, d);
     vsota *= rob * rob;
+
+    // Sij: mehka aureola okoli filamentov. Sama meglica je snov s trdimi
+    // prameni; brez razlite svetlobe okoli njih je videti kot izrezek, ne kot
+    // nekaj, kar sveti. Upada eksponentno in ugasne pred robom kvadrata.
+    float sij = exp(-d * 3.1) * (1.0 - smoothstep(0.6, 1.0, d)) * 0.2;
+    vsota.rgb += uSredica * sij;
+    vsota.a = max(vsota.a, sij);
 
     gl_FragColor = vsota;
   }
@@ -262,7 +270,7 @@ export function installNebulas(renderer, scene, sredisce, radius) {
     kos.position.set(
       sredisce.x + r * Math.cos(u),
       // Nizko nad ravnino diska, da so med zvezdami in ne lebdijo nad njimi.
-      sredisce.y + (Math.random() * 2 - 1) * radius * 0.45,
+      sredisce.y + (Math.random() * 2 - 1) * radius * 0.22,
       sredisce.z + r * Math.sin(u)
     );
 
