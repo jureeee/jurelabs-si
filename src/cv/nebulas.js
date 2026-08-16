@@ -30,6 +30,13 @@ import * as THREE from "three";
 const RAZLICIC = 3;
 const KOSOV = 3;
 
+/**
+ * Koliko se vidijo prameni pod sijem. Sij sam je lep, a brez snovi pod njim
+ * je meglica le obarvana lisa; polovicna moc pusti strukturo slutiti, ne da
+ * bi tekmovala s sijem.
+ */
+const PRAMENI = 0.5;
+
 /** Stranica izpecene teksture. */
 const LOCLJIVOST = 320;
 
@@ -96,6 +103,7 @@ const fragmentShader = `
   uniform vec3 uSredica;
   uniform vec3 uObrobje;
   uniform vec3 uSij;
+  uniform float uPrameni;
   varying vec2 vUv;
 
   const float NUDGE = 0.72;
@@ -177,7 +185,7 @@ const fragmentShader = `
           // Svetla sredica, ki od znotraj osvetli prah.
           barva += uSredica * 0.5 / max(r * r, 0.35);
 
-          vec4 col = vec4(barva, skupna * 0.16);
+          vec4 col = vec4(barva, skupna * 0.32);
           col.rgb *= col.a;
           vsota += col * (1.0 - vsota.a);
         }
@@ -192,14 +200,14 @@ const fragmentShader = `
     // Krozna zabrisanost: brez nje bi imela meglica robove svojega kvadrata.
     float d = length(uv);
     float rob = 1.0 - smoothstep(0.55, 1.0, d);
-    vsota *= rob * rob;
+    vsota *= rob * rob * uPrameni;
 
     // Sij v barvi plina. Dva clena: ozko jedro, ki gori mocneje, in siroka
     // avreola, ki se razlije skoraj do roba. En sam clen da ali packo ali
     // komaj vidno meglo; dva dasta globino, po kateri je meglica videti kot
     // svetlobni vir in ne kot izrezek.
-    float jedro = exp(-d * 5.4) * 0.5;
-    float avreola = exp(-d * 1.7) * 0.26;
+    float jedro = exp(-d * 5.4) * 0.28;
+    float avreola = exp(-d * 1.7) * 0.22;
     float sij = (jedro + avreola) * (1.0 - smoothstep(0.62, 1.0, d));
     vsota.rgb += uSij * sij;
     vsota.a = max(vsota.a, sij * 0.85);
@@ -227,6 +235,7 @@ function izpeci(renderer, seme, sredica, obrobje, sij) {
         uSredica: { value: sredica },
         uObrobje: { value: obrobje },
         uSij: { value: sij },
+        uPrameni: { value: PRAMENI },
       },
       vertexShader,
       fragmentShader,
