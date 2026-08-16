@@ -34,8 +34,8 @@ const KOSOV = 3;
 const LOCLJIVOST = 320;
 
 /** Velikost meglice kot delez polmera galaksije. */
-const VELIKOST_MIN = 0.03;
-const VELIKOST_MAX = 0.06;
+const VELIKOST_MIN = 0.09;
+const VELIKOST_MAX = 0.17;
 
 /**
  * Kje se meglice zadrzujejo, v polmerih galaksije.
@@ -61,9 +61,24 @@ const MOC_MAX = 1.0;
  * additivnem mesanju takoj prevlada nad zvezdami in postane motiv, ne ozadje.
  */
 const BARVE = [
-  [new THREE.Color(0.62, 0.68, 0.82), new THREE.Color(0.16, 0.18, 0.25)],
-  [new THREE.Color(0.8, 0.74, 0.66), new THREE.Color(0.24, 0.2, 0.17)],
-  [new THREE.Color(0.7, 0.66, 0.8), new THREE.Color(0.2, 0.18, 0.25)],
+  // Prameni ostanejo zadrzani, sij pa dobi barvo, kakrsno imajo prave
+  // meglice: vodik sveti rdece-rozno, dvakrat ionizirani kisik turkizno,
+  // prah okoli mladih zvezd zlato.
+  {
+    sredica: new THREE.Color(0.72, 0.62, 0.68),
+    obrobje: new THREE.Color(0.2, 0.14, 0.18),
+    sij: new THREE.Color(1.0, 0.26, 0.44),
+  },
+  {
+    sredica: new THREE.Color(0.6, 0.72, 0.74),
+    obrobje: new THREE.Color(0.14, 0.2, 0.22),
+    sij: new THREE.Color(0.22, 0.86, 0.82),
+  },
+  {
+    sredica: new THREE.Color(0.78, 0.72, 0.6),
+    obrobje: new THREE.Color(0.24, 0.2, 0.14),
+    sij: new THREE.Color(1.0, 0.6, 0.22),
+  },
 ];
 
 const vertexShader = `
@@ -80,6 +95,7 @@ const fragmentShader = `
   uniform vec3 uSeme;
   uniform vec3 uSredica;
   uniform vec3 uObrobje;
+  uniform vec3 uSij;
   varying vec2 vUv;
 
   const float NUDGE = 0.72;
@@ -178,19 +194,22 @@ const fragmentShader = `
     float rob = 1.0 - smoothstep(0.55, 1.0, d);
     vsota *= rob * rob;
 
-    // Sij: mehka aureola okoli filamentov. Sama meglica je snov s trdimi
-    // prameni; brez razlite svetlobe okoli njih je videti kot izrezek, ne kot
-    // nekaj, kar sveti. Upada eksponentno in ugasne pred robom kvadrata.
-    float sij = exp(-d * 3.1) * (1.0 - smoothstep(0.6, 1.0, d)) * 0.2;
-    vsota.rgb += uSredica * sij;
-    vsota.a = max(vsota.a, sij);
+    // Sij v barvi plina. Dva clena: ozko jedro, ki gori mocneje, in siroka
+    // avreola, ki se razlije skoraj do roba. En sam clen da ali packo ali
+    // komaj vidno meglo; dva dasta globino, po kateri je meglica videti kot
+    // svetlobni vir in ne kot izrezek.
+    float jedro = exp(-d * 5.4) * 0.5;
+    float avreola = exp(-d * 1.7) * 0.26;
+    float sij = (jedro + avreola) * (1.0 - smoothstep(0.62, 1.0, d));
+    vsota.rgb += uSij * sij;
+    vsota.a = max(vsota.a, sij * 0.85);
 
     gl_FragColor = vsota;
   }
 `;
 
 /** Izpece eno meglico v teksturo. */
-function izpeci(renderer, seme, sredica, obrobje) {
+function izpeci(renderer, seme, sredica, obrobje, sij) {
   const cilj = new THREE.WebGLRenderTarget(LOCLJIVOST, LOCLJIVOST, {
     minFilter: THREE.LinearFilter,
     magFilter: THREE.LinearFilter,
@@ -207,6 +226,7 @@ function izpeci(renderer, seme, sredica, obrobje) {
         uSeme: { value: seme },
         uSredica: { value: sredica },
         uObrobje: { value: obrobje },
+        uSij: { value: sij },
       },
       vertexShader,
       fragmentShader,
@@ -237,13 +257,13 @@ function izpeci(renderer, seme, sredica, obrobje) {
 export function installNebulas(renderer, scene, sredisce, radius) {
   const teksture = [];
   for (let i = 0; i < RAZLICIC; i += 1) {
-    const [sredica, obrobje] = BARVE[i % BARVE.length];
+    const { sredica, obrobje, sij } = BARVE[i % BARVE.length];
     const seme = new THREE.Vector3(
       Math.random() * 60 - 30,
       Math.random() * 60 - 30,
       Math.random() * 60 - 30
     );
-    teksture.push(izpeci(renderer, seme, sredica, obrobje));
+    teksture.push(izpeci(renderer, seme, sredica, obrobje, sij));
   }
 
   for (let i = 0; i < KOSOV; i += 1) {
