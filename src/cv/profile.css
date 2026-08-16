@@ -236,16 +236,27 @@
 .prof-razpored svg { width: 18px; height: 18px; display: block; }
 
 /* --- mreza --------------------------------------------------------------- */
-/* Mreza gre cez cel zaslon, glava pa ostane v stolpcu.
-   Vsebina je omejena na 980 px, ker je besedilo pri sirsem stolpcu neberljivo;
-   za slike ta omejitev ne velja - te so tem boljse, cim vec prostora dobijo.
-   Zato mreza z negativnim odmikom stopi iz stolpca na celo sirino okna. */
-.prof-mreza {
+/* Sirina mreze je svoja izbira.
+   "Do robov": mreza z negativnim odmikom stopi iz stolpca na celo sirino okna.
+   "Na sredini": ostane v stolpcu z glavo, kar je mirnejse in bolj bralno.
+   Glava je omejena na 980 px v obeh primerih, ker je besedilo pri sirsem
+   stolpcu neberljivo - oko izgubi zacetek naslednje vrstice. */
+.prof-mreza[data-sirina="robovi"] {
   width: calc(100vw - 68px);
   margin-left: calc(50% - 50vw + 34px);
+}
+.prof-mreza[data-sirina="sredina"] {
+  width: 100%;
+  margin-left: 0;
+}
+.prof-mreza {
+  transition:
+    opacity 190ms var(--ease),
+    filter 190ms var(--ease),
+    width 420ms var(--spring),
+    margin-left 420ms var(--spring);
   display: grid;
   gap: 22px;
-  transition: opacity 190ms var(--ease), filter 190ms var(--ease);
   margin-top: 22px;
 }
 

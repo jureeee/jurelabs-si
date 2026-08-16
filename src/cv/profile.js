@@ -425,10 +425,18 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     { kljuc: "da", ime: "Z razmikom" },
     { kljuc: "ne", ime: "Brez razmika" },
   ];
+  // Sirina je tretja, prav tako neodvisna izbira: koliko prostora dobi mreza,
+  // ne kako so polja v njej razporejena.
+  const SIRINE = [
+    { kljuc: "robovi", ime: "Do robov" },
+    { kljuc: "sredina", ime: "Na sredini" },
+  ];
   let razpored = "tri";
   let razmik = "da";
+  let sirina = "robovi";
   mreza.dataset.razpored = razpored;
   mreza.dataset.razmik = razmik;
+  mreza.dataset.sirina = sirina;
 
   const gumbRazpored = koren.querySelector(".prof-razpored");
 
@@ -448,7 +456,9 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     seznam.innerHTML =
       RAZPOREDI.map((r) => vrsticaIzbire(r, r.kljuc === razpored, "razpored")).join("") +
       '<span class="spust-locnica"></span>' +
-      RAZMIKI.map((r) => vrsticaIzbire(r, r.kljuc === razmik, "razmik")).join("");
+      RAZMIKI.map((r) => vrsticaIzbire(r, r.kljuc === razmik, "razmik")).join("") +
+      '<span class="spust-locnica"></span>' +
+      SIRINE.map((r) => vrsticaIzbire(r, r.kljuc === sirina, "sirina")).join("");
   }
   osveziSeznam();
 
@@ -481,7 +491,9 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     if (!b) return;
     e.stopPropagation();
     val(b, e);
-    if (b.dataset.vrsta === "razmik") razmik = b.dataset.kljuc;
+    const vrsta = b.dataset.vrsta;
+    if (vrsta === "razmik") razmik = b.dataset.kljuc;
+    else if (vrsta === "sirina") sirina = b.dataset.kljuc;
     else razpored = b.dataset.kljuc;
     osveziSeznam();
     zapriSeznam();
@@ -490,6 +502,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     setTimeout(() => {
       mreza.dataset.razpored = razpored;
       mreza.dataset.razmik = razmik;
+  mreza.dataset.sirina = sirina;
       mreza.classList.remove("menja");
     }, 190);
   });
