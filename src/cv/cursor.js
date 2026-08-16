@@ -36,9 +36,10 @@ const OBLIKE = Object.entries(
     import: "default",
   })
 )
-  // Dve obliki nista v rabi: 05 (krizec) in 06 (osemkraka zvezdica) sta pri
-  // majhni velikosti videti kot znak za zapiranje oziroma kot smet na zaslonu.
-  .filter(([pot]) => !/0[56]-/.test(pot))
+  // Tri oblike niso v rabi, ker pri majhni velikosti ne berejo kot iskrica:
+  // 01 (stirje dolgi kraki) je videti kot krizec za dodajanje, 05 kot znak za
+  // zapiranje, 06 pa kot smet na zaslonu.
+  .filter(([pot]) => !/0[156]-/.test(pot))
   .sort(([a], [b]) => a.localeCompare(b))
   .map(([, svg]) =>
     svg
