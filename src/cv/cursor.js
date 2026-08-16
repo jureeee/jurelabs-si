@@ -63,7 +63,7 @@ const LEPLJIVO = "button, a, .nast-vrstica.klikna, .spust-izbira";
 const BESEDILO = "p, h1, h2, h3, .nast-ime, .nast-opis, .prof-bio, .prof-ime, .prof-pravo";
 
 /** Kako hitro dohiteva misko. Nizje = bolj leno. */
-const DUSENJE = 0.34;
+const DUSENJE = 0.55;
 /** Kako mocno se raztegne pri hitrem gibu in kje je meja. */
 const RAZTEG = 0.5;
 const HITROST_MEJA = 46;

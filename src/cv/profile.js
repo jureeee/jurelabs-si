@@ -284,12 +284,24 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
       // metadata in ne auto: prvo slicico dobimo takoj, celega posnetka pa ne
       // vlecemo, dokler se ne zacne predvajati.
       v.preload = "metadata";
+      v.addEventListener("loadedmetadata", () => {
+        if (v.videoWidth) {
+          polje.style.setProperty("--razmerje", `${v.videoWidth} / ${v.videoHeight}`);
+        }
+      }, { once: true });
       polje.append(v);
     } else {
       const i = document.createElement("img");
       i.src = url;
       i.alt = "";
       i.decoding = "async";
+      // Razmerje zapisemo sele, ko sliko poznamo; postavitvi "izvirno" in
+      // "polno" ga bereta prek --razmerje.
+      i.addEventListener("load", () => {
+        if (i.naturalWidth) {
+          polje.style.setProperty("--razmerje", `${i.naturalWidth} / ${i.naturalHeight}`);
+        }
+      }, { once: true });
       polje.append(i);
     }
   }
@@ -331,6 +343,51 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     });
   });
 
+  /**
+   * Mehko drsenje.
+   *
+   * Privzeto drsenje skoci po korakih kolesca, kar je pri veliki mrezi videti
+   * sunkovito. Tu kolesce le premakne cilj, dejanski odmik pa ga lovi z
+   * dusenjem - gib se zato zacne in konca mehko, brez ustavljanja na koraku.
+   *
+   * Zanka tece samo, kadar je kaj za dohiteti; sicer se ustavi in ne jemlje
+   * casa galeriji.
+   */
+  let cilj = 0;
+  let tece = false;
+
+  koren.addEventListener(
+    "wheel",
+    (e) => {
+      // Vodoravno drsenje pustimo pri miru - z njim se premikajo zgodbe.
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+      e.preventDefault();
+      const najvec = koren.scrollHeight - koren.clientHeight;
+      cilj = Math.max(0, Math.min(cilj + e.deltaY, najvec));
+      if (!tece) {
+        tece = true;
+        requestAnimationFrame(mehko);
+      }
+    },
+    { passive: false }
+  );
+
+  function mehko() {
+    const razlika = cilj - koren.scrollTop;
+    if (Math.abs(razlika) < 0.4) {
+      koren.scrollTop = cilj;
+      tece = false;
+      return;
+    }
+    koren.scrollTop += razlika * 0.11;
+    requestAnimationFrame(mehko);
+  }
+
+  // Ce se odmik spremeni drugace (tipkovnica, vlecenje), cilj potegnemo za njim.
+  koren.addEventListener("scroll", () => {
+    if (!tece) cilj = koren.scrollTop;
+  }, { passive: true });
+
   ozivi(koren);
 
   koren.querySelector(".prof-zavihki").addEventListener("click", (e) => {
@@ -354,7 +411,10 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     { kljuc: "stiri", ime: "Stirje stolpci" },
     { kljuc: "mozaik", ime: "Mozaik" },
     { kljuc: "stopnice", ime: "Stopnice" },
+    { kljuc: "gost", ime: "Gosto (6-7)" },
     { kljuc: "trak", ime: "Trak" },
+    { kljuc: "izvirno", ime: "Izvirna razmerja" },
+    { kljuc: "polno", ime: "Cez cel zaslon" },
     { kljuc: "stolpci", ime: "Zidak" },
   ];
   // Razmik je svoja izbira in ne del razporeditve: velja za vse in ga
@@ -445,6 +505,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     }
     koren.classList.add("odprt");
     koren.scrollTop = 0;
+    cilj = 0;
     onOdprt?.();
   }
 

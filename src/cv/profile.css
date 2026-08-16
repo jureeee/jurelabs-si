@@ -14,9 +14,16 @@
   overscroll-behavior: contain;
   pointer-events: none;
   opacity: 0;
+  /* Prehod le ob odpiranju. Ob zapiranju mora izginiti v hipu: odseki so
+     takrat ze odplavali, ce pa bi se ovoj se 300 ms bledel, bi se otroci ob
+     odvzemu razreda zapira vrnili v vidno stanje in za trenutek pomezali. */
+  transition: none;
+}
+.prof.odprt {
+  pointer-events: auto;
+  opacity: 1;
   transition: opacity 300ms var(--ease);
 }
-.prof.odprt { pointer-events: auto; opacity: 1; }
 
 /* Komaj zaznavna zameglitev, da besedilo ne lebdi na zvezdah. */
 .prof-zavesa {
@@ -281,6 +288,34 @@
 /* Trak: en sam stolpec v sirokem formatu - za pregled po eni sliki naenkrat. */
 .prof-mreza[data-razpored="trak"] { grid-template-columns: 1fr; gap: 34px; }
 .prof-mreza[data-razpored="trak"] .prof-polje { aspect-ratio: 16 / 10; }
+
+/* Gost: sest ali sedem v vrsti, za pregled cez celoto. */
+.prof-mreza[data-razpored="gost"] { grid-template-columns: repeat(6, 1fr); gap: 8px; }
+@media (min-width: 1500px) {
+  .prof-mreza[data-razpored="gost"] { grid-template-columns: repeat(7, 1fr); }
+}
+
+/* Izvirno: brez rezanja. Vsako polje dobi razmerje svoje slike, ki ga ob
+   nalaganju zapise JS - brez tega bi bilo treba vsako sliko prebrati vnaprej.
+   Mreza je stolpicna in ne resetkasta, sicer bi razlicne visine pustile
+   luknje. */
+.prof-mreza[data-razpored="izvirno"] {
+  display: block;
+  column-count: 3;
+  column-gap: 22px;
+}
+.prof-mreza[data-razpored="izvirno"] .prof-polje {
+  aspect-ratio: var(--razmerje, 1);
+  break-inside: avoid;
+  margin-bottom: 22px;
+}
+
+/* Cez cel zaslon: ena slika naenkrat, v svojem razmerju. */
+.prof-mreza[data-razpored="polno"] { grid-template-columns: 1fr; gap: 46px; }
+.prof-mreza[data-razpored="polno"] .prof-polje {
+  aspect-ratio: var(--razmerje, 16 / 10);
+  max-height: 86vh;
+}
 
 /* Zidak: stolpci z zamikom. Vsak drugi stolpec je potisnjen navzdol, zato
    vrstice ne tecejo v ravni crti in mreza je videti zidana. */
