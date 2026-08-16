@@ -21,7 +21,7 @@ import galaxyModelUrl from "../assets/3d models/need_some_space.glb?url";
 import avatarUrl from "../assets/images/profile picture.png";
 import { installDefractedGlass } from "./defractedGlass.js";
 import { installNebulas } from "./nebulas.js";
-import { installSettings } from "./settings.js";
+import { installSettings, nastavitve } from "./settings.js";
 
 // --- nastavitve --------------------------------------------------------------
 /**
@@ -153,6 +153,11 @@ composer.addPass(bloom);
 composer.addPass(new OutputPass());
 
 let materiali = [];
+let galaksija = null;   // koren modela
+let megla = null;       // plast meglenice okoli zvezd
+let daljnaGal = null;   // oddaljena galaksija
+let meglice = [];       // barvne meglice
+let velikostMul = 1;    // mnozitelj velikosti zvezd iz nastavitev
 let restDistance = 60;
 let startDistance = 60;
 let orbitPhase = 0;
@@ -366,7 +371,7 @@ function resize() {
     const fovRad = (camera.fov * Math.PI) / 180;
     const merilo = (h * renderer.getPixelRatio()) / (2 * Math.tan(fovRad / 2));
     materiali.forEach((m) => {
-      m.uniforms.uMerilo.value = merilo;
+      m.uniforms.uMerilo.value = merilo * velikostMul;
     });
   }
 }
@@ -406,7 +411,7 @@ new GLTFLoader().load(galaxyModelUrl, (gltf) => {
 
   // Meglenica je ista geometrija se enkrat, le mehka in sibka. Additivno
   // mesanje pomeni, da vrstni red izrisa ni pomemben.
-  const megla = new THREE.Points(geometry, plasti.megla);
+  megla = new THREE.Points(geometry, plasti.megla);
   megla.frustumCulled = false;
   root.add(megla);
 
@@ -416,6 +421,7 @@ new GLTFLoader().load(galaxyModelUrl, (gltf) => {
   // zadaj. Ker stoji v istem prostoru, se ob krozenju kamere premika s pravo
   // parallakso - ploska slika v ozadju bi ostala pribita na zaslon.
   const daljna = new THREE.Points(geometry, plasti.zvezde.clone());
+  daljnaGal = daljna;
   daljna.material.uniforms.uMoc.value = STAR_INTENSITY * DALJNA_MOC;
   // Vidno polje se z globino siri: pri oddaljenosti D pokriva 0.625*D na
   // vsako stran. Precni odmik mora ostati pod tem, sicer je galaksija vedno
@@ -444,7 +450,8 @@ new GLTFLoader().load(galaxyModelUrl, (gltf) => {
   camera.updateProjectionMatrix();
 
   // Meglice potrebujejo polmer in sredisce, zato sele tu.
-  installNebulas(renderer, scene, target.clone(), radius);
+  galaksija = root;
+  meglice = installNebulas(renderer, scene, target.clone(), radius);
 
   resize();
   startMs = performance.now();
@@ -502,7 +509,7 @@ function tick(ts) {
   // priletom in orbito ni, ker ni dveh stanj.
   const preostanek = (distance - restDistance) / (startDistance - restDistance);
   const zalet = FLIGHT_SWEEP * Math.pow(Math.max(preostanek, 0), SWEEP_FALLOFF);
-  orbitPhase += dt * ORBIT_SPEED * (1 + zalet);
+  orbitPhase += dt * ORBIT_SPEED * (nastavitve.hitrostOrbite / 42) * (1 + zalet);
 
   // Dusenje, neodvisno od hitrosti osvezevanja.
   const k = 1 - Math.exp(-dt / PARALLAX_TAU);
@@ -514,14 +521,16 @@ function tick(ts) {
   // zato ne deluje kot zanka.
   const ts_ = ts / 1000;
   const nihanje = Math.sin(ts_ * 0.11) * 0.6 + Math.sin(ts_ * 0.047) * 0.4;
-  const odmik = (Math.hypot(misX, misY) - 0.5) * PARALLAX_ZOOM + nihanje * ZOOM_DRIFT;
+  const misVklop = nastavitve.odzivNaMisko ? 1 : 0;
+  const odmik =
+    (Math.hypot(misX, misY) - 0.5) * PARALLAX_ZOOM * misVklop + nihanje * ZOOM_DRIFT;
   distance *= 1 + odmik * e;
 
   // Med priletom odziva na misko se ni - vklopi se sele, ko kamera obmiruje.
   placeCamera(
-    orbitPhase + misX * PARALLAX_ANGLE * e,
+    orbitPhase + misX * PARALLAX_ANGLE * e * misVklop,
     distance,
-    ORBIT_HEIGHT_MUL + misY * PARALLAX_HEIGHT * e
+    ORBIT_HEIGHT_MUL + misY * PARALLAX_HEIGHT * e * misVklop
   );
 
 
@@ -558,10 +567,45 @@ nav?.addEventListener("pointerover", (e) => {
 });
 
 // --- nastavitve --------------------------------------------------------------
-const nastavitve = installSettings();
+const plosca = installSettings();
 document
   .querySelector('.dock-icon[aria-label="Nastavitve"]')
-  ?.addEventListener("click", () => nastavitve.odpri());
+  ?.addEventListener("click", () => plosca.odpri());
+
+/**
+ * Prenese nastavitve na prizor.
+ *
+ * Klicana je ob vsaki spremembi in enkrat ob zagonu, da je zacetno stanje
+ * gotovo skladno z vrednostmi v plosci - sicer se stikalo in prizor razideta
+ * ze pred prvim klikom.
+ */
+function uporabiNastavitve() {
+  const prizorVklopljen = nastavitve.ozadje !== "izklop";
+
+  if (galaksija) galaksija.visible = prizorVklopljen;
+  if (daljnaGal) daljnaGal.visible = prizorVklopljen && nastavitve.ozadje === "galaksija";
+  // "Samo zvezde" pomeni brez mlecne plasti med njimi.
+  if (megla) megla.visible = prizorVklopljen && nastavitve.ozadje === "galaksija";
+  meglice.forEach((m) => {
+    m.visible = prizorVklopljen && nastavitve.meglice;
+  });
+
+  bloom.strength = (nastavitve.sij / 46) * BLOOM_STRENGTH;
+
+  velikostMul = nastavitve.velikostZvezd / 21;
+  resize();
+
+  // Steklo: brez loma ostane navadna motna ploskev. Prosojnost je alfa
+  // podlage, ki jo bere ves UI prek --dg-tint.
+  document.documentElement.classList.toggle("brez-stekla", !nastavitve.steklo);
+  document.documentElement.style.setProperty(
+    "--dg-tint",
+    `rgba(30, 35, 44, ${(nastavitve.prosojnost / 100).toFixed(3)})`
+  );
+}
+
+document.addEventListener("nast-sprememba", uporabiNastavitve);
+uporabiNastavitve();
 
 nav?.addEventListener("click", (e) => {
   const b = e.target instanceof Element ? e.target.closest("button") : null;

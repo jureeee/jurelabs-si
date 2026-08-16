@@ -74,17 +74,20 @@ const BARVE = [
   {
     sredica: new THREE.Color(0.72, 0.62, 0.68),
     obrobje: new THREE.Color(0.2, 0.14, 0.18),
-    sij: new THREE.Color(1.0, 0.26, 0.44),
+    sij: new THREE.Color(1.0, 0.3, 0.5),
+    sij2: new THREE.Color(0.5, 0.22, 0.72),
   },
   {
-    sredica: new THREE.Color(0.6, 0.72, 0.74),
-    obrobje: new THREE.Color(0.14, 0.2, 0.22),
-    sij: new THREE.Color(0.22, 0.86, 0.82),
+    sredica: new THREE.Color(0.66, 0.66, 0.78),
+    obrobje: new THREE.Color(0.16, 0.16, 0.24),
+    sij: new THREE.Color(0.36, 0.5, 1.0),
+    sij2: new THREE.Color(0.62, 0.3, 0.95),
   },
   {
     sredica: new THREE.Color(0.78, 0.72, 0.6),
     obrobje: new THREE.Color(0.24, 0.2, 0.14),
-    sij: new THREE.Color(1.0, 0.6, 0.22),
+    sij: new THREE.Color(1.0, 0.66, 0.34),
+    sij2: new THREE.Color(0.92, 0.28, 0.4),
   },
 ];
 
@@ -103,6 +106,7 @@ const fragmentShader = `
   uniform vec3 uSredica;
   uniform vec3 uObrobje;
   uniform vec3 uSij;
+  uniform vec3 uSij2;
   uniform float uPrameni;
   varying vec2 vUv;
 
@@ -209,7 +213,11 @@ const fragmentShader = `
     float jedro = exp(-d * 5.4) * 0.28;
     float avreola = exp(-d * 1.7) * 0.22;
     float sij = (jedro + avreola) * (1.0 - smoothstep(0.62, 1.0, d));
-    vsota.rgb += uSij * sij;
+    // Preliv med dvema odtenkoma: proti srediscu prvi, proti robu drugi.
+    // Ena sama barva je videti kot obarvana lisa; preliv da globino, ker oko
+    // bere spremembo odtenka kot spremembo gostote plina.
+    vec3 barvaSija = mix(uSij, uSij2, clamp(d * 1.5, 0.0, 1.0));
+    vsota.rgb += barvaSija * sij;
     vsota.a = max(vsota.a, sij * 0.85);
 
     gl_FragColor = vsota;
@@ -217,7 +225,7 @@ const fragmentShader = `
 `;
 
 /** Izpece eno meglico v teksturo. */
-function izpeci(renderer, seme, sredica, obrobje, sij) {
+function izpeci(renderer, seme, sredica, obrobje, sij, sij2) {
   const cilj = new THREE.WebGLRenderTarget(LOCLJIVOST, LOCLJIVOST, {
     minFilter: THREE.LinearFilter,
     magFilter: THREE.LinearFilter,
@@ -235,6 +243,7 @@ function izpeci(renderer, seme, sredica, obrobje, sij) {
         uSredica: { value: sredica },
         uObrobje: { value: obrobje },
         uSij: { value: sij },
+        uSij2: { value: sij2 },
         uPrameni: { value: PRAMENI },
       },
       vertexShader,
@@ -264,9 +273,10 @@ function izpeci(renderer, seme, sredica, obrobje, sij) {
  * @param {number} radius polmer galaksije
  */
 export function installNebulas(renderer, scene, sredisce, radius) {
+  const kosi = [];
   const teksture = [];
   for (let i = 0; i < RAZLICIC; i += 1) {
-    const { sredica, obrobje, sij } = BARVE[i % BARVE.length];
+    const { sredica, obrobje, sij, sij2 } = BARVE[i % BARVE.length];
     // Seme sme premakniti vzorec po x in z, po y pa le malo. Clen p.y + 4.2
     // v gostoti doloca plast, v kateri je snov; velik odmik po y pahne peko
     // nad ali pod njo in tekstura ostane prazna - zato je prej samo ena od
@@ -276,7 +286,7 @@ export function installNebulas(renderer, scene, sredisce, radius) {
       Math.random() * 2.4 - 1.2,
       Math.random() * 40 - 20
     );
-    teksture.push(izpeci(renderer, seme, sredica, obrobje, sij));
+    teksture.push(izpeci(renderer, seme, sredica, obrobje, sij, sij2));
   }
 
   for (let i = 0; i < KOSOV; i += 1) {
@@ -312,5 +322,8 @@ export function installNebulas(renderer, scene, sredisce, radius) {
     kos.renderOrder = -1;
 
     scene.add(kos);
+    kosi.push(kos);
   }
+
+  return kosi;
 }

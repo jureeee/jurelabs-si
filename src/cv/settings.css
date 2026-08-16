@@ -306,26 +306,28 @@
 .spust-gumb svg { width: 12px; height: 12px; opacity: 0.6; transition: transform 320ms var(--spring); }
 .spust.odprt .spust-gumb svg { transform: rotate(180deg); }
 
+/* Fiksna lega, ker seznam sicer reze kar troje: overflow:hidden na vrstici
+   (tam je zaradi vala), overflow-y:auto na strani in maska ob robovih. Lego
+   izracuna JS ob odpiranju. */
 .spust-seznam {
-  position: absolute;
-  right: 0;
-  bottom: calc(100% + 8px);
+  position: fixed;
   min-width: 172px;
   padding: 6px;
   border-radius: 16px;
-  z-index: 5;
 
   opacity: 0;
-  transform: translateY(10px) scale(0.96);
+  transform: translateY(-10px) scale(0.96);
   filter: blur(10px);
   pointer-events: none;
-  transform-origin: bottom right;
+  transform-origin: top right;
   transition:
     opacity 240ms var(--ease),
     transform 420ms var(--spring),
     filter 280ms var(--ease);
+
+  z-index: 70;
 }
-.spust.odprt .spust-seznam {
+.spust-seznam.odprt {
   opacity: 1;
   transform: translateY(0) scale(1);
   filter: blur(0);

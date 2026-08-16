@@ -151,6 +151,15 @@ function drsnik(kljuc, { min = 0, max = 100, enota = "" } = {}) {
   return ovoj;
 }
 
+/** Zapre vse spustne menije razen podanega. */
+function zapriVse(razen) {
+  document.querySelectorAll(".spust.odprt").forEach((d) => {
+    if (d === razen) return;
+    d.classList.remove("odprt");
+    d.seznam?.classList.remove("odprt");
+  });
+}
+
 function spust(kljuc, moznosti) {
   const ovoj = document.createElement("div");
   ovoj.className = "spust";
@@ -159,8 +168,15 @@ function spust(kljuc, moznosti) {
   gumb.type = "button";
   gumb.className = "spust-gumb dg";
 
+  // Seznam zivi v body, ne v vrstici.
+  //
+  // Vrstica ima po animaciji filter, filter pa naredi novo izhodisce za
+  // position: fixed - potomec se zato obnasa kot absolute in ga overflow:
+  // hidden na vrstici odreze. Zato ga obesimo na body, kjer nad njim ni
+  // nobenega filtra.
   const seznam = document.createElement("div");
   seznam.className = "spust-seznam dg";
+  document.body.appendChild(seznam);
 
   const osvezi = () => {
     const izbrana = moznosti.find((m) => m.vrednost === nastavitve[kljuc]);
@@ -182,6 +198,7 @@ function spust(kljuc, moznosti) {
       nastavitve[kljuc] = m.vrednost;
       osvezi();
       ovoj.classList.remove("odprt");
+      seznam.classList.remove("odprt");
       b.dispatchEvent(new CustomEvent("nast-sprememba", { bubbles: true, detail: { kljuc } }));
     });
     seznam.appendChild(b);
@@ -190,11 +207,28 @@ function spust(kljuc, moznosti) {
   gumb.addEventListener("click", (e) => {
     e.stopPropagation();
     // Le en spustni meni naenkrat.
-    document.querySelectorAll(".spust.odprt").forEach((d) => d !== ovoj && d.classList.remove("odprt"));
-    ovoj.classList.toggle("odprt");
+    zapriVse(ovoj);
+    const odpiramo = !ovoj.classList.contains("odprt");
+    ovoj.classList.toggle("odprt", odpiramo);
+    seznam.classList.toggle("odprt", odpiramo);
+    if (!odpiramo) return;
+
+    // Seznam je fiksen, zato mu lego postavimo sami. Privzeto pod gumbom;
+    // ce spodaj ni prostora, ga obrnemo navzgor.
+    const r = gumb.getBoundingClientRect();
+    seznam.style.visibility = "hidden";
+    seznam.style.top = "0px";
+    const v = seznam.offsetHeight;
+    const podSpodaj = window.innerHeight - r.bottom - 16;
+    const navzgor = podSpodaj < v && r.top > v + 16;
+    seznam.style.top = `${navzgor ? r.top - v - 8 : r.bottom + 8}px`;
+    seznam.style.left = `${Math.max(12, r.right - seznam.offsetWidth)}px`;
+    seznam.style.transformOrigin = navzgor ? "bottom right" : "top right";
+    seznam.style.visibility = "";
   });
 
-  ovoj.append(gumb, seznam);
+  ovoj.seznam = seznam;
+  ovoj.append(gumb);
   osvezi();
   return ovoj;
 }
@@ -361,7 +395,7 @@ export function installSettings() {
 
   function zapri() {
     koren.classList.remove("odprt");
-    document.querySelectorAll(".spust.odprt").forEach((d) => d.classList.remove("odprt"));
+    zapriVse(null);
   }
 
   gumbNazaj.addEventListener("click", nazaj);
@@ -372,9 +406,9 @@ export function installSettings() {
     if (e.key === "Escape") (sklad.length ? nazaj : zapri)();
   });
   // Klik izven spustnega menija ga zapre.
-  koren.addEventListener("click", () => {
-    document.querySelectorAll(".spust.odprt").forEach((d) => d.classList.remove("odprt"));
-  });
+  koren.addEventListener("click", () => zapriVse(null));
+  // Seznami zivijo v body, zato jih pobrisemo tudi ob zapiranju plosce.
+  window.addEventListener("resize", () => zapriVse(null));
 
   return { odpri, zapri };
 }
