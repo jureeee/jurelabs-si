@@ -41,8 +41,8 @@ const PRAMENI = 0.5;
 const LOCLJIVOST = 320;
 
 /** Velikost meglice kot delez polmera galaksije. */
-const VELIKOST_MIN = 0.09;
-const VELIKOST_MAX = 0.17;
+const VELIKOST_MIN = 0.023;
+const VELIKOST_MAX = 0.043;
 
 /**
  * Kje se meglice zadrzujejo, v polmerih galaksije.
@@ -53,8 +53,8 @@ const VELIKOST_MAX = 0.17;
  * razporejene v obroc okoli diska, zato jih je ob vsakem kotu nekaj v vidnem
  * polju.
  */
-const ODMIK_MIN = 0.3;
-const ODMIK_MAX = 1.05;
+const ODMIK_MIN = 0.12;
+const ODMIK_MAX = 0.5;
 
 /** Kako mocno so vidne. Nizko namenoma - so ozadje, ne motiv. */
 const MOC_MIN = 0.7;
@@ -267,10 +267,14 @@ export function installNebulas(renderer, scene, sredisce, radius) {
   const teksture = [];
   for (let i = 0; i < RAZLICIC; i += 1) {
     const { sredica, obrobje, sij } = BARVE[i % BARVE.length];
+    // Seme sme premakniti vzorec po x in z, po y pa le malo. Clen p.y + 4.2
+    // v gostoti doloca plast, v kateri je snov; velik odmik po y pahne peko
+    // nad ali pod njo in tekstura ostane prazna - zato je prej samo ena od
+    // treh meglic sploh imela prameni.
     const seme = new THREE.Vector3(
-      Math.random() * 60 - 30,
-      Math.random() * 60 - 30,
-      Math.random() * 60 - 30
+      Math.random() * 40 - 20,
+      Math.random() * 2.4 - 1.2,
+      Math.random() * 40 - 20
     );
     teksture.push(izpeci(renderer, seme, sredica, obrobje, sij));
   }
