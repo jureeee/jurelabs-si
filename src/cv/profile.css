@@ -34,6 +34,29 @@
   background: rgba(6, 8, 12, 0.34);
 }
 
+/* Zgornji rob: vsebina se proti njemu zatemni in zbledi, da ne trci ob rob
+   zaslona. Plast je nad vsebino, a ne lovi klikov. */
+.prof-rob {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 140px;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(4, 6, 10, 0.92) 0%,
+    rgba(4, 6, 10, 0.66) 42%,
+    rgba(4, 6, 10, 0) 100%
+  );
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 40%, transparent 100%);
+  opacity: 0;
+  transition: opacity 420ms var(--ease);
+}
+.prof.odprt .prof-rob { opacity: 1; }
+
 .prof-vsebina {
   position: relative;
   width: min(980px, calc(100vw - 68px));
@@ -255,7 +278,30 @@
 @media (max-width: 720px) {
   .prof-glava { gap: 24px; }
   .prof-avatar { width: 92px; height: 92px; }
-  .prof-vsebina { width: calc(100vw - 40px); padding-top: 88px; }
+  /* Zgornji rob: vsebina se proti njemu zatemni in zbledi, da ne trci ob rob
+   zaslona. Plast je nad vsebino, a ne lovi klikov. */
+.prof-rob {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 140px;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(4, 6, 10, 0.92) 0%,
+    rgba(4, 6, 10, 0.66) 42%,
+    rgba(4, 6, 10, 0) 100%
+  );
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 40%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 40%, transparent 100%);
+  opacity: 0;
+  transition: opacity 420ms var(--ease);
+}
+.prof.odprt .prof-rob { opacity: 1; }
+
+.prof-vsebina { width: calc(100vw - 40px); padding-top: 88px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
