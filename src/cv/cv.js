@@ -113,7 +113,14 @@ const BLOOM_THRESHOLD = 0.38;
 
 const canvas = document.getElementById("galaxy");
 // Brez alfe: sij se sesteva na crno podlago in ne skozi prosojnost na stran.
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+const renderer = new THREE.WebGLRenderer({
+  canvas,
+  antialias: true,
+  alpha: false,
+  // Nujno za zamrznitev: brez tega brskalnik po izrisu izprazni medpomnilnik
+  // in platno pocrni, takoj ko neha risati.
+  preserveDrawingBuffer: true,
+});
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.setClearColor(0x000000, 1);
@@ -165,6 +172,7 @@ let orbitPhase = 0;
 let startMs = 0;
 let lastMs = 0;
 let ready = false;
+let zamrznjeno = false;
 
 const easeInOutCubic = (t) =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -492,6 +500,17 @@ function tick(ts) {
   requestAnimationFrame(tick);
   if (!ready) return;
 
+  // Zamrznitev namesto vzporednega izrisa.
+  //
+  // Galaksija je 50 000 tock in bloom v dvojni locljivosti. Ce bi tekla med
+  // brskanjem po galeriji, bi si delila cas z nalaganjem in dekodiranjem
+  // videov in oboje bi trzalo. Ustavimo izris, platno pa obdrzi zadnjo
+  // slicico - kar je videti kot mirujoce ozadje in ne stane nic.
+  if (zamrznjeno) {
+    lastMs = ts;
+    return;
+  }
+
   // Vse vezemo na pretecen cas, ne na stevilo slicic - sicer je gibanje na
   // 144 Hz zaslonu dvakrat hitrejse kot na 60 Hz.
   const dt = Math.min((ts - lastMs) / 1000, 0.05);
@@ -568,7 +587,10 @@ nav?.addEventListener("pointerover", (e) => {
 });
 
 // --- nastavitve --------------------------------------------------------------
-const profil = installProfile();
+const profil = installProfile({
+  onOdprt: () => { zamrznjeno = true; },
+  onZaprt: () => { zamrznjeno = false; },
+});
 document.querySelector(".profil")?.addEventListener("click", () => profil.odpri());
 
 const plosca = installSettings();

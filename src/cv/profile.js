@@ -75,7 +75,7 @@ function ozivi(koren) {
   });
 }
 
-export function installProfile() {
+export function installProfile({ onOdprt, onZaprt } = {}) {
   const koren = document.createElement("div");
   koren.className = "prof";
   koren.innerHTML = `
@@ -150,11 +150,11 @@ export function installProfile() {
         if (v.isIntersecting) {
           polje.classList.add("vidno");
           napolni(polje);
-          polje.querySelector("video")?.play().catch(() => {});
+          polje.querySelectorAll("video").forEach((v) => v.play().catch(() => {}));
         } else {
           // Ustavimo, a ne odstranimo: brskalnik obdrzi ze prenesene podatke,
           // dekoder pa neha delati.
-          polje.querySelector("video")?.pause();
+          polje.querySelectorAll("video").forEach((v) => v.pause());
         }
       });
     },
@@ -166,6 +166,16 @@ export function installProfile() {
     polje.dataset.polno = "1";
     const url = polje.dataset.url;
 
+    // Sij: ista slika se enkrat, zabrisana in povecana, pod pravo. Barva
+    // torej pride iz same vsebine in ne iz izmisljene svetlobe.
+    const sij = document.createElement(polje.dataset.video === "true" ? "video" : "img");
+    sij.className = "prof-sij";
+    sij.src = url;
+    if (polje.dataset.video === "true") {
+      sij.muted = true; sij.loop = true; sij.playsInline = true; sij.preload = "metadata";
+    }
+    polje.prepend(sij);
+
     if (polje.dataset.video === "true") {
       const v = document.createElement("video");
       v.src = url;
@@ -175,13 +185,13 @@ export function installProfile() {
       // metadata in ne auto: prvo slicico dobimo takoj, celega posnetka pa ne
       // vlecemo, dokler se ne zacne predvajati.
       v.preload = "metadata";
-      polje.prepend(v);
+      polje.append(v);
     } else {
       const i = document.createElement("img");
       i.src = url;
       i.alt = "";
       i.decoding = "async";
-      polje.prepend(i);
+      polje.append(i);
     }
   }
 
@@ -207,6 +217,7 @@ export function installProfile() {
     }
     koren.classList.add("odprt");
     koren.scrollTop = 0;
+    onOdprt?.();
   }
 
   function zapri() {
@@ -217,6 +228,7 @@ export function installProfile() {
     zapiranje = setTimeout(() => {
       koren.classList.remove("odprt", "zapira");
       koren.querySelectorAll("video").forEach((v) => v.pause());
+      onZaprt?.();
       zapiranje = null;
     }, 460);
   }

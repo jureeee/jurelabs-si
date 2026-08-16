@@ -154,32 +154,58 @@
 .prof-mreza {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
+  gap: 22px;
   margin-top: 22px;
 }
 .prof-polje {
   position: relative;
   aspect-ratio: 1;
-  border-radius: 6px;
-  overflow: hidden;
+  border-radius: 12px;
+  /* Sij mora segati cez rob polja, zato tu ne smemo rezati. */
+  overflow: visible;
   background: rgba(255, 255, 255, 0.045);
   cursor: pointer;
 
-  /* Vsako polje pride, ko prvic pride na zaslon - ne vsa hkrati ob nalaganju. */
+  /* Vsako polje pride, ko prvic pride na zaslon - ne vsa hkrati ob nalaganju.
+     Potegne ga od spodaj, pri tem se po visini raztegne in sele nato umiri;
+     raztezek je tisti, po katerem gib bere kot poteg in ne kot prikaz. */
   opacity: 0;
-  transform: translateY(18px) scale(0.97);
-  filter: blur(10px);
+  transform: translateY(42px) scaleY(1.14) scaleX(0.94);
+  filter: blur(14px);
   transition:
-    opacity 520ms var(--ease),
-    transform 680ms var(--spring),
-    filter 560ms var(--ease);
+    opacity 560ms var(--ease),
+    transform 820ms var(--spring),
+    filter 620ms var(--ease);
 }
-.prof-polje.vidno { opacity: 1; transform: none; filter: blur(0); }
-.prof-polje img,
-.prof-polje video {
+.prof-polje.vidno {
+  opacity: 1;
+  transform: translateY(0) scaleY(1) scaleX(1);
+  filter: blur(0);
+}
+/* Sij: ista slika, zabrisana in povecana, pod pravo. Barva pride iz same
+   vsebine, zato vsako polje sveti v svojih barvah. */
+.prof-sij {
+  position: absolute;
+  inset: 6%;
+  width: 88%; height: 88%;
+  object-fit: cover;
+  filter: blur(26px) saturate(1.7);
+  opacity: 0;
+  transform: translateY(10px) scale(1.02);
+  transition: opacity 900ms var(--ease) 120ms, transform 900ms var(--ease) 120ms;
+  pointer-events: none;
+  z-index: -1;
+}
+.prof-polje.vidno .prof-sij { opacity: 0.65; transform: translateY(14px) scale(1.06); }
+
+.prof-polje > img:not(.prof-sij),
+.prof-polje > video:not(.prof-sij) {
+  position: relative;
   width: 100%; height: 100%;
   object-fit: cover;
   display: block;
+  border-radius: 12px;
+  overflow: hidden;
 }
 .prof-polje:hover img,
 .prof-polje:hover video { transform: scale(1.04); }
