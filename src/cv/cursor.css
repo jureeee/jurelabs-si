@@ -86,12 +86,19 @@
 .kaz[data-nacin="lepi"] .kaz-telo,
 .kaz[data-nacin="crtica"] .kaz-telo { background: currentColor; }
 
-/* Nad besedilom: tanka crtica, kot kazalec za vnos. */
+/* Nad besedilom: tanka pokoncna crtica, ki utripa - kot kazalec za vnos.
+   Utrip je blag in ne ugasne do konca; polno ugasnjena crtica bi delovala kot
+   napaka v izrisu, ne kot ziv kazalec. */
 .kaz[data-nacin="crtica"] .kaz-telo {
   width: 3px;
   height: 26px;
   margin: -13px 0 0 -1.5px;
   border-radius: 2px;
+  animation: crticaUtrip 1.15s var(--ease) infinite;
+}
+@keyframes crticaUtrip {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.28; }
 }
 
 .kaz.pritisk .kaz-telo { transform: scale(0.72); }

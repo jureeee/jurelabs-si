@@ -221,8 +221,12 @@ export function installCursor() {
         telo.style.margin = "";
         telo.style.borderRadius = "";
       }
+      // Crtica ostane pokoncna: zavrtena bi bila videti kot posevna poteza in
+      // ne kot kazalec za vnos. Raztezek po hitrosti velja le za iskrico.
       telo.style.transform =
-        `rotate(${kot}deg) scale(${1 + hitrost * RAZTEG}, ${1 - hitrost * RAZTEG * 0.62})`;
+        nacin === "crtica"
+          ? "none"
+          : `rotate(${kot}deg) scale(${1 + hitrost * RAZTEG}, ${1 - hitrost * RAZTEG * 0.62})`;
     }
 
     el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
