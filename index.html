@@ -233,7 +233,7 @@
         display: flex;
         align-items: center;
         gap: 0;
-        padding: 7px;
+        padding: 6px;
         border-radius: 999px;
         border: none;
         cursor: pointer;
@@ -244,8 +244,8 @@
 
         /* Sirina je tista, ki se animira - ne transform. Skaliranje bi
            raztegnilo tudi sliko in besedilo. */
-        width: 54px;
-        height: 54px;
+        width: 46px;
+        height: 46px;
         transition: width 520ms var(--spring);
 
         opacity: 0;
@@ -258,7 +258,7 @@
       }
 
       .profil:hover,
-      .profil:focus-visible { width: 208px; }
+      .profil:focus-visible { width: 178px; }
       .profil:active { transform: scale(0.97); }
 
       /* Slika in ime lezita eno cez drugo, oba odmaknjena od roba. Ce bi bila
@@ -266,10 +266,10 @@
          poskocila; tako se le izmenjata na mestu. */
       .profil-slika {
         position: absolute;
-        left: 7px;
-        top: 7px;
-        width: 40px;
-        height: 40px;
+        left: 6px;
+        top: 6px;
+        width: 34px;
+        height: 34px;
         border-radius: 50%;
         overflow: hidden;
         background: rgba(255, 255, 255, 0.08);
@@ -296,7 +296,7 @@
 
       .profil-ime {
         position: absolute;
-        left: 21px;
+        left: 17px;
         top: 50%;
         display: flex;
         flex-direction: column;
@@ -320,7 +320,7 @@
       }
 
       .profil-ime-vrh {
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 700;
         /* Pri debeli pisavi se crke zlepijo; rahlo negativen razmik jih drzi
            skupaj kot besedo in ne kot niz znakov. */
@@ -329,7 +329,7 @@
         color: var(--ink);
       }
       .profil-ime-rocaj {
-        font-size: 12.5px;
+        font-size: 11.5px;
         font-weight: 500;
         letter-spacing: 0.012em;
         line-height: 1.1;
