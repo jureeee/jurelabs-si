@@ -236,7 +236,13 @@
 .prof-razpored svg { width: 18px; height: 18px; display: block; }
 
 /* --- mreza --------------------------------------------------------------- */
+/* Mreza gre cez cel zaslon, glava pa ostane v stolpcu.
+   Vsebina je omejena na 980 px, ker je besedilo pri sirsem stolpcu neberljivo;
+   za slike ta omejitev ne velja - te so tem boljse, cim vec prostora dobijo.
+   Zato mreza z negativnim odmikom stopi iz stolpca na celo sirino okna. */
 .prof-mreza {
+  width: calc(100vw - 68px);
+  margin-left: calc(50% - 50vw + 34px);
   display: grid;
   gap: 22px;
   transition: opacity 190ms var(--ease), filter 190ms var(--ease);
@@ -301,8 +307,11 @@
    luknje. */
 .prof-mreza[data-razpored="izvirno"] {
   display: block;
-  column-count: 3;
+  column-count: 4;
   column-gap: 22px;
+}
+@media (min-width: 1600px) {
+  .prof-mreza[data-razpored="izvirno"] { column-count: 5; }
 }
 .prof-mreza[data-razpored="izvirno"] .prof-polje {
   aspect-ratio: var(--razmerje, 1);
