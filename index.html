@@ -33,6 +33,26 @@
 
       * { box-sizing: border-box; }
 
+      /* Izbrano besedilo. Privzeta modrina brskalnika je edina barva na
+         strani, ki ni nasa - tu je namesto nje mlecna prosojnost, skozi
+         katero se vidi galaksija, in ista pisava kot sicer. */
+      ::selection {
+        background: rgba(255, 255, 255, 0.24);
+        color: var(--ink);
+        text-shadow: none;
+      }
+      ::-moz-selection {
+        background: rgba(255, 255, 255, 0.24);
+        color: var(--ink);
+      }
+
+      /* Nadzorne ploskve niso besedilo za branje; izbira na njih je nesreca
+         pri vlecenju, ne namera. */
+      button, .nav, .dock, .profil, .nast-glava, .prof-zavihki, .prof-stevci {
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
       html, body {
         margin: 0;
         width: 100%;
