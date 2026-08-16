@@ -148,17 +148,45 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
       vnosi.forEach((v) => {
         const polje = v.target;
         if (v.isIntersecting) {
-          polje.classList.add("vidno");
           napolni(polje);
-          polje.querySelectorAll("video").forEach((v) => v.play().catch(() => {}));
+          polje.querySelectorAll("video").forEach((x) => x.play().catch(() => {}));
         } else {
           // Ustavimo, a ne odstranimo: brskalnik obdrzi ze prenesene podatke,
           // dekoder pa neha delati.
-          polje.querySelectorAll("video").forEach((v) => v.pause());
+          polje.querySelectorAll("video").forEach((x) => x.pause());
         }
       });
     },
     { root: koren, rootMargin: "400px 0px", threshold: 0.01 }
+  );
+
+  /**
+   * Drugi opazovalec, brez zaloge, samo za videz.
+   *
+   * Prvi ima 400 px zaloge, da se mediji nalozijo, preden jih zagledas. Ce bi
+   * z njim vodili tudi zameglitev, bi se ta zgodila 400 px izven zaslona, kjer
+   * je ni videti. Ta tece po pravem robu zaslona in loci, ali je polje odslo
+   * navzdol ali navzgor - smer nosi pomen, saj mora polje oditi tja, kamor ga
+   * je odneslo.
+   */
+  const videz = new IntersectionObserver(
+    (vnosi) => {
+      vnosi.forEach((v) => {
+        const polje = v.target;
+        polje.classList.remove("odhaja-dol", "odhaja-gor");
+        if (v.isIntersecting) {
+          polje.classList.add("vidno");
+          return;
+        }
+        polje.classList.remove("vidno");
+        const meje = v.rootBounds;
+        if (!meje) return;
+        polje.classList.add(
+          v.boundingClientRect.top >= meje.bottom ? "odhaja-dol" : "odhaja-gor"
+        );
+      });
+    },
+    { root: koren, rootMargin: "-4% 0px", threshold: 0.01 }
   );
 
   function napolni(polje) {
@@ -195,7 +223,10 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     }
   }
 
-  mreza.querySelectorAll(".prof-polje").forEach((p) => opazovalec.observe(p));
+  mreza.querySelectorAll(".prof-polje").forEach((p) => {
+    opazovalec.observe(p);
+    videz.observe(p);
+  });
 
   ozivi(koren);
 

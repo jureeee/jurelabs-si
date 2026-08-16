@@ -182,6 +182,19 @@
   transform: translateY(0) scaleY(1) scaleX(1);
   filter: blur(0);
 }
+
+/* Odhod v smeri, v katero ga je odneslo. Navzgor odide krajse in hitreje -
+   tisto je ze prebrano, spodnji rob pa je tam, kamor gres. */
+.prof-polje.odhaja-dol {
+  opacity: 0;
+  transform: translateY(44px) scaleY(1.12) scaleX(0.95);
+  filter: blur(14px);
+}
+.prof-polje.odhaja-gor {
+  opacity: 0;
+  transform: translateY(-30px) scaleY(1.08) scaleX(0.96);
+  filter: blur(12px);
+}
 /* Sij: ista slika, zabrisana in povecana, pod pravo. Barva pride iz same
    vsebine, zato vsako polje sveti v svojih barvah. */
 .prof-sij {
