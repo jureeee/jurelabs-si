@@ -91,6 +91,21 @@
   animation-delay: calc(var(--i, 0) * 26ms);
 }
 
+/* ---------------------------------------------------------------------------
+   HDR
+
+   Fotografije iz telefona nosijo gain map, zato jih brskalnik na HDR zaslonu
+   izrise cez belino SDR - ob temnem vmesniku pregorijo, ceprav so na SDR
+   zaslonu videti prav. dynamic-range-limit jih zadrzi v standardnem obsegu,
+   da so v enakem svetlobnem prostoru kot vse ostalo na strani.
+
+   Na zaslonih brez HDR lastnost ne naredi nicesar.
+--------------------------------------------------------------------------- */
+.prof img,
+.prof video {
+  dynamic-range-limit: standard;
+}
+
 /* --- glava --------------------------------------------------------------- */
 .prof-glava { display: flex; align-items: flex-start; gap: 44px; }
 
