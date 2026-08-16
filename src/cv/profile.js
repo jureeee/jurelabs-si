@@ -14,6 +14,7 @@
 
 import "./profile.css";
 import avatarUrl from "../assets/images/profile picture.png";
+import { mediji } from "./mediji.js";
 
 const IKONA_ZAPRI =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
@@ -37,45 +38,6 @@ const PODATKI = {
  * Seznam vseh medijev. Glob vrne le naslove (nize), zato tu se nic ne
  * potuje po mrezi - datoteka se prenese sele, ko polje dobi src.
  */
-const vsi = Object.entries(
-  import.meta.glob("../assets/images/*.{jpg,JPG,jpeg,JPEG,png,PNG,mp4,MP4,mov,MOV}", {
-    eager: true,
-    query: "?url",
-    import: "default",
-  })
-)
-  .map(([pot, url]) => ({
-    url,
-    ime: pot.split("/").pop(),
-    video: /\.(mp4|mov)$/i.test(pot),
-  }))
-  // Profilna slika sodi v glavo, ne v mrezo.
-  .filter((m) => !m.ime.startsWith("profile picture"));
-
-/**
- * Ena vrstica na posnetek.
- *
- * Iz telefona pride vsak Live Photo dvakrat: kot slika in kot .mov z isto
- * osnovo imena. V mrezi bi bil zato isti prizor dvakrat, enkrat mirujoc in
- * enkrat gibljiv. Zdruzimo ju po osnovi in obdrzimo video, ker vsebuje tudi
- * mirujoco slicico; ce videa ni, ostane slika.
- *
- * Stranski ucinek je, da se znebimo tudi datotek .heic, ki jih noben
- * brskalnik ne prikaze - vse imajo svoj .mov.
- */
-const poOsnovi = new Map();
-for (const m of vsi) {
-  const osnova = m.ime.replace(/\.[^.]+$/, "").toLowerCase();
-  const prej = poOsnovi.get(osnova);
-  if (!prej || (m.video && !prej.video)) poOsnovi.set(osnova, m);
-}
-
-const mediji = [...poOsnovi.values()]
-  // Brez pripone in po stevilki, da vrstni red sledi imenu in ne abecedi,
-  // kjer bi img10 stal pred img2.
-  .sort((a, b) =>
-    a.ime.localeCompare(b.ime, undefined, { numeric: true, sensitivity: "base" })
-  );
 
 /**
  * Vrsta z zamikom.
