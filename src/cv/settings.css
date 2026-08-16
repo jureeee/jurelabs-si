@@ -368,6 +368,11 @@
      bere kot konec seznama. */
   max-height: min(58vh, 460px);
   overflow-y: auto;
+  /* Drsnik naj tece znotraj ploskve, ne cez njen zaobljeni rob: prostor zanj
+     rezerviramo z desnim robom in ga s stabilnim zlebom obdrzimo tudi takrat,
+     ko drsenja ni - sicer bi se vsebina ob odprtju premaknila. */
+  padding-right: 4px;
+  scrollbar-gutter: stable;
   overscroll-behavior: contain;
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 16px), transparent 100%);
   mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 16px), transparent 100%);

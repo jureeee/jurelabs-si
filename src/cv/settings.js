@@ -229,11 +229,16 @@ function spust(kljuc, moznosti) {
     const r = gumb.getBoundingClientRect();
     seznam.style.visibility = "hidden";
     seznam.style.top = "0px";
+    // Najprej sprostimo omejitev, da izmerimo pravo visino vsebine.
+    seznam.style.maxHeight = "";
     const v = seznam.offsetHeight;
     const podSpodaj = window.innerHeight - r.bottom - 16;
     const navzgor = podSpodaj < v && r.top > v + 16;
     seznam.style.top = `${navzgor ? r.top - v - 8 : r.bottom + 8}px`;
     seznam.style.left = `${Math.max(12, r.right - seznam.offsetWidth)}px`;
+    // Seznam ne sme cez rob zaslona: omejimo ga na prostor, ki ga dejansko ima.
+    const prostor = navzgor ? r.top - 20 : window.innerHeight - r.bottom - 20;
+    seznam.style.maxHeight = `${Math.max(160, Math.min(v, prostor))}px`;
     seznam.style.transformOrigin = navzgor ? "bottom right" : "top right";
     seznam.style.visibility = "";
   });
