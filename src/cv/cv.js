@@ -23,6 +23,7 @@ import { installDefractedGlass } from "./defractedGlass.js";
 import { installSettings, nastavitve } from "./settings.js";
 import { installProfile } from "./profile.js";
 import { installContextMenu } from "./context.js";
+import { installAbout } from "./about.js";
 import { installCursor, installMagnetic } from "./cursor.js";
 
 // --- nastavitve --------------------------------------------------------------
@@ -610,6 +611,11 @@ const plosca = installSettings();
 document
   .querySelector('.dock-icon[aria-label="Nastavitve"]')
   ?.addEventListener("click", () => plosca.odpri());
+
+const omeni = installAbout();
+nav?.querySelectorAll('[role="tab"]').forEach((t) => {
+  if (t.textContent.trim() === "O meni") t.addEventListener("click", () => omeni.odpri());
+});
 
 installContextMenu(profil, plosca);
 

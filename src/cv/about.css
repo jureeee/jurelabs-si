@@ -1,0 +1,163 @@
+/* =========================================================================
+   O MENI
+
+   Vrtiljak kartic. Vsebina lezi cez galaksijo, tako kot profil - brez plosce,
+   le tanka plast zameglitve zadaj.
+   ========================================================================= */
+
+.omeni {
+  position: fixed;
+  inset: 0;
+  z-index: 56;
+  display: grid;
+  align-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: none;
+}
+.omeni.odprt {
+  pointer-events: auto;
+  opacity: 1;
+  transition: opacity 300ms var(--ease);
+}
+
+.omeni-zavesa {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 8, 12, 0);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  transition: background 460ms var(--ease), backdrop-filter 460ms var(--ease);
+}
+.omeni.odprt .omeni-zavesa {
+  background: rgba(6, 8, 12, 0.4);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+/* --- tir ------------------------------------------------------------------ */
+.omeni-tir {
+  position: relative;
+  display: flex;
+  gap: 26px;
+  padding: 0 max(34px, calc(50vw - 300px));
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  /* Pripenjanje: kartica se vedno postavi na svoje mesto, zato vrtiljak nikoli
+     ne obstane na pol poti med dvema. */
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.omeni-tir::-webkit-scrollbar { display: none; }
+
+/* --- kartica -------------------------------------------------------------- */
+.omeni-kartica {
+  flex: none;
+  width: min(600px, calc(100vw - 68px));
+  min-height: 380px;
+  padding: 40px 42px;
+  border-radius: 30px;
+  scroll-snap-align: center;
+
+  /* Vsaka pride za prejsnjo, iz zabrisanosti in od desne. */
+  opacity: 0;
+  transform: translateX(46px) scale(0.97);
+  filter: blur(16px);
+  transition:
+    opacity 620ms var(--ease),
+    transform 820ms var(--spring),
+    filter 700ms var(--ease);
+}
+.omeni.odprt .omeni-kartica {
+  opacity: 1;
+  transform: none;
+  filter: blur(0);
+  transition-delay: calc(120ms + var(--i, 0) * 70ms);
+}
+
+.omeni-oznaka {
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.omeni-naslov {
+  margin: 16px 0 0;
+  font-size: clamp(26px, 3.4vw, 38px);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.022em;
+  color: var(--ink);
+}
+.omeni-telo {
+  margin: 18px 0 0;
+  max-width: 46ch;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.omeni-znacke { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.omeni-znacka {
+  padding: 7px 13px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* --- krmiljenje ----------------------------------------------------------- */
+.omeni-nazaj,
+.omeni-naprej,
+.omeni-zapri {
+  position: fixed;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color var(--t-fast) var(--ease), transform var(--t-med) var(--spring);
+}
+.omeni-nazaj svg, .omeni-naprej svg, .omeni-zapri svg { width: 17px; height: 17px; }
+.omeni-nazaj:hover, .omeni-naprej:hover, .omeni-zapri:hover { color: var(--ink); }
+.omeni-nazaj:active, .omeni-naprej:active, .omeni-zapri:active { transform: scale(0.9); }
+
+.omeni-nazaj { left: 34px; top: 50%; margin-top: -22px; transform: rotate(180deg); }
+.omeni-nazaj:active { transform: rotate(180deg) scale(0.9); }
+.omeni-naprej { right: 34px; top: 50%; margin-top: -22px; }
+.omeni-zapri {
+  top: max(34px, calc(env(safe-area-inset-top) + 18px));
+  right: max(34px, calc(env(safe-area-inset-right) + 18px));
+}
+
+.omeni-pike {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: max(34px, calc(env(safe-area-inset-bottom) + 18px));
+  display: flex;
+  justify-content: center;
+  gap: 9px;
+}
+.omeni-pika {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.24);
+  cursor: pointer;
+  transition: width var(--t-med) var(--spring), background var(--t-fast) var(--ease);
+}
+.omeni-pika[aria-current="true"] { width: 22px; border-radius: 999px; background: var(--ink); }
+
+@media (max-width: 720px) {
+  .omeni-kartica { padding: 30px 26px; min-height: 320px; }
+  .omeni-nazaj, .omeni-naprej { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .omeni *, .omeni *::before { transition-duration: 0.001ms !important; }
+}
