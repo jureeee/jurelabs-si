@@ -23,7 +23,7 @@ import { installDefractedGlass } from "./defractedGlass.js";
 import { installNebulas } from "./nebulas.js";
 import { installSettings, nastavitve } from "./settings.js";
 import { installProfile } from "./profile.js";
-import { installCursor } from "./cursor.js";
+import { installCursor, installMagnetic } from "./cursor.js";
 
 // --- nastavitve --------------------------------------------------------------
 /**
@@ -589,6 +589,7 @@ nav?.addEventListener("pointerover", (e) => {
 
 // --- nastavitve --------------------------------------------------------------
 installCursor();
+installMagnetic();
 
 const profil = installProfile({
   onOdprt: () => { zamrznjeno = true; },

@@ -36,6 +36,9 @@ const OBLIKE = Object.entries(
     import: "default",
   })
 )
+  // Dve obliki nista v rabi: 05 (krizec) in 06 (osemkraka zvezdica) sta pri
+  // majhni velikosti videti kot znak za zapiranje oziroma kot smet na zaslonu.
+  .filter(([pot]) => !/0[56]-/.test(pot))
   .sort(([a], [b]) => a.localeCompare(b))
   .map(([, svg]) =>
     svg
@@ -59,7 +62,7 @@ const LEPLJIVO = "button, a, .nast-vrstica.klikna, .spust-izbira";
 const BESEDILO = "p, h1, h2, h3, .nast-ime, .nast-opis, .prof-bio, .prof-ime, .prof-pravo";
 
 /** Kako hitro dohiteva misko. Nizje = bolj leno. */
-const DUSENJE = 0.19;
+const DUSENJE = 0.34;
 /** Kako mocno se raztegne pri hitrem gibu in kje je meja. */
 const RAZTEG = 0.5;
 const HITROST_MEJA = 46;
@@ -110,7 +113,9 @@ export function installCursor() {
 
   let cilj = null;      // ploskev, na katero smo prilepljeni
   let ciljR = null;     // njena lega
+  let ciljRob = "";     // njena zaobljenost
   let nacin = "prost";  // prost | lepi | crtica
+  let zadnjaOblika = null;
 
   addEventListener(
     "pointermove",
@@ -118,12 +123,21 @@ export function installCursor() {
       misX = e.clientX;
       misY = e.clientY;
 
-      const pod = document.elementFromPoint(misX, misY);
+      // e.target je ze najvisji element pod kazalcem - kazalec sam ima
+      // pointer-events: none. elementFromPoint bi isto ugotovil se enkrat, a
+      // za ceno zadetkovnega testa in izracuna postavitve ob VSAKEM premiku.
+      const pod = e.target instanceof Element ? e.target : null;
       const lepljiv = pod?.closest(LEPLJIVO) ?? null;
 
       if (lepljiv !== cilj) {
         cilj = lepljiv;
-        ciljR = cilj ? cilj.getBoundingClientRect() : null;
+        // Lego in zaobljenost preberemo ob menjavi cilja, ne vsako slicico.
+        if (cilj) {
+          ciljR = cilj.getBoundingClientRect();
+          ciljRob = getComputedStyle(cilj).borderRadius;
+        } else {
+          ciljR = null;
+        }
       }
       if (cilj) {
         nacin = "lepi";
@@ -184,22 +198,29 @@ export function installCursor() {
     const hitrost = Math.min(Math.hypot(hx, hy) / HITROST_MEJA, 1);
     const kot = (Math.atan2(hy, hx) * 180) / Math.PI;
 
-    el.dataset.nacin = nacin;
+    // Vsak zapis atributa razveljavi slog; pisemo le ob spremembi.
+    if (el.dataset.nacin !== nacin) el.dataset.nacin = nacin;
 
     if (nacin === "lepi" && ciljR) {
-      // Prevzame obliko ploskve, na kateri sedi.
-      telo.style.width = `${ciljR.width}px`;
+      // Prevzame obliko ploskve, na kateri sedi. Zapisemo le ob spremembi.
+      if (zadnjaOblika !== cilj) {
+        zadnjaOblika = cilj;
+        telo.style.width = `${ciljR.width}px`;
       telo.style.height = `${ciljR.height}px`;
       // Lega, ki jo racuna zanka, je SREDISCE ploskve, telo pa se rise od
       // svojega levega zgornjega kota - zato ga je treba za polovico odmakniti.
       telo.style.margin = `${-ciljR.height / 2}px 0 0 ${-ciljR.width / 2}px`;
-      telo.style.borderRadius = getComputedStyle(cilj).borderRadius;
-      telo.style.transform = "rotate(0deg) scale(1, 1)";
+        telo.style.borderRadius = ciljRob;
+        telo.style.transform = "rotate(0deg) scale(1, 1)";
+      }
     } else {
-      telo.style.width = "";
-      telo.style.height = "";
-      telo.style.margin = "";
-      telo.style.borderRadius = "";
+      if (zadnjaOblika !== null) {
+        zadnjaOblika = null;
+        telo.style.width = "";
+        telo.style.height = "";
+        telo.style.margin = "";
+        telo.style.borderRadius = "";
+      }
       telo.style.transform =
         `rotate(${kot}deg) scale(${1 + hitrost * RAZTEG}, ${1 - hitrost * RAZTEG * 0.62})`;
     }
@@ -208,4 +229,61 @@ export function installCursor() {
   }
 
   requestAnimationFrame(slicica);
+}
+
+/**
+ * Magnetne ploskve.
+ *
+ * Isti prijem kot pri lepljenju kazalca, le obrnjen: tokrat se proti kazalcu
+ * premakne element. Obcutljivost je nizja - kazalec gre do desetine poti,
+ * gumb pa le do MAGNET, sicer bi vmesnik plaval.
+ *
+ * Vse tece v isti zanki in pise samo transform. Lege beremo ob prehodu miske
+ * cez ploskev in ne vsako slicico, ker getBoundingClientRect prisili
+ * brskalnik v izracun postavitve.
+ */
+const MAGNET = 0.22;
+const MAGNET_DOMET = 1.45;
+
+export function installMagnetic(selektor = ".nav button, .dock-icon, .prof-gumb, .prof-zavihek, .prof-zapri, .nast-zapri, .nast-nazaj, .spust-gumb") {
+  if (window.matchMedia("(hover: none)").matches) return;
+
+  let aktiven = null;
+  let r = null;
+  let cx = 0;
+  let cy = 0;
+  let x = 0;
+  let y = 0;
+
+  addEventListener(
+    "pointermove",
+    (e) => {
+      const el = e.target instanceof Element ? e.target.closest(selektor) : null;
+      if (el !== aktiven) {
+        if (aktiven) aktiven.style.transform = "";
+        aktiven = el;
+        r = el ? el.getBoundingClientRect() : null;
+        x = 0;
+        y = 0;
+      }
+      if (!r) return;
+      cx = e.clientX - (r.left + r.width / 2);
+      cy = e.clientY - (r.top + r.height / 2);
+      // Zunaj dometa se odlepi, da gumb ne ostane potegnjen.
+      if (Math.abs(cx) > (r.width / 2) * MAGNET_DOMET || Math.abs(cy) > (r.height / 2) * MAGNET_DOMET) {
+        aktiven.style.transform = "";
+        aktiven = null;
+        r = null;
+      }
+    },
+    { passive: true }
+  );
+
+  (function slicica() {
+    requestAnimationFrame(slicica);
+    if (!aktiven) return;
+    x += (cx * MAGNET - x) * 0.2;
+    y += (cy * MAGNET - y) * 0.2;
+    aktiven.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0)`;
+  })();
 }

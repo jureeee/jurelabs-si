@@ -56,11 +56,10 @@
     border-radius 320ms var(--spring),
     opacity 200ms var(--ease);
 }
-.kaz[data-nacin="lepi"] {
-  /* Ploskev je narisana od svojega zgornjega levega kota, zato sredisce
-     odstejemo tu in ne v telesu. */
-  z-index: 40;
-}
+/* Kazalec ostane nad vsem tudi ob lepljenju.
+   Prej je padel na 40, profil pa je na 55 in nastavitve na 60 - zato je nad
+   njunimi gumbi preprosto izginil za njima. Da vsebina gumba vseeno ostane
+   berljiva, poskrbi nizka prosojnost telesa, ne nizji sloj. */
 
 /* Oblika: zvezda ali iskrica, pobarvana s currentColor. */
 .kaz-oblika {
