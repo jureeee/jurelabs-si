@@ -102,10 +102,10 @@ export function installProfile() {
 
       <div class="prof-zgodbe prof-del" style="--i:1"></div>
 
-      <div class="prof-zavihki dg prof-del" style="--i:2" role="tablist">
-        <button class="prof-zavihek" type="button" role="tab" aria-selected="true">Objave</button>
-        <button class="prof-zavihek" type="button" role="tab" aria-selected="false">Shranjeno</button>
-        <button class="prof-zavihek" type="button" role="tab" aria-selected="false">Oznaceno</button>
+      <div class="prof-zavihki prof-del" style="--i:2" role="tablist">
+        <button class="prof-zavihek dg" type="button" role="tab" aria-selected="true">Objave</button>
+        <button class="prof-zavihek dg" type="button" role="tab" aria-selected="false">Shranjeno</button>
+        <button class="prof-zavihek dg" type="button" role="tab" aria-selected="false">Oznaceno</button>
       </div>
 
       <div class="prof-mreza prof-del" style="--i:3"></div>
