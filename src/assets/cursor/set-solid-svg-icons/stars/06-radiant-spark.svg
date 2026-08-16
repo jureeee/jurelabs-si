@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" color="#000" role="img" aria-labelledby="title">
+  <title id="title">Eight-ray radiant sparkle</title>
+  <g stroke="currentColor" stroke-width="9" stroke-linecap="round">
+    <path d="M64 11v35M64 82v35M11 64h35M82 64h35"/>
+    <path d="m30.5 30.5 14 14m39 39 14 14m0-67-14 14m-39 39-14 14"/>
+  </g>
+  <circle cx="64" cy="64" r="7" fill="currentColor"/>
+</svg>

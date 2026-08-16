@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Heart with rays">
+  <path
+    fill="currentColor"
+    d="M66 104C58 95 33 73 30 51c-2-16 9-28 23-28 10 0 17 6 21 15 6-8 13-12 22-10 14 3 21 18 15 31-8 18-27 33-45 45Z"
+  />
+  <path fill="currentColor" d="M21 34 8 26l4-6 13 9-4 5Z" />
+  <path fill="currentColor" d="m32 18-6-14 7-3 6 15-7 2Z" />
+  <path fill="currentColor" d="m103 19 11-11 5 5-11 11-5-5Z" />
+  <path fill="currentColor" d="m111 34 13-4 2 7-13 4-2-7Z" />
+</svg>
