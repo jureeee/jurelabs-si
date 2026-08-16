@@ -22,8 +22,39 @@
 
 import "./cursor.css";
 
+/**
+ * Oblike kazalca.
+ *
+ * SVG so uvozeni kot besedilo, da jih lahko vstavimo v dokument in pobarvamo
+ * s currentColor - kot slika bi ostal vsak v svoji barvi in teme ne bi mogle
+ * vplivati nanj.
+ */
+const OBLIKE = Object.entries(
+  import.meta.glob("../assets/cursor/set-solid-svg-icons/stars/*.svg", {
+    eager: true,
+    query: "?raw",
+    import: "default",
+  })
+)
+  .sort(([a], [b]) => a.localeCompare(b))
+  .map(([, svg]) =>
+    svg
+      // Barvo in velikost doloca CSS, ne datoteka.
+      .replace(/\s(width|height|color)="[^"]*"/g, "")
+      .replace(/fill="(?!currentColor)[^"]*"/g, 'fill="currentColor"')
+  );
+
+/** Na koliko sekund se oblika zamenja. */
+const MENJAVA_S = 4.5;
+
 /** Ploskve, na katere se kazalec prilepi. */
-const LEPLJIVO = "button, a, .prof-polje, .nast-vrstica.klikna, .spust-izbira";
+/**
+ * Ploskve, na katere se kazalec prilepi.
+ *
+ * Slik namenoma ni: kazalec bi se zlil z vsebino polja in fotografije ne bi
+ * bilo vec videti. Lepljenje sodi na kontrole, ne na vsebino.
+ */
+const LEPLJIVO = "button, a, .nast-vrstica.klikna, .spust-izbira";
 /** Besedilo, nad katerim postane crtica. */
 const BESEDILO = "p, h1, h2, h3, .nast-ime, .nast-opis, .prof-bio, .prof-ime, .prof-pravo";
 
@@ -41,9 +72,33 @@ export function installCursor() {
 
   const el = document.createElement("div");
   el.className = "kaz";
-  el.innerHTML = '<span class="kaz-telo"></span>';
+  el.innerHTML = '<span class="kaz-telo"><span class="kaz-oblika"></span></span>';
   document.body.appendChild(el);
   const telo = el.querySelector(".kaz-telo");
+  const oblika = el.querySelector(".kaz-oblika");
+
+  // --- menjava oblik ---
+  //
+  // Prava preobrazba ene poti v drugo bi terjala interpolacijo tock; ker so
+  // oblike razlicno grajene, je videti bolje, ce stara zbledi in se zavrti
+  // ven, nova pa se prikaze iz zabrisanosti. Oko to bere kot preobrazbo.
+  let kOblike = 0;
+  function naslednjaOblika() {
+    if (!OBLIKE.length) return;
+    oblika.classList.add("menja");
+    // setTimeout in ne rAF: na skriti strani rAF ne tece in menjava bi obstala
+    // na pol poti, z oblikami vred.
+    setTimeout(() => {
+      oblika.innerHTML = OBLIKE[kOblike % OBLIKE.length];
+      kOblike += 1;
+      oblika.classList.remove("menja");
+    }, 210);
+  }
+  if (OBLIKE.length) {
+    oblika.innerHTML = OBLIKE[0];
+    kOblike = 1;
+    setInterval(naslednjaOblika, MENJAVA_S * 1000);
+  }
   document.documentElement.classList.add("ima-kaz");
 
   let misX = innerWidth / 2;

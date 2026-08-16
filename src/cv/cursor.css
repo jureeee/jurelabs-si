@@ -28,12 +28,13 @@
   position: absolute;
   top: 0; left: 0;
   display: block;
-  width: 16px;
-  height: 16px;
-  margin: -8px 0 0 -8px;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
   border-radius: 50%;
-  background: currentColor;
   transform-origin: 50% 50%;
+  display: grid;
+  place-items: center;
   /* Oblika in velikost se animirata, lega ne - to dela zanka, ki tece vsako
      slicico in bi jo prehod le zavlekel. */
   transition:
@@ -60,6 +61,31 @@
      odstejemo tu in ne v telesu. */
   z-index: 40;
 }
+
+/* Oblika: zvezda ali iskrica, pobarvana s currentColor. */
+.kaz-oblika {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transition:
+    opacity 200ms var(--ease),
+    transform 340ms var(--spring),
+    filter 240ms var(--ease);
+}
+.kaz-oblika svg { width: 100%; height: 100%; display: block; }
+/* Med menjavo: stara se zavrti ven in zabrise. */
+.kaz-oblika.menja {
+  opacity: 0;
+  transform: rotate(38deg) scale(0.6);
+  filter: blur(5px);
+}
+
+/* Prilepljen in nad besedilom oblika ne sodi zraven - tam je ploskev oz.
+   crtica, ne iskrica. */
+.kaz[data-nacin="lepi"] .kaz-oblika,
+.kaz[data-nacin="crtica"] .kaz-oblika { opacity: 0; }
+.kaz[data-nacin="lepi"] .kaz-telo,
+.kaz[data-nacin="crtica"] .kaz-telo { background: currentColor; }
 
 /* Nad besedilom: tanka crtica, kot kazalec za vnos. */
 .kaz[data-nacin="crtica"] .kaz-telo {
