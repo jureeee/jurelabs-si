@@ -363,6 +363,14 @@
 .spust-seznam {
   position: fixed;
   min-width: 172px;
+  /* Seznam je zrasel cez zaslon, zato drsi sam.
+     Maska ob robovih pove, da je se kaj naprej - brez nje se odrezana vrstica
+     bere kot konec seznama. */
+  max-height: min(58vh, 460px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 16px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 16px), transparent 100%);
 
   /* Seznam ima svoje steklo, sibkejse od ostalega UI.
      Nasicenost 2.05 mu je iz galaksije potegnila modrino in seznam je bil

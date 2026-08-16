@@ -273,6 +273,13 @@
   transform: none;
 }
 
+/* Drsnik v seznamu je ozji od strani. */
+.spust-seznam::-webkit-scrollbar { width: 8px; }
+.spust-seznam::-webkit-scrollbar-thumb {
+  border-width: 2px;
+  background-color: rgba(255, 255, 255, 0.22);
+}
+
 /* Locnica med skupinama v spustnem meniju. */
 .spust-locnica {
   display: block;
