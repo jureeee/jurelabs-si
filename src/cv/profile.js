@@ -1,0 +1,230 @@
+/**
+ * Profil.
+ *
+ * Vsebina lezi neposredno cez galaksijo - brez plosce. Zadaj je le 2 px
+ * zameglitve, dovolj da se besedilo loci od zvezd, premalo da bi galaksijo
+ * skrilo.
+ *
+ * Virtualizacija: mreza ima 137 datotek, od tega 64 videov. Ce bi jih
+ * nalozili vse, bi brskalnik potegnil 171 MB in poganjal 64 dekoderjev hkrati.
+ * Zato ima vsako polje src prazen, dokler ne pride na zaslon; ko ga zapusti,
+ * se video ustavi. Nalaganje in predvajanje sta torej vezana na vidnost, ne
+ * na obstoj v dokumentu.
+ */
+
+import "./profile.css";
+import avatarUrl from "../assets/images/profile picture.png";
+
+const IKONA_ZAPRI =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const IKONA_VIDEO =
+  '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4.5v15l15-7.5z"/></svg>';
+
+const PODATKI = {
+  ime: "blatnikjuree",
+  pravo: "Jure",
+  bio: "✨ Ce ne ujamem zvezd, pridem po tebe.",
+  sledilcev: 325,
+  sledi: 169,
+};
+
+/**
+ * Seznam vseh medijev. Glob vrne le naslove (nize), zato tu se nic ne
+ * potuje po mrezi - datoteka se prenese sele, ko polje dobi src.
+ */
+const mediji = Object.entries(
+  import.meta.glob("../assets/images/*.{jpg,JPG,jpeg,JPEG,png,PNG,mp4,MP4,mov,MOV}", {
+    eager: true,
+    query: "?url",
+    import: "default",
+  })
+)
+  .map(([pot, url]) => ({
+    url,
+    ime: pot.split("/").pop(),
+    video: /\.(mp4|mov)$/i.test(pot),
+  }))
+  // Profilna slika sodi v glavo, ne v mrezo.
+  .filter((m) => !m.ime.startsWith("profile picture"))
+  .sort((a, b) => a.ime.localeCompare(b.ime));
+
+/** Val pod prstom, izvira iz tocke dotika. */
+function val(el, event) {
+  const r = el.getBoundingClientRect();
+  const premer = Math.max(r.width, r.height) * 2.2;
+  const v = document.createElement("span");
+  v.className = "val";
+  v.style.width = v.style.height = `${premer}px`;
+  v.style.left = `${(event?.clientX ?? r.left + r.width / 2) - r.left - premer / 2}px`;
+  v.style.top = `${(event?.clientY ?? r.top + r.height / 2) - r.top - premer / 2}px`;
+  el.appendChild(v);
+  v.addEventListener("animationend", () => v.remove());
+}
+
+/** Squish ob prehodu miske in val ob pritisku, za vse gumbe znotraj korena. */
+function ozivi(koren) {
+  koren.addEventListener("pointerdown", (e) => {
+    const b = e.target instanceof Element ? e.target.closest("button, .prof-polje") : null;
+    if (b) val(b, e);
+  });
+  koren.addEventListener("pointerover", (e) => {
+    const b = e.target instanceof Element ? e.target.closest("button") : null;
+    if (!b || b.classList.contains("squish")) return;
+    b.classList.add("squish");
+    b.addEventListener("animationend", () => b.classList.remove("squish"), { once: true });
+  });
+}
+
+export function installProfile() {
+  const koren = document.createElement("div");
+  koren.className = "prof";
+  koren.innerHTML = `
+    <div class="prof-zavesa"></div>
+    <button class="prof-zapri dg" type="button" aria-label="Zapri">${IKONA_ZAPRI}</button>
+    <div class="prof-vsebina">
+      <div class="prof-glava prof-del" style="--i:0">
+        <div class="prof-avatar"><img alt="" src="${avatarUrl}" /></div>
+        <div class="prof-desno">
+          <div class="prof-ime">${PODATKI.ime}</div>
+          <div class="prof-pravo">${PODATKI.pravo}</div>
+          <div class="prof-stevci">
+            <span><b>${mediji.length}</b>objav</span>
+            <span><b>${PODATKI.sledilcev}</b>sledilcev</span>
+            <span><b>${PODATKI.sledi}</b>sledi</span>
+          </div>
+          <div class="prof-bio">${PODATKI.bio}</div>
+          <div class="prof-gumbi">
+            <button class="prof-gumb dg" type="button">Uredi profil</button>
+            <button class="prof-gumb dg" type="button">Arhiv</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="prof-zgodbe prof-del" style="--i:1"></div>
+
+      <div class="prof-zavihki dg prof-del" style="--i:2" role="tablist">
+        <button class="prof-zavihek" type="button" role="tab" aria-selected="true">Objave</button>
+        <button class="prof-zavihek" type="button" role="tab" aria-selected="false">Shranjeno</button>
+        <button class="prof-zavihek" type="button" role="tab" aria-selected="false">Oznaceno</button>
+      </div>
+
+      <div class="prof-mreza prof-del" style="--i:3"></div>
+    </div>`;
+  document.body.appendChild(koren);
+
+  const mreza = koren.querySelector(".prof-mreza");
+  const zgodbe = koren.querySelector(".prof-zgodbe");
+
+  // --- zgodbe: prvih nekaj slik ---
+  mediji
+    .filter((m) => !m.video)
+    .slice(0, 6)
+    .forEach((m) => {
+      const z = document.createElement("button");
+      z.className = "prof-zgodba dg";
+      z.type = "button";
+      z.innerHTML = `<img alt="" loading="lazy" src="${m.url}" />`;
+      zgodbe.appendChild(z);
+    });
+
+  // --- mreza: polja so prazna, dokler ne pridejo na zaslon ---
+  mediji.forEach((m) => {
+    const polje = document.createElement("div");
+    polje.className = "prof-polje";
+    polje.dataset.url = m.url;
+    polje.dataset.video = String(m.video);
+    if (m.video) polje.innerHTML = `<span class="prof-video-znak">${IKONA_VIDEO}</span>`;
+    mreza.appendChild(polje);
+  });
+
+  /**
+   * Opazovalec vidnosti.
+   *
+   * rootMargin da pas okoli zaslona: mediji se zacnejo nalagati tik preden
+   * pridejo v pogled, zato polje ni prazno v trenutku, ko ga zagledas.
+   */
+  const opazovalec = new IntersectionObserver(
+    (vnosi) => {
+      vnosi.forEach((v) => {
+        const polje = v.target;
+        if (v.isIntersecting) {
+          polje.classList.add("vidno");
+          napolni(polje);
+          polje.querySelector("video")?.play().catch(() => {});
+        } else {
+          // Ustavimo, a ne odstranimo: brskalnik obdrzi ze prenesene podatke,
+          // dekoder pa neha delati.
+          polje.querySelector("video")?.pause();
+        }
+      });
+    },
+    { root: koren, rootMargin: "400px 0px", threshold: 0.01 }
+  );
+
+  function napolni(polje) {
+    if (polje.dataset.polno === "1") return;
+    polje.dataset.polno = "1";
+    const url = polje.dataset.url;
+
+    if (polje.dataset.video === "true") {
+      const v = document.createElement("video");
+      v.src = url;
+      v.muted = true;
+      v.loop = true;
+      v.playsInline = true;
+      // metadata in ne auto: prvo slicico dobimo takoj, celega posnetka pa ne
+      // vlecemo, dokler se ne zacne predvajati.
+      v.preload = "metadata";
+      polje.prepend(v);
+    } else {
+      const i = document.createElement("img");
+      i.src = url;
+      i.alt = "";
+      i.decoding = "async";
+      polje.prepend(i);
+    }
+  }
+
+  mreza.querySelectorAll(".prof-polje").forEach((p) => opazovalec.observe(p));
+
+  ozivi(koren);
+
+  koren.querySelector(".prof-zavihki").addEventListener("click", (e) => {
+    const b = e.target instanceof Element ? e.target.closest('[role="tab"]') : null;
+    if (!b) return;
+    koren
+      .querySelectorAll('[role="tab"]')
+      .forEach((t) => t.setAttribute("aria-selected", String(t === b)));
+  });
+
+  let zapiranje = null;
+
+  function odpri() {
+    if (zapiranje) {
+      clearTimeout(zapiranje);
+      zapiranje = null;
+      koren.classList.remove("zapira");
+    }
+    koren.classList.add("odprt");
+    koren.scrollTop = 0;
+  }
+
+  function zapri() {
+    if (zapiranje) return;
+    koren.classList.add("zapira");
+    // setTimeout in ne rAF: na skriti strani rAF ne tece in profil bi ostal
+    // odprt, dokler se zavihek ne vrne v ospredje.
+    zapiranje = setTimeout(() => {
+      koren.classList.remove("odprt", "zapira");
+      koren.querySelectorAll("video").forEach((v) => v.pause());
+      zapiranje = null;
+    }, 460);
+  }
+
+  koren.querySelector(".prof-zapri").addEventListener("click", zapri);
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && koren.classList.contains("odprt")) zapri();
+  });
+
+  return { odpri, zapri };
+}

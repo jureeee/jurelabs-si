@@ -22,6 +22,7 @@ import avatarUrl from "../assets/images/profile picture.png";
 import { installDefractedGlass } from "./defractedGlass.js";
 import { installNebulas } from "./nebulas.js";
 import { installSettings, nastavitve } from "./settings.js";
+import { installProfile } from "./profile.js";
 
 // --- nastavitve --------------------------------------------------------------
 /**
@@ -567,6 +568,9 @@ nav?.addEventListener("pointerover", (e) => {
 });
 
 // --- nastavitve --------------------------------------------------------------
+const profil = installProfile();
+document.querySelector(".profil")?.addEventListener("click", () => profil.odpri());
+
 const plosca = installSettings();
 document
   .querySelector('.dock-icon[aria-label="Nastavitve"]')

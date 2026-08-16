@@ -1,0 +1,227 @@
+/* =========================================================================
+   PROFIL
+
+   Brez plosce: vsebina lezi neposredno cez galaksijo. Zadaj je le tanka
+   plast zameglitve (2 px) - dovolj, da se besedilo loci od zvezd, premalo,
+   da bi galaksijo skrila.
+   ========================================================================= */
+
+.prof {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms var(--ease);
+}
+.prof.odprt { pointer-events: auto; opacity: 1; }
+
+/* Komaj zaznavna zameglitev, da besedilo ne lebdi na zvezdah. */
+.prof-zavesa {
+  position: fixed;
+  inset: 0;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  background: rgba(6, 8, 12, 0);
+  transition: backdrop-filter 460ms var(--ease), background 460ms var(--ease);
+  pointer-events: none;
+}
+.prof.odprt .prof-zavesa {
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  background: rgba(6, 8, 12, 0.34);
+}
+
+.prof-vsebina {
+  position: relative;
+  width: min(980px, calc(100vw - 68px));
+  margin: 0 auto;
+  padding: 104px 0 90px;
+}
+
+/* --- vstop: z leve proti sredini ---------------------------------------- */
+@keyframes profVstop {
+  from { opacity: 0; transform: translateX(-46px) scale(0.985); filter: blur(16px); }
+  to   { opacity: 1; transform: translateX(0) scale(1);         filter: blur(0); }
+}
+.prof.odprt .prof-del {
+  animation: profVstop 620ms var(--spring) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+@keyframes profIzhod {
+  to { opacity: 0; transform: translateX(-32px); filter: blur(14px); }
+}
+.prof.zapira .prof-del {
+  animation: profIzhod 340ms var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 26ms);
+}
+
+/* --- glava --------------------------------------------------------------- */
+.prof-glava { display: flex; align-items: flex-start; gap: 44px; }
+
+.prof-avatar {
+  flex: none;
+  width: 132px; height: 132px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.07);
+}
+.prof-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 38%; display: block; }
+
+.prof-desno { flex: 1; min-width: 0; padding-top: 4px; }
+.prof-ime { font-size: 21px; font-weight: 700; letter-spacing: -0.016em; color: var(--ink); }
+.prof-pravo { margin-top: 5px; font-size: 14px; color: var(--muted); }
+
+.prof-stevci { display: flex; gap: 30px; margin-top: 16px; font-size: 14.5px; color: var(--muted); }
+.prof-stevci b { color: var(--ink); font-weight: 700; margin-right: 5px; }
+
+.prof-bio { margin-top: 14px; font-size: 14px; line-height: 1.45; color: var(--muted); }
+
+.prof-gumbi { display: flex; gap: 10px; margin-top: 18px; }
+.prof-gumb {
+  position: relative;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 13px;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform var(--t-med) var(--spring);
+}
+.prof-gumb:active { transform: scale(0.955); }
+
+/* --- zgodbe -------------------------------------------------------------- */
+.prof-zgodbe {
+  display: flex;
+  gap: 22px;
+  margin-top: 34px;
+  padding-bottom: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.prof-zgodbe::-webkit-scrollbar { display: none; }
+.prof-zgodba {
+  flex: none;
+  width: 78px; height: 78px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition: transform var(--t-med) var(--spring);
+}
+.prof-zgodba:hover { transform: scale(1.06); }
+.prof-zgodba:active { transform: scale(0.94); }
+.prof-zgodba img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* --- zavihki ------------------------------------------------------------- */
+.prof-zavihki {
+  display: flex;
+  gap: 3px;
+  margin-top: 30px;
+  padding: 6px;
+  border-radius: 999px;
+}
+.prof-zavihek {
+  position: relative;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--muted);
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    background var(--t-fast) var(--ease),
+    color var(--t-fast) var(--ease),
+    transform var(--t-med) var(--spring);
+}
+.prof-zavihek:hover { color: var(--ink); background: rgba(255, 255, 255, 0.06); }
+.prof-zavihek:active { transform: scale(0.955); }
+.prof-zavihek[aria-selected="true"] {
+  background: rgba(255, 255, 255, 0.13);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* --- mreza --------------------------------------------------------------- */
+.prof-mreza {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 22px;
+}
+.prof-polje {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.045);
+  cursor: pointer;
+
+  /* Vsako polje pride, ko prvic pride na zaslon - ne vsa hkrati ob nalaganju. */
+  opacity: 0;
+  transform: translateY(18px) scale(0.97);
+  filter: blur(10px);
+  transition:
+    opacity 520ms var(--ease),
+    transform 680ms var(--spring),
+    filter 560ms var(--ease);
+}
+.prof-polje.vidno { opacity: 1; transform: none; filter: blur(0); }
+.prof-polje img,
+.prof-polje video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.prof-polje:hover img,
+.prof-polje:hover video { transform: scale(1.04); }
+.prof-polje img, .prof-polje video { transition: transform 620ms var(--ease); }
+
+/* Oznaka za video, dokler se ne predvaja. */
+.prof-video-znak {
+  position: absolute;
+  top: 9px; right: 9px;
+  width: 17px; height: 17px;
+  color: rgba(255, 255, 255, 0.85);
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
+  pointer-events: none;
+}
+
+.prof-zapri {
+  position: fixed;
+  top: max(34px, calc(env(safe-area-inset-top) + 18px));
+  right: max(34px, calc(env(safe-area-inset-right) + 18px));
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 38px; height: 38px;
+  border: none;
+  border-radius: 50%;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color var(--t-fast) var(--ease), transform var(--t-med) var(--spring);
+}
+.prof-zapri:hover { color: var(--ink); }
+.prof-zapri:active { transform: scale(0.9); }
+.prof-zapri svg { width: 16px; height: 16px; }
+
+@media (max-width: 720px) {
+  .prof-glava { gap: 24px; }
+  .prof-avatar { width: 92px; height: 92px; }
+  .prof-vsebina { width: calc(100vw - 40px); padding-top: 88px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prof *, .prof *::before, .prof *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
