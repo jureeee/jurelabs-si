@@ -11,8 +11,6 @@
   position: fixed;
   inset: 0;
   z-index: 60;
-  display: grid;
-  place-items: end center;
   pointer-events: none;
 }
 .nast.odprt { pointer-events: auto; }
@@ -30,32 +28,38 @@
     -webkit-backdrop-filter 420ms var(--ease);
 }
 .nast.odprt .nast-zavesa {
-  background: rgba(8, 10, 14, 0.42);
-  backdrop-filter: blur(26px) saturate(1.4);
-  -webkit-backdrop-filter: blur(26px) saturate(1.4);
+  background: rgba(8, 10, 14, 0.24);
+  backdrop-filter: blur(10px) saturate(1.25);
+  -webkit-backdrop-filter: blur(10px) saturate(1.25);
 }
 
 /* --- 2. korak: plosca priplava od spodaj -------------------------------- */
+/* Enak odmik z vseh stiri strani - isti kot pri meniju, profilu in orodjih. */
 .nast-plosca {
-  position: relative;
-  width: min(560px, calc(100vw - 48px));
-  max-height: min(78vh, 760px);
-  margin-bottom: max(34px, env(safe-area-inset-bottom));
+  position: absolute;
+  top: max(34px, calc(env(safe-area-inset-top) + 18px));
+  right: max(34px, calc(env(safe-area-inset-right) + 18px));
+  bottom: max(34px, calc(env(safe-area-inset-bottom) + 18px));
+  left: max(34px, calc(env(safe-area-inset-left) + 18px));
   padding: 0;
-  border-radius: 30px;
+  border-radius: 34px;
   overflow: hidden;
 
+  /* Prihod in odhod nista drsenje, ampak razblinjenje: ploskev se iz sija
+     zgosti v snov. Zato hkrati blur, rahlo merilo in bel odsev, ki ob vstopu
+     zazari in nato ugasne. */
   opacity: 0;
-  transform: translateY(46px) scale(0.965);
-  filter: blur(22px);
+  transform: scale(0.985);
+  filter: blur(26px);
   transition:
-    opacity 380ms var(--ease),
+    opacity 420ms var(--ease),
     transform 620ms var(--spring),
-    filter 460ms var(--ease);
+    filter 520ms var(--ease),
+    box-shadow 620ms var(--ease);
 }
 .nast.odprt .nast-plosca {
   opacity: 1;
-  transform: translateY(0) scale(1);
+  transform: scale(1);
   filter: blur(0);
   /* Zamik za zaveso - plosca pride sele, ko je svet ze zabrisan. */
   transition-delay: 190ms;
@@ -63,6 +67,8 @@
 
 /* --- glava -------------------------------------------------------------- */
 .nast-glava {
+  max-width: 648px;
+  margin: 0 auto;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -104,22 +110,30 @@
 
 /* --- strani in vodoravni prehod ---------------------------------------- */
 .nast-okno {
-  position: relative;
+  position: absolute;
+  inset: 74px 0 0;
   overflow: hidden;
   padding: 0 14px 18px;
 }
+/* Vrstice cez cel zaslon bi bile neberljive - oko izgubi zvezo med imenom
+   levo in vrednostjo desno. Zato stolpec z zgornjo mejo sirine. */
+.nast-stran > * { width: min(620px, 100%); margin: 0 auto; }
+/* Ob zgornjem in spodnjem robu vsebina ne konca z rezom, ampak se razblini.
+   Skupaj z blurom ploskve to bere kot da se UI ob robu spremeni v sij. */
 .nast-stran {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30px, #000 calc(100% - 40px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 30px, #000 calc(100% - 40px), transparent 100%);
   display: flex;
   flex-direction: column;
   gap: 18px;
-  max-height: calc(78vh - 120px);
+  height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 /* Odhajajoca stran ne sme drzati visine, sicer plosca poskoci. */
 .nast-stran.odhaja {
   position: absolute;
-  inset: 0 14px auto;
+  inset: 0 14px;
   pointer-events: none;
 }
 
