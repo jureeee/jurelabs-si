@@ -28,14 +28,14 @@ import * as THREE from "three";
 
 /** Koliko razlicnih meglic izpecemo in koliko jih postavimo v sceno. */
 const RAZLICIC = 3;
-const KOSOV = 14;
+const KOSOV = 3;
 
 /** Stranica izpecene teksture. */
 const LOCLJIVOST = 320;
 
 /** Velikost meglice kot delez polmera galaksije. */
-const VELIKOST_MIN = 0.13;
-const VELIKOST_MAX = 0.3;
+const VELIKOST_MIN = 0.03;
+const VELIKOST_MAX = 0.06;
 
 /**
  * Kje se meglice zadrzujejo, v polmerih galaksije.
@@ -50,8 +50,8 @@ const ODMIK_MIN = 0.3;
 const ODMIK_MAX = 1.05;
 
 /** Kako mocno so vidne. Nizko namenoma - so ozadje, ne motiv. */
-const MOC_MIN = 0.55;
-const MOC_MAX = 0.9;
+const MOC_MIN = 0.7;
+const MOC_MAX = 1.0;
 
 /** Barvni pari: sredica in obrobje. */
 /**
