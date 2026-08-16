@@ -20,7 +20,6 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import galaxyModelUrl from "../assets/3d models/need_some_space.glb?url";
 import avatarUrl from "../assets/images/profile picture.png";
 import { installDefractedGlass } from "./defractedGlass.js";
-import { installNebulas } from "./nebulas.js";
 import { installSettings, nastavitve } from "./settings.js";
 import { installProfile } from "./profile.js";
 import { installCursor, installMagnetic } from "./cursor.js";
@@ -165,7 +164,6 @@ let materiali = [];
 let galaksija = null;   // koren modela
 let megla = null;       // plast meglenice okoli zvezd
 let daljnaGal = null;   // oddaljena galaksija
-let meglice = [];       // barvne meglice
 let velikostMul = 1;    // mnozitelj velikosti zvezd iz nastavitev
 let restDistance = 60;
 let startDistance = 60;
@@ -461,7 +459,6 @@ new GLTFLoader().load(galaxyModelUrl, (gltf) => {
 
   // Meglice potrebujejo polmer in sredisce, zato sele tu.
   galaksija = root;
-  meglice = installNebulas(renderer, scene, target.clone(), radius);
 
   resize();
   startMs = performance.now();
@@ -616,9 +613,6 @@ function uporabiNastavitve() {
   if (daljnaGal) daljnaGal.visible = prizorVklopljen && nastavitve.ozadje === "galaksija";
   // "Samo zvezde" pomeni brez mlecne plasti med njimi.
   if (megla) megla.visible = prizorVklopljen && nastavitve.ozadje === "galaksija";
-  meglice.forEach((m) => {
-    m.visible = prizorVklopljen && nastavitve.meglice;
-  });
 
   bloom.strength = (nastavitve.sij / 46) * BLOOM_STRENGTH;
 

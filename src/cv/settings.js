@@ -41,7 +41,6 @@ export const nastavitve = {
   prosojnost: 5,
   tema: "temna",
   ozadje: "galaksija",
-  meglice: true,
   odzivNaMisko: true,
   hitrostOrbite: 42,
   sij: 46,
@@ -274,7 +273,6 @@ function stranGlavna(pojdi) {
               { vrednost: "izklop", ime: "Izklopljeno" },
             ]),
           },
-          { ime: "Meglice", opis: "Barvni oblaki okoli diska", kontrola: stikalo("meglice") },
           {
             ime: "Galaksija",
             opis: "Sij, velikost zvezd, hitrost",
