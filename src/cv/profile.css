@@ -225,6 +225,7 @@
 }
 .prof-razpored:hover { color: var(--ink); }
 .prof-razpored:active { transform: scale(0.92); }
+.prof-razpored.odprt { color: var(--ink); }
 .prof-razpored svg { width: 18px; height: 18px; display: block; }
 
 /* --- mreza --------------------------------------------------------------- */

@@ -18,6 +18,8 @@ import avatarUrl from "../assets/images/profile picture.png";
 const IKONA_ZAPRI =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 /** Ikona za razporeditev - tri crte padajocih dolzin, kot v iOS. */
+const IKONA_KLJUKICA =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l6 6L20 6"/></svg>';
 const IKONA_RAZPORED =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M4 7h16M6.5 12h11M9.5 17h5"/></svg>';
 const IKONA_VIDEO =
@@ -346,18 +348,75 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
    * in po (FLIP), kar pri 89 poljih pomeni 89 izracunov postavitve naenkrat.
    * Namesto tega polja zbledijo in se vrnejo - kratko in brez zatikanja.
    */
-  const RAZPOREDI = ["tri", "dve", "mozaik"];
-  let kRazpored = 0;
-  mreza.dataset.razpored = RAZPOREDI[0];
+  const RAZPOREDI = [
+    { kljuc: "tri", ime: "Trije stolpci" },
+    { kljuc: "dve", ime: "Dva stolpca" },
+    { kljuc: "mozaik", ime: "Mozaik" },
+  ];
+  let razpored = "tri";
+  mreza.dataset.razpored = razpored;
 
-  koren.querySelector(".prof-razpored").addEventListener("click", () => {
+  const gumbRazpored = koren.querySelector(".prof-razpored");
+
+  // Seznam zivi v body, ne v gumbu: prednik s filtrom postane nova podlaga za
+  // position: fixed, potomec pa ga potem overflow odreze. Ista past kot pri
+  // nastavitvah.
+  const seznam = document.createElement("div");
+  seznam.className = "spust-seznam dg";
+  document.body.appendChild(seznam);
+
+  function osveziSeznam() {
+    seznam.innerHTML = RAZPOREDI.map(
+      (r) =>
+        `<button type="button" class="spust-izbira" data-kljuc="${r.kljuc}"` +
+        ` aria-selected="${r.kljuc === razpored}">` +
+        `<span>${r.ime}</span><span class="spust-kljukica">${IKONA_KLJUKICA}</span></button>`
+    ).join("");
+  }
+  osveziSeznam();
+
+  function zapriSeznam() {
+    seznam.classList.remove("odprt");
+    gumbRazpored.classList.remove("odprt");
+  }
+
+  gumbRazpored.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const odpiramo = !seznam.classList.contains("odprt");
+    zapriSeznam();
+    if (!odpiramo) return;
+
+    const r = gumbRazpored.getBoundingClientRect();
+    seznam.style.visibility = "hidden";
+    seznam.style.top = "0px";
+    const v = seznam.offsetHeight;
+    const navzgor = window.innerHeight - r.bottom - 16 < v && r.top > v + 16;
+    seznam.style.top = `${navzgor ? r.top - v - 8 : r.bottom + 8}px`;
+    seznam.style.left = `${Math.max(12, r.right - seznam.offsetWidth)}px`;
+    seznam.style.transformOrigin = navzgor ? "bottom right" : "top right";
+    seznam.style.visibility = "";
+    seznam.classList.add("odprt");
+    gumbRazpored.classList.add("odprt");
+  });
+
+  seznam.addEventListener("click", (e) => {
+    const b = e.target instanceof Element ? e.target.closest(".spust-izbira") : null;
+    if (!b) return;
+    e.stopPropagation();
+    val(b, e);
+    razpored = b.dataset.kljuc;
+    osveziSeznam();
+    zapriSeznam();
+    // Mreza zbledi in se vrne v novi razporeditvi.
     mreza.classList.add("menja");
     setTimeout(() => {
-      kRazpored = (kRazpored + 1) % RAZPOREDI.length;
-      mreza.dataset.razpored = RAZPOREDI[kRazpored];
+      mreza.dataset.razpored = razpored;
       mreza.classList.remove("menja");
     }, 190);
   });
+
+  koren.addEventListener("click", zapriSeznam);
+  addEventListener("resize", zapriSeznam);
 
   let zapiranje = null;
 
