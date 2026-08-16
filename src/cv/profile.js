@@ -72,6 +72,37 @@ const mediji = [...poOsnovi.values()]
     a.ime.localeCompare(b.ime, undefined, { numeric: true, sensitivity: "base" })
   );
 
+/**
+ * Vrsta z zamikom.
+ *
+ * Ko pride na zaslon cela vrsta polj hkrati, bi jih hkratno nalaganje in
+ * hkratna animacija zasekala. Tu se obdelajo eno za drugim z zamikom, ki je
+ * krajsi od animacije - naslednje se torej zacne, preden se prejsnje konca,
+ * in gib se bere kot zaporedje, ne kot cakanje v koloni.
+ */
+function narediVrsto(zamik, opravilo) {
+  const cakajo = [];
+  let tece = false;
+
+  function naprej() {
+    const el = cakajo.shift();
+    if (!el) {
+      tece = false;
+      return;
+    }
+    opravilo(el);
+    // setTimeout in ne rAF: na skriti strani rAF ne tece in vrsta bi obstala.
+    setTimeout(naprej, zamik);
+  }
+
+  return (el) => {
+    cakajo.push(el);
+    if (tece) return;
+    tece = true;
+    naprej();
+  };
+}
+
 /** Val pod prstom, izvira iz tocke dotika. */
 function val(el, event) {
   const r = el.getBoundingClientRect();
@@ -173,8 +204,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
       vnosi.forEach((v) => {
         const polje = v.target;
         if (v.isIntersecting) {
-          napolni(polje);
-          polje.querySelectorAll("video").forEach((x) => x.play().catch(() => {}));
+          vNalaganje(polje);
         } else {
           // Ustavimo, a ne odstranimo: brskalnik obdrzi ze prenesene podatke,
           // dekoder pa neha delati.
@@ -200,7 +230,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
         const polje = v.target;
         polje.classList.remove("odhaja-dol", "odhaja-gor");
         if (v.isIntersecting) {
-          polje.classList.add("vidno");
+          vPrikaz(polje);
           return;
         }
         polje.classList.remove("vidno");
@@ -215,6 +245,16 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     // preden dejansko zapusti zaslon.
     { root: koren, rootMargin: "-12% 0px -10% 0px", threshold: 0.01 }
   );
+
+  /** Nalaganje je hitrejse od prikaza, da je vsebina pripravljena pred njim. */
+  const vNalaganje = narediVrsto(55, (polje) => {
+    napolni(polje);
+    polje.querySelectorAll("video").forEach((x) => x.play().catch(() => {}));
+  });
+
+  // 90 ms proti 820 ms animacije: devet polj je hkrati v gibu, zato je videti
+  // kot val in ne kot naštevanje.
+  const vPrikaz = narediVrsto(90, (polje) => polje.classList.add("vidno"));
 
   function napolni(polje) {
     if (polje.dataset.polno === "1") return;
@@ -255,6 +295,14 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     videz.observe(p);
   });
 
+  // Ko vstopna animacija odseka pretece, mu odvzamemo filter - sicer steklo
+  // gumbov v njem ne lomi nicesar.
+  koren.querySelectorAll(".prof-del").forEach((del) => {
+    del.addEventListener("animationend", (e) => {
+      if (e.animationName === "profVstop") del.classList.add("koncano");
+    });
+  });
+
   ozivi(koren);
 
   koren.querySelector(".prof-zavihki").addEventListener("click", (e) => {
@@ -280,6 +328,8 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
 
   function zapri() {
     if (zapiranje) return;
+    // Za izhodno animacijo mora filter spet obstajati.
+    koren.querySelectorAll(".prof-del").forEach((d) => d.classList.remove("koncano"));
     koren.classList.add("zapira");
     // setTimeout in ne rAF: na skriti strani rAF ne tece in profil bi ostal
     // odprt, dokler se zavihek ne vrne v ospredje.

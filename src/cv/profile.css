@@ -73,6 +73,16 @@
   animation: profVstop 620ms var(--spring) both;
   animation-delay: calc(var(--i, 0) * 60ms);
 }
+/* Po koncu animacije odstranimo filter.
+   Prednik s filtrom postane nova podlaga za backdrop-filter, zato steklo pod
+   njim nima cesa lomiti - gumbi so bili videti kot prazni obrisi. Tudi
+   blur(0) steje kot filter, zato ga je treba odstraniti, ne le razveljaviti. */
+.prof-del.koncano {
+  animation: none;
+  filter: none;
+  opacity: 1;
+  transform: none;
+}
 @keyframes profIzhod {
   to { opacity: 0; transform: translateX(-32px); filter: blur(14px); }
 }
