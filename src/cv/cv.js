@@ -22,6 +22,7 @@ import avatarUrl from "../assets/images/profile picture.png";
 import { installDefractedGlass } from "./defractedGlass.js";
 import { installSettings, nastavitve } from "./settings.js";
 import { installProfile } from "./profile.js";
+import { installContextMenu } from "./context.js";
 import { installCursor, installMagnetic } from "./cursor.js";
 
 // --- nastavitve --------------------------------------------------------------
@@ -609,6 +610,8 @@ const plosca = installSettings();
 document
   .querySelector('.dock-icon[aria-label="Nastavitve"]')
   ?.addEventListener("click", () => plosca.odpri());
+
+installContextMenu(profil, plosca);
 
 /**
  * Prenese nastavitve na prizor.
