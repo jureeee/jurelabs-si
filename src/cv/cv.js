@@ -585,8 +585,8 @@ nav?.addEventListener("pointerover", (e) => {
 });
 
 // --- nastavitve --------------------------------------------------------------
-installCursor();
-installMagnetic();
+const kazalec = installCursor();
+const magnet = installMagnetic();
 
 const profil = installProfile({
   onOdprt: () => { zamrznjeno = true; },
@@ -610,9 +610,15 @@ function uporabiNastavitve() {
   const prizorVklopljen = nastavitve.ozadje !== "izklop";
 
   if (galaksija) galaksija.visible = prizorVklopljen;
-  if (daljnaGal) daljnaGal.visible = prizorVklopljen && nastavitve.ozadje === "galaksija";
+  if (daljnaGal) {
+    daljnaGal.visible =
+      prizorVklopljen && nastavitve.ozadje === "galaksija" && nastavitve.daljnaGalaksija;
+  }
   // "Samo zvezde" pomeni brez mlecne plasti med njimi.
   if (megla) megla.visible = prizorVklopljen && nastavitve.ozadje === "galaksija";
+
+  kazalec.nastavi(nastavitve.kazalec);
+  magnet.nastavi(nastavitve.magnet);
 
   bloom.strength = (nastavitve.sij / 46) * BLOOM_STRENGTH;
 

@@ -41,6 +41,9 @@ export const nastavitve = {
   prosojnost: 5,
   tema: "temna",
   ozadje: "galaksija",
+  daljnaGalaksija: true,
+  kazalec: true,
+  magnet: true,
   odzivNaMisko: true,
   hitrostOrbite: 42,
   sij: 46,
@@ -273,6 +276,7 @@ function stranGlavna(pojdi) {
               { vrednost: "izklop", ime: "Izklopljeno" },
             ]),
           },
+          { ime: "Oddaljena galaksija", opis: "Druga galaksija v ozadju", kontrola: stikalo("daljnaGalaksija") },
           {
             ime: "Galaksija",
             opis: "Sij, velikost zvezd, hitrost",
@@ -291,6 +295,13 @@ function stranGlavna(pojdi) {
         naslovek: "Gibanje",
         vrstice: [
           { ime: "Odziv na misko", opis: "Pogled sledi kazalcu", kontrola: stikalo("odzivNaMisko") },
+        ],
+      },
+      {
+        naslovek: "Kazalec",
+        vrstice: [
+          { ime: "Kazalec po meri", opis: "Iskrica namesto sistemskega kazalca", kontrola: stikalo("kazalec") },
+          { ime: "Magnetni gumbi", opis: "Gumbi se nagnejo proti kazalcu", kontrola: stikalo("magnet") },
         ],
       },
     ],

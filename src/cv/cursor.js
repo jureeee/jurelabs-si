@@ -72,7 +72,7 @@ const ODLEPI = 1.5;
 
 export function installCursor() {
   // Na dotik kazalca ni - ne rissemo ga in ne poslusamo.
-  if (window.matchMedia("(hover: none)").matches) return;
+  if (window.matchMedia("(hover: none)").matches) return { nastavi() {} };
 
   const el = document.createElement("div");
   el.className = "kaz";
@@ -234,6 +234,14 @@ export function installCursor() {
   }
 
   requestAnimationFrame(slicica);
+
+  return {
+    /** Ob izklopu vrnemo sistemski kazalec in naseg umaknemo. */
+    nastavi(vklopljen) {
+      document.documentElement.classList.toggle("ima-kaz", vklopljen);
+      el.style.display = vklopljen ? "" : "none";
+    },
+  };
 }
 
 /**
@@ -251,7 +259,8 @@ const MAGNET = 0.22;
 const MAGNET_DOMET = 1.45;
 
 export function installMagnetic(selektor = ".nav button, .dock-icon, .prof-gumb, .prof-zavihek, .prof-zapri, .nast-zapri, .nast-nazaj, .spust-gumb") {
-  if (window.matchMedia("(hover: none)").matches) return;
+  if (window.matchMedia("(hover: none)").matches) return { nastavi() {} };
+  let vklopljen = true;
 
   let aktiven = null;
   let r = null;
@@ -263,6 +272,7 @@ export function installMagnetic(selektor = ".nav button, .dock-icon, .prof-gumb,
   addEventListener(
     "pointermove",
     (e) => {
+      if (!vklopljen) return;
       const el = e.target instanceof Element ? e.target.closest(selektor) : null;
       if (el !== aktiven) {
         if (aktiven) aktiven.style.transform = "";
@@ -291,4 +301,16 @@ export function installMagnetic(selektor = ".nav button, .dock-icon, .prof-gumb,
     y += (cy * MAGNET - y) * 0.2;
     aktiven.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0)`;
   })();
+
+  return {
+    nastavi(v) {
+      vklopljen = v;
+      // Ob izklopu je treba potegnjeni gumb vrniti na mesto.
+      if (!v && aktiven) {
+        aktiven.style.transform = "";
+        aktiven = null;
+        r = null;
+      }
+    },
+  };
 }
