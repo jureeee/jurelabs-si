@@ -183,6 +183,17 @@
   font-weight: 600;
 }
 
+/* Lom svetlobe je drag: feDisplacementMap se izvede za vsako ploskev posebej,
+   nad njeno podlago. Pri eni vrstici v meniju je to nic, pri sestih zgodbah in
+   treh zavihkih hkrati pa se pozna v casu izrisa. Tem pustimo zameglitev in
+   nasicenost, lom pa odvzamemo - razlike na tako majhnih ploskvah tako ali
+   tako ni videti. */
+.prof-zgodba,
+.prof-zavihek {
+  backdrop-filter: saturate(var(--dg-sat)) blur(var(--dg-blur));
+  -webkit-backdrop-filter: saturate(var(--dg-sat)) blur(var(--dg-blur));
+}
+
 /* --- mreza --------------------------------------------------------------- */
 .prof-mreza {
   display: grid;

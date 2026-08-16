@@ -22,10 +22,22 @@ const KOT_DUSENJE = 0.12;
  * Sredina je nevtralna, proti robovom potiska navzven; povecava hkrati vlece
  * vzorcenje proti srediscu, zato je ozadje za steklom vecje.
  */
+/**
+ * Najvecja stranica karte premikov.
+ *
+ * Karta je gladek preliv, zato je ni treba risati v polni locljivosti
+ * ploskve - feImage jo raztegne cez njo. Ker jo gradimo po slikovnih tockah v
+ * JavaScriptu, je cena kvadratna: pri celozaslonski plosci 1532x832 je to
+ * 1.27 milijona ponovitev in nekaj sto milisekund zamrznjenega vmesnika. Pri
+ * 192 tockah je ponovitev 37 tisoc in razlike v videzu ni.
+ */
+const MAX_KARTA = 192;
+
 function drawMap(w, h) {
+  const merilo = Math.min(1, MAX_KARTA / Math.max(w, h));
   const c = document.createElement("canvas");
-  c.width = Math.max(8, Math.round(w));
-  c.height = Math.max(8, Math.round(h));
+  c.width = Math.max(8, Math.round(w * merilo));
+  c.height = Math.max(8, Math.round(h * merilo));
   const ctx = c.getContext("2d");
   if (!ctx) return "";
 
@@ -115,11 +127,32 @@ export function installDefractedGlass(selektor = ".dg") {
     { passive: true }
   );
 
+  /**
+   * Izmerjene lege ploskev.
+   *
+   * getBoundingClientRect prisili brskalnik v izracun postavitve. Klicati ga
+   * za vsako ploskev v vsaki slicici pomeni desetine takih izracunov na
+   * slicico - prav to je delalo zatikanje ob premiku miske. Lege se
+   * spremenijo le ob drsenju, spremembi velikosti okna ali ko se pojavi nova
+   * ploskev, zato jih hranimo in osvezimo takrat.
+   */
+  let ploskve = [];
+  let osveziLege = true;
+  const zahtevajLege = () => { osveziLege = true; };
+  window.addEventListener("scroll", zahtevajLege, { passive: true, capture: true });
+  window.addEventListener("resize", zahtevajLege);
+  setInterval(zahtevajLege, 500);
+
   const frame = () => {
     if (mis) {
-      document.querySelectorAll(selektor).forEach((el) => {
-        const r = el.getBoundingClientRect();
-        if (!r.width) return;
+      if (osveziLege) {
+        osveziLege = false;
+        ploskve = [...document.querySelectorAll(selektor)]
+          .map((el) => ({ el, r: el.getBoundingClientRect() }))
+          .filter((p) => p.r.width > 0);
+      }
+
+      ploskve.forEach(({ el, r }) => {
 
         // Razdalja do najblizje tocke ploskve, ne do sredisca - velike ploskve
         // bi sicer reagirale sele, ko si sredi njih.
@@ -141,8 +174,12 @@ export function installDefractedGlass(selektor = ".dg") {
         const glow = prej.glow + (cilj - prej.glow) * 0.18;
         stanje.set(el, { kot, glow });
 
-        el.style.setProperty("--glow", glow.toFixed(3));
-        el.style.setProperty("--glow-kot", `${kot.toFixed(1)}deg`);
+        // Pisemo le, ko se vrednost zares premakne; vsak zapis sicer razveljavi
+        // slog in sprozi ponoven izris ploskve.
+        if (Math.abs(glow - prej.glow) > 0.002 || Math.abs(kot - prej.kot) > 0.2) {
+          el.style.setProperty("--glow", glow.toFixed(3));
+          el.style.setProperty("--glow-kot", `${kot.toFixed(1)}deg`);
+        }
       });
     }
     requestAnimationFrame(frame);

@@ -209,6 +209,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
           // Ustavimo, a ne odstranimo: brskalnik obdrzi ze prenesene podatke,
           // dekoder pa neha delati.
           polje.querySelectorAll("video").forEach((x) => x.pause());
+          polje.classList.remove("igra");
         }
       });
     },
@@ -247,10 +248,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
   );
 
   /** Nalaganje je hitrejse od prikaza, da je vsebina pripravljena pred njim. */
-  const vNalaganje = narediVrsto(55, (polje) => {
-    napolni(polje);
-    polje.querySelectorAll("video").forEach((x) => x.play().catch(() => {}));
-  });
+  const vNalaganje = narediVrsto(55, (polje) => napolni(polje));
 
   // 90 ms proti 820 ms animacije: devet polj je hkrati v gibu, zato je videti
   // kot val in ne kot naštevanje.
@@ -300,6 +298,30 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
   koren.querySelectorAll(".prof-del").forEach((del) => {
     del.addEventListener("animationend", (e) => {
       if (e.animationName === "profVstop") del.classList.add("koncano");
+    });
+  });
+
+  /**
+   * Predvaja se samo posnetek pod kazalcem.
+   *
+   * Prej so tekli vsi vidni hkrati - do deset dekoderjev naenkrat, kar je
+   * glavnina zatikanja med drsenjem. Zdaj mirujejo na prvi slicici, dokler
+   * greš cez.
+   */
+  mreza.addEventListener("pointerover", (e) => {
+    const polje = e.target instanceof Element ? e.target.closest(".prof-polje") : null;
+    if (!polje || polje.classList.contains("igra")) return;
+    mreza.querySelectorAll(".prof-polje.igra").forEach((p) => {
+      p.classList.remove("igra");
+      p.querySelectorAll("video").forEach((v) => v.pause());
+    });
+    polje.classList.add("igra");
+    polje.querySelectorAll("video").forEach((v) => v.play().catch(() => {}));
+  });
+  mreza.addEventListener("pointerleave", () => {
+    mreza.querySelectorAll(".prof-polje.igra").forEach((p) => {
+      p.classList.remove("igra");
+      p.querySelectorAll("video").forEach((v) => v.pause());
     });
   });
 
