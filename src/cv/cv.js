@@ -21,6 +21,7 @@ import galaxyModelUrl from "../assets/3d models/need_some_space.glb?url";
 import avatarUrl from "../assets/images/profile picture.png";
 import { installDefractedGlass } from "./defractedGlass.js";
 import { installNebulas } from "./nebulas.js";
+import { installSettings } from "./settings.js";
 
 // --- nastavitve --------------------------------------------------------------
 /**
@@ -555,6 +556,12 @@ nav?.addEventListener("pointerover", (e) => {
   const b = e.target instanceof Element ? e.target.closest("button") : null;
   enkratna(b, "squish");
 });
+
+// --- nastavitve --------------------------------------------------------------
+const nastavitve = installSettings();
+document
+  .querySelector('.dock-icon[aria-label="Nastavitve"]')
+  ?.addEventListener("click", () => nastavitve.odpri());
 
 nav?.addEventListener("click", (e) => {
   const b = e.target instanceof Element ? e.target.closest("button") : null;

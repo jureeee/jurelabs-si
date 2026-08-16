@@ -1,0 +1,347 @@
+/* =========================================================================
+   NASTAVITVE
+
+   Zaporedje odpiranja je namerno dvostopenjsko: najprej se zablura ozadje,
+   sele nato priplavajo nastavitve. Ce bi oboje steklo hkrati, bi oko videlo
+   en sam skok; z zamikom pa najprej zazna, da se je svet umaknil v ozadje,
+   in sele potem, kaj je prislo predenj.
+   ========================================================================= */
+
+.nast {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: end center;
+  pointer-events: none;
+}
+.nast.odprt { pointer-events: auto; }
+
+/* --- 1. korak: svet se umakne ------------------------------------------- */
+.nast-zavesa {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 10, 14, 0);
+  backdrop-filter: blur(0px) saturate(1);
+  -webkit-backdrop-filter: blur(0px) saturate(1);
+  transition:
+    background 420ms var(--ease),
+    backdrop-filter 420ms var(--ease),
+    -webkit-backdrop-filter 420ms var(--ease);
+}
+.nast.odprt .nast-zavesa {
+  background: rgba(8, 10, 14, 0.42);
+  backdrop-filter: blur(26px) saturate(1.4);
+  -webkit-backdrop-filter: blur(26px) saturate(1.4);
+}
+
+/* --- 2. korak: plosca priplava od spodaj -------------------------------- */
+.nast-plosca {
+  position: relative;
+  width: min(560px, calc(100vw - 48px));
+  max-height: min(78vh, 760px);
+  margin-bottom: max(34px, env(safe-area-inset-bottom));
+  padding: 0;
+  border-radius: 30px;
+  overflow: hidden;
+
+  opacity: 0;
+  transform: translateY(46px) scale(0.965);
+  filter: blur(22px);
+  transition:
+    opacity 380ms var(--ease),
+    transform 620ms var(--spring),
+    filter 460ms var(--ease);
+}
+.nast.odprt .nast-plosca {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+  /* Zamik za zaveso - plosca pride sele, ko je svet ze zabrisan. */
+  transition-delay: 190ms;
+}
+
+/* --- glava -------------------------------------------------------------- */
+.nast-glava {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 20px 14px;
+  position: relative;
+  z-index: 2;
+}
+.nast-naslov {
+  flex: 1;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.014em;
+  color: var(--ink);
+}
+.nast-nazaj,
+.nast-zapri {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  transition:
+    background var(--t-fast) var(--ease),
+    color var(--t-fast) var(--ease),
+    transform var(--t-med) var(--spring),
+    opacity 260ms var(--ease);
+}
+.nast-nazaj svg, .nast-zapri svg { width: 16px; height: 16px; display: block; }
+.nast-nazaj:hover, .nast-zapri:hover { background: rgba(255, 255, 255, 0.13); color: var(--ink); }
+.nast-nazaj:active, .nast-zapri:active { transform: scale(0.9); }
+/* Gumb nazaj obstaja ves cas, da se ob vstopu v podmeni ne prerine postavitev. */
+.nast-nazaj { opacity: 0; pointer-events: none; }
+.nast[data-globina="1"] .nast-nazaj { opacity: 1; pointer-events: auto; }
+
+/* --- strani in vodoravni prehod ---------------------------------------- */
+.nast-okno {
+  position: relative;
+  overflow: hidden;
+  padding: 0 14px 18px;
+}
+.nast-stran {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-height: calc(78vh - 120px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+/* Odhajajoca stran ne sme drzati visine, sicer plosca poskoci. */
+.nast-stran.odhaja {
+  position: absolute;
+  inset: 0 14px auto;
+  pointer-events: none;
+}
+
+@keyframes stranVstopDesno {
+  from { opacity: 0; transform: translateX(38px); filter: blur(14px); }
+  to   { opacity: 1; transform: translateX(0);    filter: blur(0); }
+}
+@keyframes stranIzhodLevo {
+  from { opacity: 1; transform: translateX(0);     filter: blur(0); }
+  to   { opacity: 0; transform: translateX(-38px); filter: blur(14px); }
+}
+@keyframes stranVstopLevo {
+  from { opacity: 0; transform: translateX(-38px); filter: blur(14px); }
+  to   { opacity: 1; transform: translateX(0);     filter: blur(0); }
+}
+@keyframes stranIzhodDesno {
+  from { opacity: 1; transform: translateX(0);    filter: blur(0); }
+  to   { opacity: 0; transform: translateX(38px); filter: blur(14px); }
+}
+.nast-stran.v-naprej  { animation: stranVstopDesno 460ms var(--spring) both; }
+.nast-stran.i-naprej  { animation: stranIzhodLevo  380ms var(--ease) both; }
+.nast-stran.v-nazaj   { animation: stranVstopLevo  460ms var(--spring) both; }
+.nast-stran.i-nazaj   { animation: stranIzhodDesno 380ms var(--ease) both; }
+
+/* --- skupine in vrstice ------------------------------------------------- */
+.nast-skupina { display: flex; flex-direction: column; gap: 2px; }
+.nast-naslovek {
+  padding: 0 12px 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.nast-vrstica {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 54px;
+  padding: 11px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.045);
+  overflow: hidden;
+
+  /* Val: vsaka vrstica pride za spodnjo z zamikom, ki ga doloca --i. */
+  opacity: 0;
+  transform: translateY(16px);
+  filter: blur(10px);
+  animation: vrsticaVal 520ms var(--spring) both;
+  animation-delay: calc(240ms + var(--i, 0) * 42ms);
+}
+@keyframes vrsticaVal {
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+.nast-skupina .nast-vrstica:first-of-type { border-radius: 16px 16px 6px 6px; }
+.nast-skupina .nast-vrstica:last-of-type  { border-radius: 6px 6px 16px 16px; }
+.nast-skupina .nast-vrstica:only-of-type  { border-radius: 16px; }
+
+.nast-vrstica.klikna { cursor: pointer; }
+.nast-vrstica.klikna:hover { background: rgba(255, 255, 255, 0.075); }
+.nast-vrstica.stisni { animation: squish 340ms var(--spring); }
+
+.nast-oznaka { flex: 1; min-width: 0; }
+.nast-ime { font-size: 14.5px; font-weight: 600; color: var(--ink); letter-spacing: -0.006em; }
+.nast-opis { margin-top: 2px; font-size: 12px; color: var(--faint); line-height: 1.3; }
+.nast-vrednost { font-size: 13.5px; color: var(--muted); white-space: nowrap; }
+.nast-pusc { color: var(--faint); display: grid; place-items: center; }
+.nast-pusc svg { width: 15px; height: 15px; display: block; }
+
+/* --- val (ripple) ------------------------------------------------------- */
+.val {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  transform: scale(0);
+  opacity: 0.8;
+  pointer-events: none;
+  animation: valSiri 620ms var(--ease) forwards;
+}
+@keyframes valSiri {
+  to { transform: scale(1); opacity: 0; }
+}
+
+/* --- stikalo ------------------------------------------------------------ */
+.stikalo {
+  flex: none;
+  position: relative;
+  width: 50px;
+  height: 30px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  padding: 0;
+  transition: background var(--t-med) var(--ease), transform var(--t-med) var(--spring);
+}
+.stikalo::after {
+  content: "";
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: #f2f5f9;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+  /* Prozni gumbek: ob prehodu se raztegne v smeri gibanja in se nato umiri. */
+  transition: transform 420ms var(--spring), width 260ms var(--spring);
+}
+.stikalo[aria-checked="true"] { background: rgba(255, 255, 255, 0.42); }
+.stikalo[aria-checked="true"]::after { transform: translateX(20px); }
+.stikalo:active::after { width: 30px; }
+.stikalo[aria-checked="true"]:active::after { transform: translateX(14px); }
+
+/* --- drsnik ------------------------------------------------------------- */
+.drsnik { flex: none; display: flex; align-items: center; gap: 11px; width: 178px; }
+.drsnik-tir {
+  position: relative;
+  flex: 1;
+  height: 30px;
+  border-radius: 999px;
+  cursor: pointer;
+  overflow: hidden;
+}
+.drsnik-polnilo {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--del, 50%);
+  background: rgba(255, 255, 255, 0.3);
+  transition: width 90ms linear;
+}
+.drsnik-rocaj {
+  position: absolute;
+  top: 50%;
+  left: var(--del, 50%);
+  width: 20px; height: 20px;
+  margin-left: -10px;
+  border-radius: 50%;
+  background: #f2f5f9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  transform: translateY(-50%);
+  transition: transform 220ms var(--spring), left 90ms linear;
+  pointer-events: none;
+}
+.drsnik-tir:active .drsnik-rocaj { transform: translateY(-50%) scale(1.22); }
+.drsnik-stevilka {
+  width: 38px;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--muted);
+}
+
+/* --- spustni meni ------------------------------------------------------- */
+.spust { flex: none; position: relative; }
+.spust-gumb {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 13px;
+  border: none;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform var(--t-med) var(--spring);
+}
+.spust-gumb:active { transform: scale(0.955); }
+.spust-gumb svg { width: 12px; height: 12px; opacity: 0.6; transition: transform 320ms var(--spring); }
+.spust.odprt .spust-gumb svg { transform: rotate(180deg); }
+
+.spust-seznam {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  min-width: 172px;
+  padding: 6px;
+  border-radius: 16px;
+  z-index: 5;
+
+  opacity: 0;
+  transform: translateY(10px) scale(0.96);
+  filter: blur(10px);
+  pointer-events: none;
+  transform-origin: bottom right;
+  transition:
+    opacity 240ms var(--ease),
+    transform 420ms var(--spring),
+    filter 280ms var(--ease);
+}
+.spust.odprt .spust-seznam {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+  pointer-events: auto;
+}
+.spust-izbira {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 11px;
+  border: none;
+  border-radius: 11px;
+  background: none;
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--muted);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.spust-izbira:hover { background: rgba(255, 255, 255, 0.08); color: var(--ink); }
+.spust-izbira[aria-selected="true"] { color: var(--ink); font-weight: 600; }
+.spust-kljukica { margin-left: auto; opacity: 0; }
+.spust-izbira[aria-selected="true"] .spust-kljukica { opacity: 1; }
+.spust-kljukica svg { width: 13px; height: 13px; display: block; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nast *, .nast *::before, .nast *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
