@@ -351,10 +351,22 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
   const RAZPOREDI = [
     { kljuc: "tri", ime: "Trije stolpci" },
     { kljuc: "dve", ime: "Dva stolpca" },
+    { kljuc: "stiri", ime: "Stirje stolpci" },
     { kljuc: "mozaik", ime: "Mozaik" },
+    { kljuc: "stopnice", ime: "Stopnice" },
+    { kljuc: "trak", ime: "Trak" },
+    { kljuc: "stolpci", ime: "Zidak" },
+  ];
+  // Razmik je svoja izbira in ne del razporeditve: velja za vse in ga
+  // uporabnik menja neodvisno od tega, koliko stolpcev gleda.
+  const RAZMIKI = [
+    { kljuc: "da", ime: "Z razmikom" },
+    { kljuc: "ne", ime: "Brez razmika" },
   ];
   let razpored = "tri";
+  let razmik = "da";
   mreza.dataset.razpored = razpored;
+  mreza.dataset.razmik = razmik;
 
   const gumbRazpored = koren.querySelector(".prof-razpored");
 
@@ -365,13 +377,16 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
   seznam.className = "spust-seznam dg";
   document.body.appendChild(seznam);
 
+  const vrsticaIzbire = (r, izbrana, vrsta) =>
+    `<button type="button" class="spust-izbira" data-vrsta="${vrsta}" data-kljuc="${r.kljuc}"` +
+    ` aria-selected="${izbrana}">` +
+    `<span>${r.ime}</span><span class="spust-kljukica">${IKONA_KLJUKICA}</span></button>`;
+
   function osveziSeznam() {
-    seznam.innerHTML = RAZPOREDI.map(
-      (r) =>
-        `<button type="button" class="spust-izbira" data-kljuc="${r.kljuc}"` +
-        ` aria-selected="${r.kljuc === razpored}">` +
-        `<span>${r.ime}</span><span class="spust-kljukica">${IKONA_KLJUKICA}</span></button>`
-    ).join("");
+    seznam.innerHTML =
+      RAZPOREDI.map((r) => vrsticaIzbire(r, r.kljuc === razpored, "razpored")).join("") +
+      '<span class="spust-locnica"></span>' +
+      RAZMIKI.map((r) => vrsticaIzbire(r, r.kljuc === razmik, "razmik")).join("");
   }
   osveziSeznam();
 
@@ -404,13 +419,15 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     if (!b) return;
     e.stopPropagation();
     val(b, e);
-    razpored = b.dataset.kljuc;
+    if (b.dataset.vrsta === "razmik") razmik = b.dataset.kljuc;
+    else razpored = b.dataset.kljuc;
     osveziSeznam();
     zapriSeznam();
-    // Mreza zbledi in se vrne v novi razporeditvi.
+    // Mreza zbledi in se vrne v novi postavitvi.
     mreza.classList.add("menja");
     setTimeout(() => {
       mreza.dataset.razpored = razpored;
+      mreza.dataset.razmik = razmik;
       mreza.classList.remove("menja");
     }, 190);
   });

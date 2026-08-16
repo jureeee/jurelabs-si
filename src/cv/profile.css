@@ -236,17 +236,61 @@
   margin-top: 22px;
 }
 
+/* Brez razmika: polja se stikajo in mreza bere kot ena ploskev. Zaobljenost
+   in sij morata proc - zaobljeni robovi bi ob stiku pustili luknjice, sij pa
+   bi se prelil na sosednjo sliko. */
+.prof-mreza[data-razmik="ne"] { gap: 0; }
+.prof-mreza[data-razmik="ne"] .prof-polje { border-radius: 0; }
+.prof-mreza[data-razmik="ne"] .prof-polje > img:not(.prof-sij),
+.prof-mreza[data-razmik="ne"] .prof-polje > video:not(.prof-sij) { border-radius: 0; }
+.prof-mreza[data-razmik="ne"] .prof-sij { opacity: 0 !important; }
+.prof-mreza[data-razmik="ne"][data-razpored="stolpci"] .prof-polje:nth-child(3n + 2),
+.prof-mreza[data-razmik="ne"][data-razpored="stolpci"] .prof-polje:nth-child(3n + 2).vidno {
+  transform: none;
+}
+
+/* Locnica med skupinama v spustnem meniju. */
+.spust-locnica {
+  display: block;
+  height: 1px;
+  margin: 6px 8px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
 /* Med menjavo razporeditve mreza zbledi in se vrne. */
 .prof-mreza.menja { opacity: 0; filter: blur(8px); }
 
 .prof-mreza[data-razpored="tri"]  { grid-template-columns: repeat(3, 1fr); }
 .prof-mreza[data-razpored="dve"]  { grid-template-columns: repeat(2, 1fr); }
+.prof-mreza[data-razpored="stiri"] { grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
 /* Mozaik: vsako peto polje zavzame dva stolpca in dve vrstici, zato mreza ni
    vec pravilna resetka in oko dobi ritem. */
 .prof-mreza[data-razpored="mozaik"] { grid-template-columns: repeat(4, 1fr); }
 .prof-mreza[data-razpored="mozaik"] .prof-polje:nth-child(5n + 1) {
   grid-column: span 2;
   grid-row: span 2;
+}
+
+/* Stopnice: trije stolpci, a se visina izmenjuje. Enakomerni kvadrati so
+   mirni, izmenicne visine pa dajo oku ritem navzdol. */
+.prof-mreza[data-razpored="stopnice"] { grid-template-columns: repeat(3, 1fr); }
+.prof-mreza[data-razpored="stopnice"] .prof-polje { aspect-ratio: 3 / 4; }
+.prof-mreza[data-razpored="stopnice"] .prof-polje:nth-child(3n + 2) { aspect-ratio: 3 / 5; }
+
+/* Trak: en sam stolpec v sirokem formatu - za pregled po eni sliki naenkrat. */
+.prof-mreza[data-razpored="trak"] { grid-template-columns: 1fr; gap: 34px; }
+.prof-mreza[data-razpored="trak"] .prof-polje { aspect-ratio: 16 / 10; }
+
+/* Zidak: stolpci z zamikom. Vsak drugi stolpec je potisnjen navzdol, zato
+   vrstice ne tecejo v ravni crti in mreza je videti zidana. */
+.prof-mreza[data-razpored="stolpci"] { grid-template-columns: repeat(3, 1fr); }
+.prof-mreza[data-razpored="stolpci"] .prof-polje { aspect-ratio: 4 / 5; }
+.prof-mreza[data-razpored="stolpci"] .prof-polje:nth-child(3n + 2) {
+  transform: translateY(40px);
+}
+.prof-mreza[data-razpored="stolpci"] .prof-polje:nth-child(3n + 2).vidno {
+  transform: translateY(40px);
 }
 .prof-polje {
   position: relative;
