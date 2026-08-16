@@ -340,12 +340,17 @@
      Potegne ga od spodaj, pri tem se po visini raztegne in sele nato umiri;
      raztezek je tisti, po katerem gib bere kot poteg in ne kot prikaz. */
   opacity: 0;
-  transform: translateY(42px) scaleY(1.14) scaleX(0.94);
-  filter: blur(14px);
+  transform: translateY(52px) scaleY(1.16) scaleX(0.93);
+  filter: blur(16px);
+  /* Zapelje se noter: hitro na zacetku, nato dolgo iztekanje. Enakomerna
+     krivulja bi bila videti kot premik predmeta po tirnici, ta pa kot nekaj,
+     kar ima tezo in se ustavi samo od sebe. Zato ista krivulja za vse tri
+     lastnosti - ce se blur konca pred premikom, gib razpade na dvoje. */
+  --vstop: cubic-bezier(0.12, 0.86, 0.16, 1);
   transition:
-    opacity 560ms var(--ease),
-    transform 820ms var(--spring),
-    filter 620ms var(--ease);
+    opacity 760ms var(--vstop),
+    transform 980ms var(--vstop),
+    filter 820ms var(--vstop);
 }
 .prof-polje.vidno {
   opacity: 1;
@@ -359,11 +364,14 @@
   opacity: 0;
   transform: translateY(44px) scaleY(1.12) scaleX(0.95);
   filter: blur(14px);
+  /* Odhod je krajsi od prihoda: prihod je dogodek, odhod le pospravljanje. */
+  transition-duration: 520ms, 620ms, 560ms;
 }
 .prof-polje.odhaja-gor {
   opacity: 0;
   transform: translateY(-30px) scaleY(1.08) scaleX(0.96);
   filter: blur(12px);
+  transition-duration: 520ms, 620ms, 560ms;
 }
 /* Sij: ista slika, zabrisana in povecana, pod pravo. Barva pride iz same
    vsebine, zato vsako polje sveti v svojih barvah. */

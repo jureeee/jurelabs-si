@@ -219,7 +219,9 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
         }
       });
     },
-    { root: koren, rootMargin: "400px 0px", threshold: 0.01 }
+    // Sirok pas: mediji se zacnejo nalagati priblizno zaslon in pol pred
+    // tem, ko jih zagledas, zato polje ni nikoli prazno.
+    { root: koren, rootMargin: "1100px 0px", threshold: 0.01 }
   );
 
   /**
@@ -248,9 +250,9 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
         );
       });
     },
-    // Negativna zaloga pomakne rob navznoter, zato se polje zamegli, se
-    // preden dejansko zapusti zaslon.
-    { root: koren, rootMargin: "-12% 0px -10% 0px", threshold: 0.01 }
+    // Pozitivna zaloga rob razsiri: polje velja za vidno se nekaj cez rob
+    // zaslona, zato se umakne sele, ko je res zunaj, in ne ze na poti tja.
+    { root: koren, rootMargin: "8% 0px 8% 0px", threshold: 0.01 }
   );
 
   /** Nalaganje je hitrejse od prikaza, da je vsebina pripravljena pred njim. */
