@@ -190,6 +190,23 @@
 @keyframes vrsticaVal {
   to { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
+
+/* Zapiranje je isti val v obratni smeri: vrstice se razblinijo ena za drugo,
+   sele nato se umakne plosca in za njo zavesa. Ce bi vse ugasnilo hkrati, bi
+   bil odhod videti kot izklop, prihod pa kot val - in to razmerje se cuti. */
+@keyframes vrsticaValVen {
+  to { opacity: 0; transform: translateY(12px); filter: blur(12px); }
+}
+.nast.zapira .nast-vrstica {
+  animation: vrsticaValVen 340ms var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 34ms);
+}
+.nast.zapira .nast-naslovek,
+.nast.zapira .nast-glava {
+  opacity: 0;
+  filter: blur(10px);
+  transition: opacity 260ms var(--ease), filter 300ms var(--ease);
+}
 .nast-skupina .nast-vrstica:first-of-type { border-radius: 16px 16px 6px 6px; }
 .nast-skupina .nast-vrstica:last-of-type  { border-radius: 6px 6px 16px 16px; }
 .nast-skupina .nast-vrstica:only-of-type  { border-radius: 16px; }

@@ -396,6 +396,11 @@ export function installSettings() {
   };
 
   function odpri() {
+    if (zapiranje) {
+      clearTimeout(zapiranje);
+      zapiranje = null;
+      koren.classList.remove("zapira");
+    }
     sklad = [];
     pokazi(() => stranGlavna(pojdi), null);
     // Razred v naslednji sliki, sicer se prehod ne sprozi - element je bil
@@ -403,9 +408,24 @@ export function installSettings() {
     requestAnimationFrame(() => koren.classList.add("odprt"));
   }
 
+  let zapiranje = null;
+
   function zapri() {
-    koren.classList.remove("odprt");
+    if (zapiranje) return;
     zapriVse(null);
+
+    // Najprej val vrstic navzven, sele nato plosca in zavesa. Cas je vsota
+    // zamika zadnje vrstice in trajanja njene animacije.
+    const vrstic = koren.querySelectorAll(".nast-vrstica").length;
+    const cakaj = 340 + Math.max(vrstic - 1, 0) * 34;
+
+    koren.classList.add("zapira");
+    // setTimeout in ne rAF: na skriti strani rAF ne tece in plosca bi ostala
+    // odprta, dokler se zavihek ne vrne v ospredje.
+    zapiranje = setTimeout(() => {
+      koren.classList.remove("odprt", "zapira");
+      zapiranje = null;
+    }, cakaj);
   }
 
   gumbNazaj.addEventListener("click", nazaj);
