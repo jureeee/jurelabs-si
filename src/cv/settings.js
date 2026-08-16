@@ -103,6 +103,10 @@ function stikalo(kljuc) {
   b.type = "button";
   b.setAttribute("role", "switch");
   b.setAttribute("aria-checked", String(nastavitve[kljuc]));
+  // Gumbek je pravi element, ne psevdo-element: lom svetlobe se nanasa na
+  // ploskve, ki jih defractedGlass.js najde v dokumentu, psevdo-elementov pa
+  // ne more.
+  b.innerHTML = '<span class="stikalo-rocaj dg"></span>';
   b.addEventListener("click", (e) => {
     e.stopPropagation();
     nastavitve[kljuc] = !nastavitve[kljuc];
@@ -117,8 +121,10 @@ function drsnik(kljuc, { min = 0, max = 100, enota = "" } = {}) {
   ovoj.className = "drsnik";
 
   const tir = document.createElement("div");
-  tir.className = "drsnik-tir dg";
-  tir.innerHTML = '<div class="drsnik-polnilo"></div><div class="drsnik-rocaj"></div>';
+  // Steklo nosi rocaj, ne tir - tir je tanka crta in bi kot ploskev risal
+  // siv pravokotnik za drsnikom.
+  tir.className = "drsnik-tir";
+  tir.innerHTML = '<div class="drsnik-polnilo"></div><div class="drsnik-rocaj dg"></div>';
 
   const stevilka = document.createElement("div");
   stevilka.className = "drsnik-stevilka";
@@ -140,8 +146,12 @@ function drsnik(kljuc, { min = 0, max = 100, enota = "" } = {}) {
   tir.addEventListener("pointerdown", (e) => {
     e.stopPropagation();
     tir.setPointerCapture(e.pointerId);
+    tir.classList.add("drsi");
     izVodoravne(e);
   });
+  const konec = () => tir.classList.remove("drsi");
+  tir.addEventListener("pointerup", konec);
+  tir.addEventListener("pointercancel", konec);
   tir.addEventListener("pointermove", (e) => {
     if (tir.hasPointerCapture(e.pointerId)) izVodoravne(e);
   });

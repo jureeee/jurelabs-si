@@ -232,53 +232,82 @@
   padding: 0;
   transition: background var(--t-med) var(--ease), transform var(--t-med) var(--spring);
 }
-.stikalo::after {
-  content: "";
+/* ---------------------------------------------------------------------------
+   ROCAJI
+
+   Mirujoc rocaj je bel in trden. Ko se ga dotaknes, bela zbledi in pod njo
+   ostane steklo: lom svetlobe, obroc in sij, ki jih nosi razred .dg. Prehod
+   gre torej iz snovi v steklo in nazaj, ne iz ene barve v drugo.
+--------------------------------------------------------------------------- */
+.stikalo-rocaj,
+.drsnik-rocaj {
+  background: rgba(244, 247, 251, 0.96);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  transition:
+    background 300ms var(--ease),
+    transform 420ms var(--spring),
+    width 260ms var(--spring),
+    left 90ms linear;
+}
+.stikalo:active .stikalo-rocaj,
+.drsnik-tir.drsi .drsnik-rocaj,
+.drsnik-tir:active .drsnik-rocaj {
+  background: rgba(244, 247, 251, 0.12);
+}
+
+.stikalo-rocaj {
   position: absolute;
   top: 3px; left: 3px;
   width: 24px; height: 24px;
   border-radius: 50%;
-  background: #f2f5f9;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
-  /* Prozni gumbek: ob prehodu se raztegne v smeri gibanja in se nato umiri. */
-  transition: transform 420ms var(--spring), width 260ms var(--spring);
 }
 .stikalo[aria-checked="true"] { background: rgba(255, 255, 255, 0.42); }
-.stikalo[aria-checked="true"]::after { transform: translateX(20px); }
-.stikalo:active::after { width: 30px; }
-.stikalo[aria-checked="true"]:active::after { transform: translateX(14px); }
+.stikalo[aria-checked="true"] .stikalo-rocaj { transform: translateX(20px); }
+.stikalo:active .stikalo-rocaj { width: 30px; }
+.stikalo[aria-checked="true"]:active .stikalo-rocaj { transform: translateX(14px); }
 
 /* --- drsnik ------------------------------------------------------------- */
 .drsnik { flex: none; display: flex; align-items: center; gap: 11px; width: 178px; }
 .drsnik-tir {
   position: relative;
   flex: 1;
-  height: 30px;
-  border-radius: 999px;
+  height: 26px;
   cursor: pointer;
-  overflow: hidden;
+  /* Tir ne sme rezati: rocaj sega cezenj in nosi steklo. */
+  overflow: visible;
+  background: none;
+}
+/* Sam tir je tanka crta na sredini visine, ki jo tipalo zajema. */
+.drsnik-tir::before {
+  content: "";
+  position: absolute;
+  top: 50%; left: 0; right: 0;
+  height: 6px;
+  margin-top: -3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.13);
 }
 .drsnik-polnilo {
   position: absolute;
-  inset: 0 auto 0 0;
+  top: 50%; left: 0;
+  height: 6px;
+  margin-top: -3px;
   width: var(--del, 50%);
-  background: rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
   transition: width 90ms linear;
 }
 .drsnik-rocaj {
   position: absolute;
   top: 50%;
   left: var(--del, 50%);
-  width: 20px; height: 20px;
-  margin-left: -10px;
+  width: 22px; height: 22px;
+  margin-left: -11px;
   border-radius: 50%;
-  background: #f2f5f9;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   transform: translateY(-50%);
-  transition: transform 220ms var(--spring), left 90ms linear;
   pointer-events: none;
 }
-.drsnik-tir:active .drsnik-rocaj { transform: translateY(-50%) scale(1.22); }
+.drsnik-tir.drsi .drsnik-rocaj { transform: translateY(-50%) scale(1.22); }
 .drsnik-stevilka {
   width: 38px;
   font-size: 12.5px;
