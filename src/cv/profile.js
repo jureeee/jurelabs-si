@@ -17,6 +17,9 @@ import avatarUrl from "../assets/images/profile picture.png";
 
 const IKONA_ZAPRI =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+/** Ikona za razporeditev - tri crte padajocih dolzin, kot v iOS. */
+const IKONA_RAZPORED =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M4 7h16M6.5 12h11M9.5 17h5"/></svg>';
 const IKONA_VIDEO =
   '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4.5v15l15-7.5z"/></svg>';
 
@@ -162,6 +165,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
         <button class="prof-zavihek dg" type="button" role="tab" aria-selected="true">Objave</button>
         <button class="prof-zavihek dg" type="button" role="tab" aria-selected="false">Shranjeno</button>
         <button class="prof-zavihek dg" type="button" role="tab" aria-selected="false">Oznaceno</button>
+        <button class="prof-razpored dg" type="button" aria-label="Razporeditev">${IKONA_RAZPORED}</button>
       </div>
 
       <div class="prof-mreza prof-del" style="--i:3"></div>
@@ -333,6 +337,26 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     koren
       .querySelectorAll('[role="tab"]')
       .forEach((t) => t.setAttribute("aria-selected", String(t === b)));
+  });
+
+  /**
+   * Razporeditve mreze.
+   *
+   * Menjava ne animira lege polj: prehod med mrezama bi terjal merjenje pred
+   * in po (FLIP), kar pri 89 poljih pomeni 89 izracunov postavitve naenkrat.
+   * Namesto tega polja zbledijo in se vrnejo - kratko in brez zatikanja.
+   */
+  const RAZPOREDI = ["tri", "dve", "mozaik"];
+  let kRazpored = 0;
+  mreza.dataset.razpored = RAZPOREDI[0];
+
+  koren.querySelector(".prof-razpored").addEventListener("click", () => {
+    mreza.classList.add("menja");
+    setTimeout(() => {
+      kRazpored = (kRazpored + 1) % RAZPOREDI.length;
+      mreza.dataset.razpored = RAZPOREDI[kRazpored];
+      mreza.classList.remove("menja");
+    }, 190);
   });
 
   let zapiranje = null;

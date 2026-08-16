@@ -209,12 +209,43 @@
   -webkit-backdrop-filter: saturate(var(--dg-sat)) blur(var(--dg-blur));
 }
 
+/* Gumb za razporeditev stoji ob zavihkih, a je locen - ni izbira vsebine,
+   ampak nacin prikaza. */
+.prof-razpored {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  margin-left: 6px;
+  border: none;
+  border-radius: 999px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color var(--t-fast) var(--ease), transform var(--t-med) var(--spring);
+}
+.prof-razpored:hover { color: var(--ink); }
+.prof-razpored:active { transform: scale(0.92); }
+.prof-razpored svg { width: 18px; height: 18px; display: block; }
+
 /* --- mreza --------------------------------------------------------------- */
 .prof-mreza {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
   gap: 22px;
+  transition: opacity 190ms var(--ease), filter 190ms var(--ease);
   margin-top: 22px;
+}
+
+/* Med menjavo razporeditve mreza zbledi in se vrne. */
+.prof-mreza.menja { opacity: 0; filter: blur(8px); }
+
+.prof-mreza[data-razpored="tri"]  { grid-template-columns: repeat(3, 1fr); }
+.prof-mreza[data-razpored="dve"]  { grid-template-columns: repeat(2, 1fr); }
+/* Mozaik: vsako peto polje zavzame dva stolpca in dve vrstici, zato mreza ni
+   vec pravilna resetka in oko dobi ritem. */
+.prof-mreza[data-razpored="mozaik"] { grid-template-columns: repeat(4, 1fr); }
+.prof-mreza[data-razpored="mozaik"] .prof-polje:nth-child(5n + 1) {
+  grid-column: span 2;
+  grid-row: span 2;
 }
 .prof-polje {
   position: relative;
