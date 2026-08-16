@@ -194,8 +194,13 @@
 /* Zapiranje je isti val v obratni smeri: vrstice se razblinijo ena za drugo,
    sele nato se umakne plosca in za njo zavesa. Ce bi vse ugasnilo hkrati, bi
    bil odhod videti kot izklop, prihod pa kot val - in to razmerje se cuti. */
+/* Izhodna animacija mora imeti IZRECEN zacetek.
+   Brez njega vzame privzeti from deklarirano vrednost iz .nast-vrstica, ta pa
+   je opacity: 0 - izhodisce za vstop. Vrstica bi torej izginila v hipu, ne
+   izginjala. */
 @keyframes vrsticaValVen {
-  to { opacity: 0; transform: translateY(12px); filter: blur(12px); }
+  from { opacity: 1; transform: translateY(0); filter: blur(0); }
+  to   { opacity: 0; transform: translateY(12px); filter: blur(12px); }
 }
 .nast.zapira .nast-vrstica {
   animation: vrsticaValVen 340ms var(--ease) both;
