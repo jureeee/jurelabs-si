@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="sl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Jure Blatnik</title>
+    <link rel="icon" href="data:," />
+    <style>
+      /* =====================================================================
+         DEFRACTED GLASS BY JURE
+         Nastavitve dolocene v galaxy-lab.html:
+           blur 8 px · nasicenost 2.05 · prosojnost 0.05
+           lom 358 · sirina robu 0.65 · povecava 0.33
+         ===================================================================== */
+      :root {
+        --ink: #e9edf3;
+        --muted: #9aa5b3;
+        --faint: #66707e;
+        --font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+
+        /* Defracted Glass */
+        --dg-blur: 8px;
+        --dg-sat: 2.05;
+        --dg-tint: rgba(30, 35, 44, 0.05);
+        --dg-tint-strong: rgba(40, 46, 58, 0.16);
+
+        --ease: cubic-bezier(0.22, 1, 0.36, 1);
+        --spring: cubic-bezier(0.34, 1.45, 0.5, 1);
+        --t-fast: 180ms;
+        --t-med: 320ms;
+        --t-slow: 560ms;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000;
+        font-family: var(--font);
+        color: var(--ink);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      #galaxy { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+      .dg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+      /* ---------------------------------------------------------------------
+         DEFRACTED GLASS — snov
+         Sij ob robovih NE pride iz border-color: ta je enakomeren po celem
+         obodu in ne more biti mocnejsi na strani, kjer je kazalec. Namesto
+         tega je obroc iz gradienta, izrezan z masko, ki se obraca za kazalcem.
+      --------------------------------------------------------------------- */
+      .dg {
+        position: relative;
+        background: var(--dg-tint);
+        backdrop-filter: saturate(var(--dg-sat)) blur(var(--dg-blur)) url("#dg-refract");
+        -webkit-backdrop-filter: saturate(var(--dg-sat)) blur(var(--dg-blur));
+        border: none;
+        box-shadow:
+          inset 0 9px 22px rgba(255, 255, 255, calc(0.035 + var(--glow, 0) * 0.05)),
+          inset 0 -9px 22px rgba(255, 255, 255, calc(0.022 + var(--glow, 0) * 0.035)),
+          0 18px 50px rgba(0, 0, 0, 0.55);
+        transition: background var(--t-fast) var(--ease), box-shadow var(--t-med) var(--ease);
+      }
+
+      /* Sij ob robovih. Debela ostra crta je videti kot obroba, ne kot
+         svetloba; zato je obroc tanek in rahlo zabrisan, da prehod v steklo
+         ni rob, ampak preliv. */
+      .dg::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 0.9px;
+        filter: blur(0.7px);
+        background: linear-gradient(
+          var(--glow-kot, 180deg),
+          rgba(255, 255, 255, calc(0.2 + var(--glow, 0) * 0.34)) 0%,
+          rgba(255, 255, 255, calc(0.08 + var(--glow, 0) * 0.13)) 18%,
+          rgba(255, 255, 255, calc(0.03 + var(--glow, 0) * 0.04)) 50%,
+          rgba(255, 255, 255, calc(0.06 + var(--glow, 0) * 0.1)) 82%,
+          rgba(255, 255, 255, calc(0.16 + var(--glow, 0) * 0.26)) 100%
+        );
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+      }
+
+      /* ---------------------------------------------------------------------
+         MENI — kapsula
+      --------------------------------------------------------------------- */
+      .nav {
+        position: fixed;
+        top: max(34px, calc(env(safe-area-inset-top) + 18px));
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        padding: 7px;
+        border-radius: 999px;
+
+        /* Vstop: pripotuje iz globine - hkrati se spusti, poveca in izostri. */
+        opacity: 0;
+        animation: navVstop 720ms var(--spring) 320ms both;
+      }
+
+      @keyframes navVstop {
+        from { opacity: 0; transform: translateX(-50%) translateY(-14px) scale(0.94); filter: blur(12px); }
+        to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); filter: blur(0); }
+      }
+
+      .nav button {
+        font: inherit;
+        font-size: 15px;
+        color: var(--muted);
+        background: none;
+        border: none;
+        padding: 11px 21px;
+        border-radius: 999px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition:
+          background var(--t-fast) var(--ease),
+          color var(--t-fast) var(--ease),
+          transform var(--t-med) var(--spring);
+      }
+      .nav button:hover { color: var(--ink); background: rgba(255, 255, 255, 0.06); }
+      /* Squish: stisne se, ne dvigne. 0.955 - manj se ne cuti, vec je risanka. */
+      .nav button:active { transform: scale(0.955); }
+
+      .nav button[aria-selected="true"] {
+        background: rgba(255, 255, 255, 0.13);
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      /* ---------------------------------------------------------------------
+         PROFIL — zgoraj levo
+         Zaprt je krog. Ob prehodu miske se razpre v desno in odkrije ime.
+         Ime je ves cas v DOM in le odrezano, zato ni skoka ob prvem odprtju.
+      --------------------------------------------------------------------- */
+      .profil {
+        position: fixed;
+        top: max(34px, calc(env(safe-area-inset-top) + 18px));
+        left: max(34px, calc(env(safe-area-inset-left) + 18px));
+        z-index: 21;
+
+        display: flex;
+        align-items: center;
+        gap: 0;
+        padding: 7px;
+        border-radius: 999px;
+        border: none;
+        cursor: pointer;
+        font: inherit;
+        color: var(--ink);
+        text-align: left;
+        overflow: hidden;
+
+        /* Sirina je tista, ki se animira - ne transform. Skaliranje bi
+           raztegnilo tudi sliko in besedilo. */
+        width: 54px;
+        height: 54px;
+        transition: width 520ms var(--spring);
+
+        opacity: 0;
+        animation: profilVstop 720ms var(--spring) 200ms both;
+      }
+
+      @keyframes profilVstop {
+        from { opacity: 0; transform: translateX(-14px) scale(0.94); filter: blur(12px); }
+        to   { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
+      }
+
+      .profil:hover,
+      .profil:focus-visible { width: 208px; }
+      .profil:active { transform: scale(0.97); }
+
+      /* Slika in ime lezita eno cez drugo, oba odmaknjena od roba. Ce bi bila
+         v toku, bi izginotje slike premaknilo besedilo in animacija bi
+         poskocila; tako se le izmenjata na mestu. */
+      .profil-slika {
+        position: absolute;
+        left: 7px;
+        top: 7px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.08);
+        transition:
+          opacity 300ms var(--ease),
+          filter 380ms var(--ease),
+          transform 480ms var(--spring);
+      }
+      /* Ob odpiranju se slika razblini in umakne, da ostane samo ime. */
+      .profil:hover .profil-slika,
+      .profil:focus-visible .profil-slika {
+        opacity: 0;
+        filter: blur(9px);
+        transform: scale(0.72);
+      }
+      .profil-slika img {
+        position: absolute; inset: 0;
+        width: 100%; height: 100%;
+        object-fit: cover; object-position: 50% 38%;
+        display: block;
+      }
+
+      .profil-ime {
+        position: absolute;
+        left: 21px;
+        top: 50%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 2px;
+        white-space: nowrap;
+        opacity: 0;
+        /* Pride sele, ko je slika ze skoraj zbledela in je prostor odprt. */
+        transform: translateY(-50%) translateX(-10px) scale(0.96);
+        filter: blur(6px);
+        transition:
+          opacity 300ms var(--ease) 150ms,
+          filter 340ms var(--ease) 150ms,
+          transform 420ms var(--spring) 150ms;
+      }
+      .profil:hover .profil-ime,
+      .profil:focus-visible .profil-ime {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateY(-50%) translateX(0) scale(1);
+      }
+
+      .profil-ime-vrh {
+        font-size: 16px;
+        font-weight: 700;
+        /* Pri debeli pisavi se crke zlepijo; rahlo negativen razmik jih drzi
+           skupaj kot besedo in ne kot niz znakov. */
+        letter-spacing: -0.012em;
+        line-height: 1.1;
+        color: var(--ink);
+      }
+      .profil-ime-rocaj {
+        font-size: 12.5px;
+        font-weight: 500;
+        letter-spacing: 0.012em;
+        line-height: 1.1;
+        color: var(--muted);
+      }
+
+      .nav-profile {
+        flex: none;
+        position: relative;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        border-radius: 50%;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.08);
+        cursor: pointer;
+        border: none;
+        transition: transform var(--t-med) var(--spring), box-shadow var(--t-fast) var(--ease);
+      }
+      .nav-profile img {
+        position: absolute; inset: 0;
+        width: 100%; height: 100%;
+        object-fit: cover; object-position: 50% 38%;
+        display: block;
+      }
+      .nav-profile:hover { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2); }
+      .nav-profile:active { transform: scale(0.93); }
+
+      .nav-sep {
+        flex: none;
+        width: 1px;
+        align-self: stretch;
+        margin: 6px 8px;
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      /* ---------------------------------------------------------------------
+         ORODJA — kapsula spodaj desno
+         Odmik je isti kot pri zgornji vrstici, zato oba robova "dihata" enako.
+      --------------------------------------------------------------------- */
+      .dock {
+        position: fixed;
+        right: max(34px, calc(env(safe-area-inset-right) + 18px));
+        bottom: max(34px, calc(env(safe-area-inset-bottom) + 18px));
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        padding: 7px;
+        border-radius: 999px;
+
+        opacity: 0;
+        animation: dockVstop 720ms var(--spring) 440ms both;
+      }
+
+      @keyframes dockVstop {
+        from { opacity: 0; transform: translateY(16px) scale(0.94); filter: blur(12px); }
+        to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+      }
+
+      .dock-icon {
+        display: grid;
+        place-items: center;
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        color: var(--muted);
+        background: none;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        transition:
+          background var(--t-fast) var(--ease),
+          color var(--t-fast) var(--ease),
+          transform var(--t-med) var(--spring);
+      }
+      .dock-icon svg { width: 21px; height: 21px; display: block; }
+      .dock-icon:hover { color: var(--ink); background: rgba(255, 255, 255, 0.06); }
+      .dock-icon:active { transform: scale(0.93); }
+
+      /* Bouncy squish ob prehodu miske - dodaja ga JS in odstrani ob koncu. */
+      @keyframes squish {
+        0% { transform: scale(1); }
+        42% { transform: scale(0.966); }
+        100% { transform: scale(1); }
+      }
+      .squish { animation: squish 340ms var(--spring); }
+
+      @keyframes pop {
+        0%, 100% { transform: none; }
+        45% { transform: scale(1.035); }
+      }
+      .pop { animation: pop 300ms var(--spring); }
+
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.001ms !important;
+          transition-duration: 0.001ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Lom svetlobe ob robovih. Karto premikov narise cv.js. -->
+    <svg class="dg-defs" aria-hidden="true" width="0" height="0">
+      <filter id="dg-refract" x="-20%" y="-20%" width="140%" height="140%"
+              color-interpolation-filters="sRGB">
+        <feImage id="dg-map" result="mapa" preserveAspectRatio="none" />
+        <feDisplacementMap id="dg-disp" in="SourceGraphic" in2="mapa"
+                           scale="358" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </svg>
+
+    <canvas id="galaxy"></canvas>
+
+    <!-- Profil je svoj gumb zgoraj levo, enako dalec od obeh robov kot je
+         zgornja vrstica od vrha. Ob prehodu miske se razsiri v desno. -->
+    <button class="profil dg" type="button" aria-label="Profil">
+      <span class="profil-slika"><img id="nav-avatar" alt="" /></span>
+      <span class="profil-ime">
+        <span class="profil-ime-vrh">Jureb</span>
+        <span class="profil-ime-rocaj">@blatnikjuree</span>
+      </span>
+    </button>
+
+    <nav class="nav dg" role="tablist" aria-label="Glavni meni">
+      <button type="button" role="tab" aria-selected="true">Arhiv</button>
+      <button type="button" role="tab" aria-selected="false">Delo</button>
+      <button type="button" role="tab" aria-selected="false">O meni</button>
+      <button type="button" role="tab" aria-selected="false">Stik</button>
+    </nav>
+
+    <!-- Iskanje in nastavitve zivita spodaj desno, enako dalec od obeh robov
+         kot je zgornja vrstica od svojega. -->
+    <nav class="dock dg" aria-label="Orodja">
+      <button class="dock-icon" type="button" aria-label="Iskanje"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="10.8" cy="10.8" r="6.4"/><path d="M15.6 15.6 L20 20"/></svg></button>
+      <button class="dock-icon" type="button" aria-label="Nastavitve"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12.00,2.60 L12.81,0.73 L14.55,0.99 L14.77,3.02 L14.77,3.02 L16.10,1.47 L17.68,2.23 L17.30,4.23 L17.30,4.23 L19.02,3.14 L20.31,4.34 L19.35,6.14 L19.35,6.14 L21.32,5.61 L22.20,7.13 L20.75,8.57 L20.75,8.57 L22.79,8.64 L23.18,10.35 L21.37,11.30 L21.37,11.30 L23.30,11.97 L23.17,13.72 L21.16,14.09 L21.16,14.09 L22.81,15.30 L22.17,16.93 L20.14,16.70 L20.14,16.70 L21.36,18.34 L20.26,19.71 L18.39,18.89 L18.39,18.89 L19.07,20.81 L17.62,21.80 L16.08,20.47 L16.08,20.47 L16.16,22.51 L14.48,23.02 L13.40,21.30 L13.40,21.30 L12.88,23.27 L11.12,23.27 L10.60,21.30 L10.60,21.30 L9.52,23.02 L7.84,22.51 L7.92,20.47 L7.92,20.47 L6.38,21.80 L4.93,20.81 L5.61,18.89 L5.61,18.89 L3.74,19.71 L2.64,18.34 L3.86,16.70 L3.86,16.70 L1.83,16.93 L1.19,15.30 L2.84,14.09 L2.84,14.09 L0.83,13.72 L0.70,11.97 L2.63,11.30 L2.63,11.30 L0.82,10.35 L1.21,8.64 L3.25,8.57 L3.25,8.57 L1.80,7.13 L2.68,5.61 L4.65,6.14 L4.65,6.14 L3.69,4.34 L4.98,3.14 L6.70,4.23 L6.70,4.23 L6.32,2.23 L7.90,1.47 L9.23,3.02 L9.23,3.02 L9.45,0.99 L11.19,0.73 L12.00,2.60 Z M19.40,12.00 L19.36,11.27 L19.26,10.56 L19.08,9.85 L18.84,9.17 L18.53,8.51 L18.15,7.89 L17.72,7.31 L17.23,6.77 L16.69,6.28 L16.11,5.85 L15.49,5.47 L14.83,5.16 L14.15,4.92 L13.44,4.74 L12.73,4.64 L12.00,4.60 L11.27,4.64 L10.56,4.74 L9.85,4.92 L9.17,5.16 L8.51,5.47 L7.89,5.85 L7.31,6.28 L6.77,6.77 L6.28,7.31 L5.85,7.89 L5.47,8.51 L5.16,9.17 L4.92,9.85 L4.74,10.56 L4.64,11.27 L4.60,12.00 L4.64,12.73 L4.74,13.44 L4.92,14.15 L5.16,14.83 L5.47,15.49 L5.85,16.11 L6.28,16.69 L6.77,17.23 L7.31,17.72 L7.89,18.15 L8.51,18.53 L9.17,18.84 L9.85,19.08 L10.56,19.26 L11.27,19.36 L12.00,19.40 L12.73,19.36 L13.44,19.26 L14.15,19.08 L14.83,18.84 L15.49,18.53 L16.11,18.15 L16.69,17.72 L17.23,17.23 L17.72,16.69 L18.15,16.11 L18.53,15.49 L18.84,14.83 L19.08,14.15 L19.26,13.44 L19.36,12.73 Z" fill="currentColor" fill-rule="evenodd"/><circle cx="12" cy="12" r="4.75" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 12 L12.00,6.80" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/><path d="M12 12 L16.50,14.60" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/><path d="M12 12 L7.50,14.60" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/><circle cx="12" cy="12" r="1.15" fill="currentColor"/></svg></button>
+    </nav>
+
+    <script type="module" src="/src/cv/cv.js"></script>
+  </body>
+</html>

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+
+# Surovi 3D modeli (planeti, crna luknja, sonce) - okrog 2 GB.
+# V git ne sodijo: potisk bi bil neznosen in ze pri manjsem repozitoriju je
+# padal. Hranijo se lokalno v mapi modeli/; v projekt se uvozi le tisto, kar
+# se dejansko uporablja, in sicer prek src/assets/.
+modeli/
