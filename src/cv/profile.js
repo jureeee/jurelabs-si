@@ -13,7 +13,7 @@
  */
 
 import "./profile.css";
-import avatarUrl from "../assets/images/profile picture.png";
+import avatarUrl from "../assets/media/profile picture.webp";
 import { mediji } from "./mediji.js";
 
 const IKONA_ZAPRI =

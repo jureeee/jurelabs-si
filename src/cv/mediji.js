@@ -1,6 +1,10 @@
 /**
  * Seznam medijev, skupen profilu in strani O meni.
  *
+ * Bere iz assets/media - to so za splet pripravljene razlicice. Izvirniki so
+ * zunaj projekta; te so slike v WebP z daljso stranico 1600 in videi v mp4
+ * brez zvoka, ker se v galeriji predvajajo utisani.
+ *
  * Glob vrne le naslove (nize), zato tu se nic ne potuje po mrezi - datoteka se
  * prenese sele, ko element dobi src.
  *
@@ -11,7 +15,7 @@
  */
 
 const vsi = Object.entries(
-  import.meta.glob("../assets/images/*.{jpg,JPG,jpeg,JPEG,png,PNG,mp4,MP4,mov,MOV}", {
+  import.meta.glob("../assets/media/*.{webp,mp4}", {
     eager: true,
     query: "?url",
     import: "default",
@@ -20,7 +24,7 @@ const vsi = Object.entries(
   .map(([pot, url]) => ({
     url,
     ime: pot.split("/").pop(),
-    video: /\.(mp4|mov)$/i.test(pot),
+    video: /\.mp4$/i.test(pot),
   }))
   // Profilna slika sodi v glavo, ne v mrezo.
   .filter((m) => !m.ime.startsWith("profile picture"));
