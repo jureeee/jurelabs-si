@@ -372,7 +372,6 @@
      rezerviramo z desnim robom in ga s stabilnim zlebom obdrzimo tudi takrat,
      ko drsenja ni - sicer bi se vsebina ob odprtju premaknila. */
   padding-right: 4px;
-  scrollbar-gutter: stable;
   overscroll-behavior: contain;
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 16px), transparent 100%);
   mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 16px), transparent 100%);
@@ -441,7 +440,16 @@
    sirsa in z ikonami. Te locijo dejanja med sabo hitreje kot samo besedilo,
    pri meniju, ki se odpre pod prstom, pa je hitrost branja bistvena.
 --------------------------------------------------------------------------- */
-.kmeni { min-width: 216px; }
+.kmeni {
+  min-width: 216px;
+  /* Ne drsi, zato ne rabi ne zaloge za drsnik ne maske ob robovih - ta bi mu
+     le pojedla rob in pustila prazen pas ob strani. */
+  max-height: none;
+  overflow: visible;
+  padding-right: 6px;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
 .kmeni .spust-izbira { gap: 12px; }
 .kmeni-ikona {
   flex: none;
