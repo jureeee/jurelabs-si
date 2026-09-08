@@ -235,12 +235,26 @@
 }
 
 /* --- vrtiljak na koncu --------------------------------------------------- */
-.omeni-vrtiljak { position: relative; margin-top: 28px; }
+/* Vrtiljak gre cez celo sirino okna, glava in besedilo pa ostaneta v stolpcu.
+   Prej je bil omejen na stolpec in kartice so bile odrezane sredi zaslona. */
+.omeni-vrtiljak {
+  position: relative;
+  margin-top: 28px;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+}
 
 .omeni-tir {
   display: flex;
   gap: 22px;
-  padding: 4px 0;
+  /* Prva kartica se zacne tam, kjer se zacne besedilo nad njo. Zadnja ima
+     enak zrak na drugi strani, da vrtiljak ne konca ob robu okna. */
+  padding: 4px max(34px, calc(50vw - 520px));
+
+  /* Ob straneh zbledi v nic, namesto da bi bil odrezan. Robova sta siroka,
+     ker naj kartica postopoma odide iz pogleda in ne izgine za crto. */
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 13%, #000 87%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 13%, #000 87%, transparent 100%);
   overflow-x: auto;
   overscroll-behavior-x: contain;
   /* Pripenjanje je izklopljeno: lego vodi koda, ki zobnike prevede v kartice.
@@ -290,9 +304,9 @@
 .omeni-nazaj:hover, .omeni-naprej:hover, .omeni-zapri:hover { color: var(--ink); }
 
 .omeni-nazaj, .omeni-naprej { position: absolute; top: 50%; margin-top: -21px; }
-.omeni-nazaj { left: -21px; transform: rotate(180deg); }
+.omeni-nazaj { left: 22px; transform: rotate(180deg); }
 .omeni-nazaj:active { transform: rotate(180deg) scale(0.9); }
-.omeni-naprej { right: -21px; }
+.omeni-naprej { right: 22px; }
 .omeni-naprej:active, .omeni-zapri:active { transform: scale(0.9); }
 
 .omeni-zapri {
