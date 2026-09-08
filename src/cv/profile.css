@@ -9,6 +9,10 @@
 .prof {
   position: fixed;
   inset: 0;
+  /* Zaprt pogled se ne sme izrisovati. Prosojnost 0 ga skrije ocesu, ne pa
+     brskalniku - ploskve v njem se naprej racunajo backdrop-filter nad
+     galaksijo. content-visibility ga izloci iz izrisa do odprtja. */
+  content-visibility: hidden;
   z-index: 55;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -20,6 +24,7 @@
   transition: none;
 }
 .prof.odprt {
+  content-visibility: visible;
   pointer-events: auto;
   opacity: 1;
   transition: opacity 300ms var(--ease);

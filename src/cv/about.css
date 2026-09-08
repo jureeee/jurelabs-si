@@ -8,6 +8,10 @@
 .omeni {
   position: fixed;
   inset: 0;
+  /* Zaprt pogled se ne sme izrisovati. Prosojnost 0 ga skrije ocesu, ne pa
+     brskalniku - ploskve v njem se naprej racunajo backdrop-filter nad
+     galaksijo. content-visibility ga izloci iz izrisa do odprtja. */
+  content-visibility: hidden;
   z-index: 56;
   pointer-events: none;
   opacity: 0;
@@ -16,6 +20,7 @@
   transition: none;
 }
 .omeni.odprt {
+  content-visibility: visible;
   pointer-events: auto;
   opacity: 1;
   transition: opacity 300ms var(--ease);
@@ -217,7 +222,12 @@
   color: var(--ink);
 }
 .omeni-znacke { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+/* Znacke nimajo loma svetlobe. Vsaka ploskev z url(#dg-refract) pozene svoj
+   feDisplacementMap; znack je triintrideset in na pilulki sirine 60 px se lom
+   niti ne vidi. Zameglitev in obroc ostaneta. */
 .omeni-znacka {
+  backdrop-filter: saturate(var(--dg-sat)) blur(var(--dg-blur));
+  -webkit-backdrop-filter: saturate(var(--dg-sat)) blur(var(--dg-blur));
   padding: 7px 13px;
   border-radius: 999px;
   font-size: 12.5px;
