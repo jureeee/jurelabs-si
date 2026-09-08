@@ -18,7 +18,7 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import galaxyModelUrl from "../assets/3d models/need_some_space.glb?url";
-import avatarUrl from "../assets/images/profile picture.png";
+import avatarUrl from "../assets/media/profile picture.webp";
 import { installDefractedGlass } from "./defractedGlass.js";
 import { installSettings, nastavitve } from "./settings.js";
 import { installProfile } from "./profile.js";
