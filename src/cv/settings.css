@@ -380,9 +380,9 @@
      Nasicenost 2.05 mu je iz galaksije potegnila modrino in seznam je bil
      bolj obarvan kot vse okoli njega; mocnejsi blur in temnejsa podlaga pa
      dasta ploskev, na kateri je besedilo berljivo. */
-  --dg-sat: 1.1;
-  --dg-blur: 20px;
-  --dg-tint: rgba(16, 19, 25, 0.62);
+  --dg-sat: 1.15;
+  --dg-blur: 11px;
+  --dg-tint: rgba(16, 19, 25, 0.34);
   padding: 6px;
   border-radius: 16px;
 
