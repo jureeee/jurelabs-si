@@ -238,6 +238,10 @@
 /* Vrtiljak gre cez celo sirino okna, glava in besedilo pa ostaneta v stolpcu.
    Prej je bil omejen na stolpec in kartice so bile odrezane sredi zaslona. */
 .omeni-vrtiljak {
+  /* Sirina kartice je dolocena tu, ker jo bereta oba: kartica zase in tir za
+     svojo zalogo. Na kartici bi bila zunaj dosega tira. */
+  --kartica: min(480px, 30vw);
+
   position: relative;
   margin-top: 28px;
   width: 100vw;
@@ -246,15 +250,16 @@
 
 .omeni-tir {
   display: flex;
-  gap: 22px;
-  /* Prva kartica se zacne tam, kjer se zacne besedilo nad njo. Zadnja ima
-     enak zrak na drugi strani, da vrtiljak ne konca ob robu okna. */
-  padding: 4px max(34px, calc(50vw - 520px));
+  gap: 26px;
+  /* Zaloga na obeh straneh je pol okna minus pol kartice, zato je izbrana
+     kartica vedno na sredini zaslona - tudi prva in zadnja. */
+  padding: 30px max(24px, calc(50vw - var(--kartica) / 2));
+  align-items: center;
 
   /* Ob straneh zbledi v nic, namesto da bi bil odrezan. Robova sta siroka,
      ker naj kartica postopoma odide iz pogleda in ne izgine za crto. */
-  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 13%, #000 87%, transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0, #000 13%, #000 87%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 9%, #000 91%, transparent 100%);
   overflow-x: auto;
   overscroll-behavior-x: contain;
   /* Pripenjanje je izklopljeno: lego vodi koda, ki zobnike prevede v kartice.
@@ -265,9 +270,11 @@
 
 .omeni-kartica {
   flex: none;
-  width: min(680px, 88vw);
-  min-height: min(58vh, 440px);
-  padding: 44px 48px;
+  /* Sirina je izracunana tako, da so na zaslonu natanko tri: sredinska in po
+     ena na vsaki strani. Vrednost pride z ovoja. */
+  width: var(--kartica);
+  min-height: min(46vh, 380px);
+  padding: 34px 36px;
   border-radius: 28px;
 
   /* Nizja nasicenost kot drugod. Pri 2.05 potegne modrina galaksije v zeleno,
@@ -276,16 +283,31 @@
   --dg-blur: 14px;
   --dg-tint: rgba(16, 19, 25, 0.4);
   transform-origin: center;
+
+  /* Sredinska je v ospredju, stranski sta odmaknjeni vsaka v svojo stran,
+     pomanjsani in zbledeli. Odmik je tisti, po katerem se bere kot vrtiljak in
+     ne kot vrsta enakovrednih kartic. */
+  transition:
+    transform 620ms var(--spring),
+    opacity 480ms var(--ease);
+
   /* Brez will-change: transform. Ta povzdigne kartico v svojo plast in steklu
      vzame podlago, ki bi jo lomilo - ista past kot pri filter, le pod drugim
      imenom. Squish tece tudi brez nje dovolj gladko. */
 }
+/* Lege v vrtiljaku. Razrede postavlja JS ob vsakem premiku. */
+.omeni-kartica.stran-leva  { transform: translateX(-26px) scale(0.9); opacity: 0.5; }
+.omeni-kartica.stran-desna { transform: translateX(26px) scale(0.9); opacity: 0.5; }
+.omeni-kartica.sredina     { transform: none; opacity: 1; }
+/* Kartice, ki niso sosede sredinske, so povsem umaknjene. */
+.omeni-kartica.dalec { opacity: 0.18; transform: scale(0.86); }
+
 .omeni-naslov {
   margin: 16px 0 0 !important;
-  font-size: 26px !important;
+  font-size: 22px !important;
   line-height: 1.2 !important;
 }
-.omeni-telo { font-size: 15px !important; }
+.omeni-telo { font-size: 14px !important; }
 
 .omeni-nazaj,
 .omeni-naprej,

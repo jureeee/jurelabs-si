@@ -188,8 +188,26 @@ export function installAbout() {
 
   const korak = () => {
     const k = kartice[0];
-    return k ? k.getBoundingClientRect().width + 22 : 380;
+    return k ? k.getBoundingClientRect().width + 26 : 380;
   };
+
+  /**
+   * Oznaci lege glede na sredinsko kartico.
+   *
+   * Sosedi dobita odmik v svojo stran in zbledita; oddaljene se umaknejo
+   * povsem. Brez tega so vse kartice enakovredne in oko ne ve, katera je
+   * izbrana - to je bilo videti kot vrsta, ne kot vrtiljak.
+   */
+  function oznaciLege() {
+    kartice.forEach((k, i) => {
+      k.classList.remove("sredina", "stran-leva", "stran-desna", "dalec");
+      const razlika = i - kje;
+      if (razlika === 0) k.classList.add("sredina");
+      else if (razlika === -1) k.classList.add("stran-leva");
+      else if (razlika === 1) k.classList.add("stran-desna");
+      else k.classList.add("dalec");
+    });
+  }
 
   /** Pocasi na zacetku in koncu, hitro v sredini. */
   const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
@@ -208,6 +226,7 @@ export function installAbout() {
     const razdalja = konec - zacetek;
     if (Math.abs(razdalja) < 1) {
       kje = nova;
+      oznaciLege();
       return;
     }
 
@@ -215,6 +234,7 @@ export function installAbout() {
     const trajanje = 420 + Math.sqrt(kartic) * 190;
     const smer = Math.sign(razdalja);
     kje = nova;
+    oznaciLege();
 
     const zacetniCas = performance.now();
     if (gib) cancelAnimationFrame(gib);
@@ -226,27 +246,30 @@ export function installAbout() {
 
       // Squish: kartice se med potjo stisnejo v smeri gibanja in se ob koncu
       // odbijejo nazaj. Vrh je na sredini poti, kjer je hitrost najvecja.
+      // Squish pise samo sredinski kartici. Stranskima lego doloca razred; ce
+      // bi jima pisali se transform, bi ga prepisal in odmik bi izginil.
       const moc = Math.sin(t * Math.PI);
-      kartice.forEach((k, i) => {
-        const blizina = 1 - Math.min(Math.abs(i - kje), 2) / 2;
-        k.style.transform =
-          `scaleX(${1 - moc * 0.05 * blizina}) scaleY(${1 + moc * 0.035 * blizina})` +
-          ` translateX(${-smer * moc * 9 * blizina}px)`;
-      });
+      const sredinska = kartice[kje];
+      if (sredinska) {
+        sredinska.style.transform =
+          `scaleX(${1 - moc * 0.05}) scaleY(${1 + moc * 0.035})` +
+          ` translateX(${-smer * moc * 9}px)`;
+      }
 
       if (t < 1) {
         gib = requestAnimationFrame(slicica);
         return;
       }
       gib = null;
-      // Odboj: kartice se vrnejo z vzmetjo, ne z ravno crto.
-      kartice.forEach((k) => {
-        k.style.transition = "transform 520ms var(--spring)";
-        k.style.transform = "";
-        setTimeout(() => (k.style.transition = ""), 540);
-      });
+      // Odboj: sredinska se vrne z vzmetjo, nato lego spet doloca razred.
+      if (sredinska) {
+        sredinska.style.transform = "";
+      }
+      oznaciLege();
     })(zacetniCas);
   }
+
+  oznaciLege();
 
   koren.querySelector(".omeni-naprej").addEventListener("click", () => pojdi(kje + 1));
   koren.querySelector(".omeni-nazaj").addEventListener("click", () => pojdi(kje - 1));
@@ -325,6 +348,11 @@ export function installAbout() {
       koren.classList.remove("zapira");
     }
     koren.classList.add("odprt");
+    // Vrtiljak nazaj na prvo kartico. Brez tega ob ponovnem odprtju obvisi
+    // tam, kjer si ga pustil, lege pa kazejo na prvo - in oboje se razide.
+    kje = 0;
+    tir.scrollLeft = 0;
+    oznaciLege();
     tok.scrollTop = 0;
     cilj = 0;
 
