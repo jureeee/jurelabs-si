@@ -36,6 +36,35 @@
   -webkit-backdrop-filter: blur(3px);
 }
 
+/* Prihod: priplava od spodaj in zraste v svojo velikost.
+   Preoblikovanje je le za cas animacije - po njej ga JS odvzame, sicer bi
+   ovoj s transformom vzel steklu kartic podlago, ki jo lomi. */
+@keyframes tokPrihod {
+  from {
+    opacity: 0;
+    transform: translateY(64px) scale(0.9);
+    filter: blur(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+.omeni-tok.prihaja {
+  animation: tokPrihod 720ms cubic-bezier(0.12, 0.86, 0.16, 1) both;
+  transform-origin: 50% 100%;
+}
+
+@keyframes tokOdhod {
+  from { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  to   { opacity: 0; transform: translateY(52px) scale(0.94); filter: blur(18px); }
+}
+.omeni.zapira .omeni-tok {
+  animation: tokOdhod 380ms var(--ease) both;
+  transform-origin: 50% 100%;
+}
+
 .omeni-tok {
   position: relative;
   height: 100%;
@@ -49,19 +78,59 @@
 .odsek {
   width: min(1040px, calc(100vw - 68px));
   margin: 0 auto;
-  padding: 96px 0;
+  padding: 112px 0;
 
   /* Pride, ko prides do njega. Enkratno - kar si ze videl, naj ostane. */
-  opacity: 0;
-  transform: translateY(38px);
-  filter: blur(12px);
   --vstop: cubic-bezier(0.12, 0.86, 0.16, 1);
-  transition:
-    opacity 780ms var(--vstop),
-    transform 980ms var(--vstop),
-    filter 840ms var(--vstop);
 }
 .odsek.vidno { opacity: 1; transform: none; filter: blur(0); }
+
+/* Znotraj razdelka pride vsak element zase, eden za drugim.
+   Razdelek kot celota bi bil en sam dogodek; posamezni elementi dajo obcutek,
+   da se stran sestavlja pred tabo. Zamik je krajsi od trajanja, zato se gibi
+   prekrivajo in ni nastevanja. */
+.odsek > *,
+.omeni-besedilo > * {
+  opacity: 0;
+  transform: translateY(30px) scale(0.985);
+  filter: blur(9px);
+  transition:
+    opacity 700ms var(--vstop),
+    transform 900ms cubic-bezier(0.2, 1.24, 0.34, 1),
+    filter 760ms var(--vstop);
+}
+.odsek.vidno > *,
+.odsek.vidno .omeni-besedilo > * {
+  opacity: 1;
+  transform: none;
+  filter: blur(0);
+}
+.odsek.vidno > *:nth-child(1) { transition-delay: 60ms; }
+.odsek.vidno > *:nth-child(2) { transition-delay: 150ms; }
+.odsek.vidno > *:nth-child(3) { transition-delay: 240ms; }
+.odsek.vidno > *:nth-child(4) { transition-delay: 330ms; }
+.odsek.vidno .omeni-besedilo > *:nth-child(1) { transition-delay: 120ms; }
+.odsek.vidno .omeni-besedilo > *:nth-child(2) { transition-delay: 210ms; }
+.odsek.vidno .omeni-besedilo > *:nth-child(3) { transition-delay: 300ms; }
+.odsek.vidno .omeni-besedilo > *:nth-child(4) { transition-delay: 390ms; }
+
+/* Znacke pridejo v valu, vsaka za prejsnjo. */
+.omeni-znacka {
+  opacity: 0;
+  transform: translateY(14px) scale(0.94);
+  transition:
+    opacity 520ms var(--ease),
+    transform 640ms cubic-bezier(0.2, 1.3, 0.34, 1);
+}
+.odsek.vidno .omeni-znacka { opacity: 1; transform: none; }
+.odsek.vidno .omeni-znacka:nth-child(1) { transition-delay: 340ms; }
+.odsek.vidno .omeni-znacka:nth-child(2) { transition-delay: 390ms; }
+.odsek.vidno .omeni-znacka:nth-child(3) { transition-delay: 440ms; }
+.odsek.vidno .omeni-znacka:nth-child(4) { transition-delay: 490ms; }
+.odsek.vidno .omeni-znacka:nth-child(5) { transition-delay: 540ms; }
+.odsek.vidno .omeni-znacka:nth-child(6) { transition-delay: 590ms; }
+.odsek.vidno .omeni-znacka:nth-child(7) { transition-delay: 640ms; }
+.odsek.vidno .omeni-znacka:nth-child(8) { transition-delay: 690ms; }
 
 .omeni-oznaka {
   font-size: 11.5px;
@@ -164,26 +233,35 @@
   padding: 4px 0;
   overflow-x: auto;
   overscroll-behavior-x: contain;
-  /* Pripenjanje: kartica se vedno postavi na svoje mesto. */
-  scroll-snap-type: x mandatory;
+  /* Pripenjanje je izklopljeno: lego vodi koda, ki zobnike prevede v kartice.
+     Ce bi brskalnik hkrati pripenjal, bi si nasprotovala. */
   scrollbar-width: none;
 }
 .omeni-tir::-webkit-scrollbar { display: none; }
 
 .omeni-kartica {
   flex: none;
-  width: min(360px, 78vw);
-  min-height: 250px;
-  padding: 28px 30px;
-  border-radius: 24px;
-  scroll-snap-align: start;
+  width: min(680px, 88vw);
+  min-height: min(58vh, 440px);
+  padding: 44px 48px;
+  border-radius: 28px;
+
+  /* Nizja nasicenost kot drugod. Pri 2.05 potegne modrina galaksije v zeleno,
+     ker je ploskev velika in pod njo je skoraj samo ozadje. */
+  --dg-sat: 1.2;
+  --dg-blur: 14px;
+  --dg-tint: rgba(16, 19, 25, 0.4);
+  transform-origin: center;
+  /* Brez will-change: transform. Ta povzdigne kartico v svojo plast in steklu
+     vzame podlago, ki bi jo lomilo - ista past kot pri filter, le pod drugim
+     imenom. Squish tece tudi brez nje dovolj gladko. */
 }
 .omeni-naslov {
-  margin: 14px 0 0 !important;
-  font-size: 23px !important;
+  margin: 16px 0 0 !important;
+  font-size: 26px !important;
   line-height: 1.2 !important;
 }
-.omeni-telo { font-size: 14.5px !important; }
+.omeni-telo { font-size: 15px !important; }
 
 .omeni-nazaj,
 .omeni-naprej,

@@ -174,32 +174,110 @@ export function installAbout() {
   koren.querySelectorAll(".odsek").forEach((o) => opazovalec.observe(o));
 
   // --- vrtiljak ------------------------------------------------------------
+  const kartice = [...tir.querySelectorAll(".omeni-kartica")];
+
+  /** Koliko znasa en zobnik kolesca. Windows javi 100, drugod se razlikuje. */
+  const ZOBNIK = 100;
+  /** Koliko casa cakamo, da se hitri zobniki zdruzijo v eno potezo. */
+  const ZDRUZI_MS = 90;
+
+  let kje = 0;
+  let nabrano = 0;
+  let cakalec = null;
+  let gib = null;
+
   const korak = () => {
-    const k = tir.querySelector(".omeni-kartica");
+    const k = kartice[0];
     return k ? k.getBoundingClientRect().width + 22 : 380;
   };
-  koren.querySelector(".omeni-naprej").addEventListener("click", () =>
-    tir.scrollBy({ left: korak(), behavior: "smooth" })
-  );
-  koren.querySelector(".omeni-nazaj").addEventListener("click", () =>
-    tir.scrollBy({ left: -korak(), behavior: "smooth" })
-  );
+
+  /** Pocasi na zacetku in koncu, hitro v sredini. */
+  const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
   /**
-   * Kolescek nad vrtiljakom ga premika vodoravno, a le dokler ima kam.
-   * Ko pride do konca, dogodka ne prevzamemo vec in stran drsi naprej - sicer
-   * bi vrtiljak lovil kolescek in obiskovalec bi obtical na njem.
+   * Premik na kartico.
+   *
+   * Trajanje raste s stevilom kartic, a ne sorazmerno - dve kartici nista
+   * dvakrat dlje, sicer bi bil dolg skok mucno pocasen.
+   */
+  function pojdi(nacilj) {
+    const meja = kartice.length - 1;
+    const nova = Math.max(0, Math.min(nacilj, meja));
+    const zacetek = tir.scrollLeft;
+    const konec = nova * korak();
+    const razdalja = konec - zacetek;
+    if (Math.abs(razdalja) < 1) {
+      kje = nova;
+      return;
+    }
+
+    const kartic = Math.abs(nova - kje) || 1;
+    const trajanje = 420 + Math.sqrt(kartic) * 190;
+    const smer = Math.sign(razdalja);
+    kje = nova;
+
+    const zacetniCas = performance.now();
+    if (gib) cancelAnimationFrame(gib);
+
+    (function slicica(zdaj) {
+      const t = Math.min((zdaj - zacetniCas) / trajanje, 1);
+      const e = easeInOut(t);
+      tir.scrollLeft = zacetek + razdalja * e;
+
+      // Squish: kartice se med potjo stisnejo v smeri gibanja in se ob koncu
+      // odbijejo nazaj. Vrh je na sredini poti, kjer je hitrost najvecja.
+      const moc = Math.sin(t * Math.PI);
+      kartice.forEach((k, i) => {
+        const blizina = 1 - Math.min(Math.abs(i - kje), 2) / 2;
+        k.style.transform =
+          `scaleX(${1 - moc * 0.05 * blizina}) scaleY(${1 + moc * 0.035 * blizina})` +
+          ` translateX(${-smer * moc * 9 * blizina}px)`;
+      });
+
+      if (t < 1) {
+        gib = requestAnimationFrame(slicica);
+        return;
+      }
+      gib = null;
+      // Odboj: kartice se vrnejo z vzmetjo, ne z ravno crto.
+      kartice.forEach((k) => {
+        k.style.transition = "transform 520ms var(--spring)";
+        k.style.transform = "";
+        setTimeout(() => (k.style.transition = ""), 540);
+      });
+    })(zacetniCas);
+  }
+
+  koren.querySelector(".omeni-naprej").addEventListener("click", () => pojdi(kje + 1));
+  koren.querySelector(".omeni-nazaj").addEventListener("click", () => pojdi(kje - 1));
+
+  /**
+   * Kolescek nad vrtiljakom.
+   *
+   * Zobniki se zberejo v kratkem oknu in sele nato prevedejo v kartice, po
+   * pravilu ceil(n / 2): en zobnik je ena kartica, dva sta se vedno ena - da
+   * pomota ne odnese predalec - trije pa dve. Brez zdruzevanja bi vsak zobnik
+   * sprozil svojo animacijo in te bi se prekrivale.
+   *
+   * Ko je vrtiljak na koncu, dogodka ne prevzamemo vec in stran drsi naprej.
    */
   tir.addEventListener(
     "wheel",
     (e) => {
       if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
-      const konec = tir.scrollWidth - tir.clientWidth;
       const naProstem =
-        (e.deltaY > 0 && tir.scrollLeft >= konec - 1) || (e.deltaY < 0 && tir.scrollLeft <= 1);
+        (e.deltaY > 0 && kje >= kartice.length - 1) || (e.deltaY < 0 && kje <= 0);
       if (naProstem) return;
       e.preventDefault();
-      tir.scrollLeft += e.deltaY;
+
+      nabrano += e.deltaY;
+      clearTimeout(cakalec);
+      cakalec = setTimeout(() => {
+        const zobnikov = Math.abs(nabrano) / ZOBNIK;
+        const kartic = Math.max(1, Math.ceil(zobnikov / 2));
+        pojdi(kje + Math.sign(nabrano) * kartic);
+        nabrano = 0;
+      }, ZDRUZI_MS);
     },
     { passive: false }
   );
@@ -249,6 +327,17 @@ export function installAbout() {
     koren.classList.add("odprt");
     tok.scrollTop = 0;
     cilj = 0;
+
+    // Prihod od spodaj. Razred odvzamemo, ko animacija pretece: transform na
+    // ovoju bi sicer ostal in steklu kartic vzel podlago, ki jo lomi.
+    tok.classList.add("prihaja");
+    tok.addEventListener(
+      "animationend",
+      (e) => {
+        if (e.animationName === "tokPrihod") tok.classList.remove("prihaja");
+      },
+      { once: true }
+    );
   }
 
   function zapri() {
