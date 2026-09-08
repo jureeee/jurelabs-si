@@ -1,0 +1,36 @@
+/* =========================================================================
+   SIJ POD IZBRANIM BESEDILOM
+   ========================================================================= */
+
+/* Sistemsko ozadje skrijemo - narisemo svoje. Barva besedila ostane, sicer bi
+   izbrano besedilo izginilo, ce bi nasa plast kdaj odpovedala. */
+::selection { background: transparent; }
+::-moz-selection { background: transparent; }
+
+.izbira-sij {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  pointer-events: none;
+
+  /* Zabris je na celi plasti in ne na vsaki lisi: tako se sosednje vrstice
+     zlijejo v eno telo namesto v niz locenih packic. */
+  filter: blur(6px);
+  /* Screen posvetli ploskev pod besedilom, belo besedilo pa pusti belo.
+     Navadna prosojna plast cez besedilo bi ga zbledila. */
+  mix-blend-mode: screen;
+}
+
+.izbira-sij span {
+  position: fixed;
+  border-radius: 8px;
+  background: rgba(150, 185, 255, 0.42);
+}
+
+/* Na svetli podlagi mora izbira temneti, ne svetliti. */
+:root[data-tema="svetla"] .izbira-sij { mix-blend-mode: multiply; }
+:root[data-tema="svetla"] .izbira-sij span { background: rgba(70, 110, 190, 0.34); }
+
+@media (prefers-reduced-motion: reduce) {
+  .izbira-sij { filter: blur(3px); }
+}

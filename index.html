@@ -94,12 +94,14 @@
          strani, ki ni nasa - tu je namesto nje mlecna prosojnost, skozi
          katero se vidi galaksija, in ista pisava kot sicer. */
       ::selection {
-        background: rgba(255, 255, 255, 0.24);
+        /* Ozadje risemo sami, glej selection.css - tam je mehkejse od tega,
+           kar ::selection zmore. */
+        background: transparent;
         color: var(--ink);
         text-shadow: none;
       }
       ::-moz-selection {
-        background: rgba(255, 255, 255, 0.24);
+        background: transparent;
         color: var(--ink);
       }
 

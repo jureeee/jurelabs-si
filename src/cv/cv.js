@@ -25,6 +25,7 @@ import { installProfile } from "./profile.js";
 import { installContextMenu } from "./context.js";
 import { installAbout } from "./about.js";
 import { installCursor, installMagnetic } from "./cursor.js";
+import { installSelectionGlow } from "./selection.js";
 
 // --- nastavitve --------------------------------------------------------------
 /**
@@ -587,6 +588,8 @@ nav?.addEventListener("pointerover", (e) => {
 });
 
 // --- nastavitve --------------------------------------------------------------
+installSelectionGlow();
+
 const kazalec = installCursor();
 // Gumbi se nagnejo mocneje, kapsule okoli njih sibkeje - ucinek se sesteje.
 const magnetGumbi = installMagnetic(
