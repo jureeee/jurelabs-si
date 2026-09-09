@@ -24,7 +24,7 @@ import { installSettings, nastavitve } from "./settings.js";
 import { installProfile } from "./profile.js";
 import { installContextMenu } from "./context.js";
 import { installZapis } from "./zapis.js";
-import { DELO, OMENI } from "./vsebina.js";
+import { DELO, OMENI, ARHIV } from "./vsebina.js";
 import { installCursor, installMagnetic } from "./cursor.js";
 import { installSelectionGlow } from "./selection.js";
 
@@ -628,10 +628,11 @@ document
   .querySelector('.dock-icon[aria-label="Nastavitve"]')
   ?.addEventListener("click", () => plosca.odpri());
 
-// Delo in O meni sta ista stran z drugim besedilom; razlika je v vsebini.
+// Delo, O meni in Arhiv so ista stran z drugim besedilom; razlika je v vsebini.
 const strani = new Map([
   ["Delo", installZapis(DELO)],
   ["O meni", installZapis(OMENI)],
+  ["Arhiv", installZapis(ARHIV)],
 ]);
 nav?.querySelectorAll('[role="tab"]').forEach((t) => {
   const stran = strani.get(t.textContent.trim());

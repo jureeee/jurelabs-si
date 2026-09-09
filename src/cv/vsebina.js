@@ -1,9 +1,13 @@
 /**
- * Besedilo strani Delo in O meni.
+ * Besedilo strani Delo, O meni in Arhiv.
  *
- * Loceno od pogona v zapis.js z namenom: obe strani teceta po isti mehaniki,
- * razlikujeta se le po besedah. Kdor popravlja besedilo, naj mu ni treba
- * brati drsenja in vrtiljaka.
+ * Loceno od pogona v zapis.js z namenom: vse tri strani tecejo po isti
+ * mehaniki, razlikujejo se le po besedah. Kdor popravlja besedilo, naj mu ni
+ * treba brati drsenja in vrtiljaka.
+ *
+ * Uvod lahko dobi "ikona": kljuc iz nabora v zapis.js, ne oznake SVG - v
+ * vsebini naj ne bo kode. Vrtiljak "kartice" je neobvezen; stran brez njega
+ * se konca z zadnjim razdelkom.
  *
  * Oblika razdelka:
  *   { tip: "par", oznaka, naslov, telo, znacke?, slika }  besedilo in slika
@@ -56,10 +60,11 @@ export const DELO = {
       oznaka: "Projekt",
       naslov: "Vantage",
       telo:
-        "Aplikacija za odkrivanje, nastavljanje in vodenje omrežnih kamer " +
-        "ter njihovih leg. Namesto desetih ločenih vmesnikov ena površina, " +
-        "ki jih zna vse.",
-      znacke: ["Python", "React", "TypeScript", "ONVIF", "SSE"],
+        "Aplikacija za odkrivanje, nastavljanje in vodenje omrežnih kamer. " +
+        "Premičnim kameram hrani prednastavljene lege, tako da se z enim " +
+        "klikom vrnejo natanko tja, kamor morajo gledati. Namesto desetih " +
+        "ločenih vmesnikov ena površina, ki jih zna vse.",
+      znacke: ["Python", "React", "TypeScript", "ONVIF", "PTZ", "SSE"],
       slika: 7,
     },
     {
@@ -216,4 +221,50 @@ export const OMENI = {
     ],
   },
   konec: "Če te kaj od tega zanima, mi piši.",
+};
+
+/**
+ * Arhiv: koncane stvari, ki jih ne razvijam naprej.
+ *
+ * Namenoma kratek. Arhiv, ki ima vec vsebine od Dela, pove, da je najboljse
+ * ze za tabo - zato tu stojita dve stvari in ne deset.
+ *
+ * Racunalniski vid stoji tudi pod Delom. Tam je dokaz, kaj znam narediti
+ * zunaj delovnih obveznosti, tu pa dokaz, od kod to prihaja.
+ */
+export const ARHIV = {
+  uvod: {
+    oznaka: "Arhiv",
+    ikona: "arhiv",
+    naslov: "Dobrodošel v arhivu.",
+    vodilo:
+      "Stvari, ki so končane in jih ne razvijam naprej. Tu so, ker sem se ob " +
+      "njih nekaj naučil in ker je pošteno pokazati tudi, kje sem začel.",
+  },
+  odseki: [
+    {
+      tip: "par",
+      oznaka: "2024",
+      naslov: "Zaznavanje in sledenje\nv realnem času",
+      telo:
+        "Modeli YOLO, napisano v C in razposlano kot samostojna aplikacija. " +
+        "Prepozna predmete v sliki, jim sledi med sličicami in obdrži " +
+        "identiteto, tudi ko za trenutek izginejo za nečim drugim.",
+      znacke: ["C", "YOLO", "Računalniški vid", "Realni čas"],
+      slika: 23,
+    },
+    {
+      tip: "par",
+      obrnjen: true,
+      oznaka: "Starejše",
+      naslov: "Simulacija rulete",
+      telo:
+        "Simulator, ki odigra milijone vrtljajev in preveri strategije, ki na " +
+        "papirju zvenijo logično. Rezultat je vsakič isti: hiša ima svoj " +
+        "odstotek in ta se z nobenim sistemom ne obrabi.",
+      znacke: ["Verjetnost", "Simulacija"],
+      slika: 31,
+    },
+  ],
+  konec: "Kar je tu, je končano. Kar nastaja, je pod Delo.",
 };

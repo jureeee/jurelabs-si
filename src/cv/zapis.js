@@ -40,6 +40,36 @@ const znacke = (seznam) =>
 const naslovHtml = (t) => t.replace(/\n/g, "<br>");
 
 /**
+ * Ikone uvoda.
+ *
+ * Stojijo tu in ne v vsebini, ker v vsebini ne sme biti oznak - kdor popravlja
+ * povedi, naj ne pade v SVG.
+ *
+ * Arhivska skatla je risana tako, da se da odpreti: kartica je svoja skupina
+ * in obrezana na pas nad pokrovom, zato je pod njim ni videti, dokler se ne
+ * dvigne. Brez obrezovanja bi kartica lezala cez skatlo - ploskve so prazne
+ * in nic ne zakriva, kar je za njim.
+ */
+const IKONE = {
+  arhiv: `
+    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <defs><clipPath id="zapis-arhiv-nad"><rect x="0" y="0" width="48" height="17"/></clipPath></defs>
+      <g clip-path="url(#zapis-arhiv-nad)">
+        <g class="ark-karta">
+          <rect x="16" y="3" width="16" height="15" rx="2"/>
+          <path d="M20 8h8M20 12h6"/>
+        </g>
+      </g>
+      <g class="ark-pokrov"><rect x="7" y="17" width="34" height="9" rx="2.5"/></g>
+      <g class="ark-telo">
+        <path d="M10 26v13a2 2 0 0 0 2 2h24a2 2 0 0 0 2-2V26"/>
+        <path d="M20 32h8"/>
+      </g>
+    </svg>`,
+};
+
+/**
  * Izris enega razdelka.
  *
  * @param {object} o razdelek iz vsebine
@@ -78,6 +108,10 @@ export function installZapis(vsebina) {
   const slike = mediji.filter((m) => !m.video).map((m) => m.url);
   const slika = (i) => slike[i % slike.length] ?? "";
 
+  // Vrtiljak je neobvezen: Arhiv je kratek in bi ga sklepni vrtiljak naredil
+  // daljsega od tega, kar ima povedati.
+  const karticeVsebina = vsebina.kartice?.seznam ?? [];
+
   const koren = document.createElement("div");
   koren.className = "zapis";
   koren.innerHTML = `
@@ -86,6 +120,7 @@ export function installZapis(vsebina) {
 
     <div class="zapis-tok">
       <header class="odsek zapis-uvod">
+        ${vsebina.uvod.ikona ? `<div class="zapis-ikona">${IKONE[vsebina.uvod.ikona]}</div>` : ""}
         <div class="zapis-oznaka">${vsebina.uvod.oznaka}</div>
         <h1 class="zapis-glavni">${naslovHtml(vsebina.uvod.naslov)}</h1>
         <p class="zapis-vodilo">${vsebina.uvod.vodilo}</p>
@@ -93,11 +128,13 @@ export function installZapis(vsebina) {
 
       ${vsebina.odseki.map((o) => odsekHtml(o, slika)).join("")}
 
-      <section class="odsek zapis-zakljucek">
+      ${
+        karticeVsebina.length
+          ? `<section class="odsek zapis-zakljucek">
         <div class="zapis-oznaka">${vsebina.kartice.oznaka}</div>
         <div class="zapis-vrtiljak">
           <div class="zapis-tir">
-            ${vsebina.kartice.seznam
+            ${karticeVsebina
               .map(
                 (k) => `
               <article class="zapis-kartica dg">
@@ -111,7 +148,9 @@ export function installZapis(vsebina) {
           <button class="zapis-nazaj dg" type="button" aria-label="Prejšnja">${PUSCICA}</button>
           <button class="zapis-naprej dg" type="button" aria-label="Naslednja">${PUSCICA}</button>
         </div>
-      </section>
+      </section>`
+          : ""
+      }
 
       <footer class="odsek zapis-konec"><p>${vsebina.konec}</p></footer>
     </div>`;
@@ -127,154 +166,171 @@ export function installZapis(vsebina) {
   );
   koren.querySelectorAll(".odsek").forEach((o) => opazovalec.observe(o));
 
-  // --- vrtiljak ------------------------------------------------------------
-  const kartice = [...tir.querySelectorAll(".zapis-kartica")];
-
-  /** Koliko znasa en zobnik kolesca. Windows javi 100, drugod se razlikuje. */
-  const ZOBNIK = 100;
-  /** Koliko casa cakamo, da se hitri zobniki zdruzijo v eno potezo. */
-  const ZDRUZI_MS = 90;
-
-  let kje = 0;
-  let nabrano = 0;
-  let cakalec = null;
-  let gib = null;
-
-  const korak = () => {
-    const k = kartice[0];
-    return k ? k.getBoundingClientRect().width + 26 : 380;
-  };
+  // --- vrtiljak (samo ce ga stran ima) -------------------------------------
+  const ponastaviVrtiljak = tir ? namestiVrtiljak() : () => {};
 
   /**
-   * Oznaci lege glede na sredinsko kartico.
+   * Vrtiljak v svoji funkciji, ker ga nima vsaka stran: Arhiv je kratek in se
+   * konca z zadnjim razdelkom, zato tam ni ne tira ne puscic.
    *
-   * Sosedi dobita odmik v svojo stran in zbledita; oddaljene se umaknejo
-   * povsem. Brez tega so vse kartice enakovredne in oko ne ve, katera je
-   * izbrana - to je bilo videti kot vrsta, ne kot vrtiljak.
+   * Vrne opravilo, ki vrtiljak ob odprtju strani postavi nazaj na prvo
+   * kartico - to je edino, kar od njega potrebuje zunanji svet.
    */
-  function oznaciLege() {
-    kartice.forEach((k, i) => {
-      k.classList.remove("sredina", "stran-leva", "stran-desna", "dalec");
-      const razlika = i - kje;
-      if (razlika === 0) k.classList.add("sredina");
-      else if (razlika === -1) k.classList.add("stran-leva");
-      else if (razlika === 1) k.classList.add("stran-desna");
-      else k.classList.add("dalec");
-    });
-  }
+  function namestiVrtiljak() {
+    const kartice = [...tir.querySelectorAll(".zapis-kartica")];
 
-  /** Pocasi na zacetku in koncu, hitro v sredini. */
-  const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    /** Koliko znasa en zobnik kolesca. Windows javi 100, drugod se razlikuje. */
+    const ZOBNIK = 100;
+    /** Koliko casa cakamo, da se hitri zobniki zdruzijo v eno potezo. */
+    const ZDRUZI_MS = 90;
 
-  /**
-   * Premik na kartico.
-   *
-   * Trajanje raste s stevilom kartic, a ne sorazmerno - dve kartici nista
-   * dvakrat dlje, sicer bi bil dolg skok mucno pocasen.
-   */
-  function pojdi(nacilj) {
-    const meja = kartice.length - 1;
-    const nova = Math.max(0, Math.min(nacilj, meja));
-    const zacetek = tir.scrollLeft;
-    const konec = nova * korak();
-    const razdalja = konec - zacetek;
-    if (Math.abs(razdalja) < 1) {
-      kje = nova;
-      oznaciLege();
-      return;
+    let kje = 0;
+    let nabrano = 0;
+    let cakalec = null;
+    let gib = null;
+
+    const korak = () => {
+      const k = kartice[0];
+      return k ? k.getBoundingClientRect().width + 26 : 380;
+    };
+
+    /**
+     * Oznaci lege glede na sredinsko kartico.
+     *
+     * Sosedi dobita odmik v svojo stran in zbledita; oddaljene se umaknejo
+     * povsem. Brez tega so vse kartice enakovredne in oko ne ve, katera je
+     * izbrana - to je bilo videti kot vrsta, ne kot vrtiljak.
+     */
+    function oznaciLege() {
+      kartice.forEach((k, i) => {
+        k.classList.remove("sredina", "stran-leva", "stran-desna", "dalec");
+        const razlika = i - kje;
+        if (razlika === 0) k.classList.add("sredina");
+        else if (razlika === -1) k.classList.add("stran-leva");
+        else if (razlika === 1) k.classList.add("stran-desna");
+        else k.classList.add("dalec");
+      });
     }
 
-    const kartic = Math.abs(nova - kje) || 1;
-    const trajanje = 420 + Math.sqrt(kartic) * 190;
-    const smer = Math.sign(razdalja);
-    kje = nova;
-    oznaciLege();
+    /** Pocasi na zacetku in koncu, hitro v sredini. */
+    const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
-    const zacetniCas = performance.now();
-    if (gib) cancelAnimationFrame(gib);
-
-    (function slicica(zdaj) {
-      const t = Math.min((zdaj - zacetniCas) / trajanje, 1);
-      const e = easeInOut(t);
-      tir.scrollLeft = zacetek + razdalja * e;
-
-      // Squish: kartice se med potjo stisnejo v smeri gibanja in se ob koncu
-      // odbijejo nazaj. Vrh je na sredini poti, kjer je hitrost najvecja.
-      // Squish pise samo sredinski kartici. Stranskima lego doloca razred; ce
-      // bi jima pisali se transform, bi ga prepisal in odmik bi izginil.
-      const moc = Math.sin(t * Math.PI);
-      const sredinska = kartice[kje];
-      if (sredinska) {
-        sredinska.style.transform =
-          `scaleX(${1 - moc * 0.05}) scaleY(${1 + moc * 0.035})` +
-          ` translateX(${-smer * moc * 9}px)`;
-      }
-
-      if (t < 1) {
-        gib = requestAnimationFrame(slicica);
+    /**
+     * Premik na kartico.
+     *
+     * Trajanje raste s stevilom kartic, a ne sorazmerno - dve kartici nista
+     * dvakrat dlje, sicer bi bil dolg skok mucno pocasen.
+     */
+    function pojdi(nacilj) {
+      const meja = kartice.length - 1;
+      const nova = Math.max(0, Math.min(nacilj, meja));
+      const zacetek = tir.scrollLeft;
+      const konec = nova * korak();
+      const razdalja = konec - zacetek;
+      if (Math.abs(razdalja) < 1) {
+        kje = nova;
+        oznaciLege();
         return;
       }
-      gib = null;
-      // Odboj: sredinska se vrne z vzmetjo, nato lego spet doloca razred.
-      if (sredinska) {
-        sredinska.style.transform = "";
-      }
+
+      const kartic = Math.abs(nova - kje) || 1;
+      const trajanje = 420 + Math.sqrt(kartic) * 190;
+      const smer = Math.sign(razdalja);
+      kje = nova;
       oznaciLege();
-    })(zacetniCas);
+
+      const zacetniCas = performance.now();
+      if (gib) cancelAnimationFrame(gib);
+
+      (function slicica(zdaj) {
+        const t = Math.min((zdaj - zacetniCas) / trajanje, 1);
+        const e = easeInOut(t);
+        tir.scrollLeft = zacetek + razdalja * e;
+
+        // Squish: kartice se med potjo stisnejo v smeri gibanja in se ob koncu
+        // odbijejo nazaj. Vrh je na sredini poti, kjer je hitrost najvecja.
+        // Squish pise samo sredinski kartici. Stranskima lego doloca razred; ce
+        // bi jima pisali se transform, bi ga prepisal in odmik bi izginil.
+        const moc = Math.sin(t * Math.PI);
+        const sredinska = kartice[kje];
+        if (sredinska) {
+          sredinska.style.transform =
+            `scaleX(${1 - moc * 0.05}) scaleY(${1 + moc * 0.035})` +
+            ` translateX(${-smer * moc * 9}px)`;
+        }
+
+        if (t < 1) {
+          gib = requestAnimationFrame(slicica);
+          return;
+        }
+        gib = null;
+        // Odboj: sredinska se vrne z vzmetjo, nato lego spet doloca razred.
+        if (sredinska) {
+          sredinska.style.transform = "";
+        }
+        oznaciLege();
+      })(zacetniCas);
+    }
+
+    oznaciLege();
+
+    koren.querySelector(".zapis-naprej").addEventListener("click", () => pojdi(kje + 1));
+    koren.querySelector(".zapis-nazaj").addEventListener("click", () => pojdi(kje - 1));
+
+    /**
+     * Klik na stransko kartico jo pripelje na sredino.
+     *
+     * Sredinska na klik ne odgovarja: tam besedilo beres in ga vcasih izberes,
+     * premik pod prstom pa bi bil za to kazen. Iz istega razloga premik odpade,
+     * ce je klik koncal izbiranje - takrat si vlekel cez besedilo, nisi ciljal
+     * kartice.
+     */
+    tir.addEventListener("click", (e) => {
+      const k = e.target instanceof Element ? e.target.closest(".zapis-kartica") : null;
+      if (!k) return;
+      const i = kartice.indexOf(k);
+      if (i < 0 || i === kje) return;
+      if (getSelection()?.isCollapsed === false) return;
+      pojdi(i);
+    });
+
+    /**
+     * Kolescek nad vrtiljakom.
+     *
+     * Zobniki se zberejo v kratkem oknu in sele nato prevedejo v kartice, po
+     * pravilu ceil(n / 2): en zobnik je ena kartica, dva sta se vedno ena - da
+     * pomota ne odnese predalec - trije pa dve. Brez zdruzevanja bi vsak zobnik
+     * sprozil svojo animacijo in te bi se prekrivale.
+     *
+     * Ko je vrtiljak na koncu, dogodka ne prevzamemo vec in stran drsi naprej.
+     */
+    tir.addEventListener(
+      "wheel",
+      (e) => {
+        if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+        const naProstem =
+          (e.deltaY > 0 && kje >= kartice.length - 1) || (e.deltaY < 0 && kje <= 0);
+        if (naProstem) return;
+        e.preventDefault();
+
+        nabrano += e.deltaY;
+        clearTimeout(cakalec);
+        cakalec = setTimeout(() => {
+          const zobnikov = Math.abs(nabrano) / ZOBNIK;
+          const kartic = Math.max(1, Math.ceil(zobnikov / 2));
+          pojdi(kje + Math.sign(nabrano) * kartic);
+          nabrano = 0;
+        }, ZDRUZI_MS);
+      },
+      { passive: false }
+    );
+
+    return () => {
+      kje = 0;
+      tir.scrollLeft = 0;
+      oznaciLege();
+    };
   }
-
-  oznaciLege();
-
-  koren.querySelector(".zapis-naprej").addEventListener("click", () => pojdi(kje + 1));
-  koren.querySelector(".zapis-nazaj").addEventListener("click", () => pojdi(kje - 1));
-
-  /**
-   * Klik na stransko kartico jo pripelje na sredino.
-   *
-   * Sredinska na klik ne odgovarja: tam besedilo beres in ga vcasih izberes,
-   * premik pod prstom pa bi bil za to kazen. Iz istega razloga premik odpade,
-   * ce je klik koncal izbiranje - takrat si vlekel cez besedilo, nisi ciljal
-   * kartice.
-   */
-  tir.addEventListener("click", (e) => {
-    const k = e.target instanceof Element ? e.target.closest(".zapis-kartica") : null;
-    if (!k) return;
-    const i = kartice.indexOf(k);
-    if (i < 0 || i === kje) return;
-    if (getSelection()?.isCollapsed === false) return;
-    pojdi(i);
-  });
-
-  /**
-   * Kolescek nad vrtiljakom.
-   *
-   * Zobniki se zberejo v kratkem oknu in sele nato prevedejo v kartice, po
-   * pravilu ceil(n / 2): en zobnik je ena kartica, dva sta se vedno ena - da
-   * pomota ne odnese predalec - trije pa dve. Brez zdruzevanja bi vsak zobnik
-   * sprozil svojo animacijo in te bi se prekrivale.
-   *
-   * Ko je vrtiljak na koncu, dogodka ne prevzamemo vec in stran drsi naprej.
-   */
-  tir.addEventListener(
-    "wheel",
-    (e) => {
-      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
-      const naProstem =
-        (e.deltaY > 0 && kje >= kartice.length - 1) || (e.deltaY < 0 && kje <= 0);
-      if (naProstem) return;
-      e.preventDefault();
-
-      nabrano += e.deltaY;
-      clearTimeout(cakalec);
-      cakalec = setTimeout(() => {
-        const zobnikov = Math.abs(nabrano) / ZOBNIK;
-        const kartic = Math.max(1, Math.ceil(zobnikov / 2));
-        pojdi(kje + Math.sign(nabrano) * kartic);
-        nabrano = 0;
-      }, ZDRUZI_MS);
-    },
-    { passive: false }
-  );
 
   // --- mehko drsenje po strani --------------------------------------------
   let cilj = 0;
@@ -328,9 +384,7 @@ export function installZapis(vsebina) {
     koren.classList.add("odprt");
     // Vrtiljak nazaj na prvo kartico. Brez tega ob ponovnem odprtju obvisi
     // tam, kjer si ga pustil, lege pa kazejo na prvo - in oboje se razide.
-    kje = 0;
-    tir.scrollLeft = 0;
-    oznaciLege();
+    ponastaviVrtiljak();
     tok.scrollTop = 0;
     cilj = 0;
 
