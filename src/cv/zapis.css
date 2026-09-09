@@ -5,7 +5,7 @@
    njih; vrtiljak je na koncu kot zakljucek.
    ========================================================================= */
 
-.omeni {
+.zapis {
   position: fixed;
   inset: 0;
   /* Zaprt pogled se ne sme izrisovati. Prosojnost 0 ga skrije ocesu, ne pa
@@ -19,14 +19,14 @@
      odvzemu razreda vrnili v vidno stanje in za trenutek pomezali. */
   transition: none;
 }
-.omeni.odprt {
+.zapis.odprt {
   content-visibility: visible;
   pointer-events: auto;
   opacity: 1;
   transition: opacity 300ms var(--ease);
 }
 
-.omeni-zavesa {
+.zapis-zavesa {
   position: fixed;
   inset: 0;
   background: rgba(6, 8, 12, 0);
@@ -35,7 +35,7 @@
   transition: background 460ms var(--ease), backdrop-filter 460ms var(--ease);
   pointer-events: none;
 }
-.omeni.odprt .omeni-zavesa {
+.zapis.odprt .zapis-zavesa {
   background: rgba(6, 8, 12, 0.46);
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
@@ -56,7 +56,7 @@
     filter: blur(0);
   }
 }
-.omeni-tok.prihaja {
+.zapis-tok.prihaja {
   animation: tokPrihod 720ms cubic-bezier(0.12, 0.86, 0.16, 1) both;
   transform-origin: 50% 100%;
 }
@@ -65,19 +65,19 @@
   from { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
   to   { opacity: 0; transform: translateY(52px) scale(0.94); filter: blur(18px); }
 }
-.omeni.zapira .omeni-tok {
+.zapis.zapira .zapis-tok {
   animation: tokOdhod 380ms var(--ease) both;
   transform-origin: 50% 100%;
 }
 
-.omeni-tok {
+.zapis-tok {
   position: relative;
   height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
 }
-.omeni-tok::-webkit-scrollbar { display: none; }
+.zapis-tok::-webkit-scrollbar { display: none; }
 
 /* --- razdelki ------------------------------------------------------------ */
 .odsek {
@@ -95,7 +95,7 @@
    da se stran sestavlja pred tabo. Zamik je krajsi od trajanja, zato se gibi
    prekrivajo in ni nastevanja. */
 .odsek > *,
-.omeni-besedilo > * {
+.zapis-besedilo > * {
   opacity: 0;
   transform: translateY(30px) scale(0.985);
   filter: blur(9px);
@@ -105,7 +105,7 @@
     filter 760ms var(--vstop);
 }
 .odsek.vidno > *,
-.odsek.vidno .omeni-besedilo > * {
+.odsek.vidno .zapis-besedilo > * {
   opacity: 1;
   transform: none;
   filter: blur(0);
@@ -114,30 +114,30 @@
 .odsek.vidno > *:nth-child(2) { transition-delay: 150ms; }
 .odsek.vidno > *:nth-child(3) { transition-delay: 240ms; }
 .odsek.vidno > *:nth-child(4) { transition-delay: 330ms; }
-.odsek.vidno .omeni-besedilo > *:nth-child(1) { transition-delay: 120ms; }
-.odsek.vidno .omeni-besedilo > *:nth-child(2) { transition-delay: 210ms; }
-.odsek.vidno .omeni-besedilo > *:nth-child(3) { transition-delay: 300ms; }
-.odsek.vidno .omeni-besedilo > *:nth-child(4) { transition-delay: 390ms; }
+.odsek.vidno .zapis-besedilo > *:nth-child(1) { transition-delay: 120ms; }
+.odsek.vidno .zapis-besedilo > *:nth-child(2) { transition-delay: 210ms; }
+.odsek.vidno .zapis-besedilo > *:nth-child(3) { transition-delay: 300ms; }
+.odsek.vidno .zapis-besedilo > *:nth-child(4) { transition-delay: 390ms; }
 
 /* Znacke pridejo v valu, vsaka za prejsnjo. */
-.omeni-znacka {
+.zapis-znacka {
   opacity: 0;
   transform: translateY(14px) scale(0.94);
   transition:
     opacity 520ms var(--ease),
     transform 640ms cubic-bezier(0.2, 1.3, 0.34, 1);
 }
-.odsek.vidno .omeni-znacka { opacity: 1; transform: none; }
-.odsek.vidno .omeni-znacka:nth-child(1) { transition-delay: 340ms; }
-.odsek.vidno .omeni-znacka:nth-child(2) { transition-delay: 390ms; }
-.odsek.vidno .omeni-znacka:nth-child(3) { transition-delay: 440ms; }
-.odsek.vidno .omeni-znacka:nth-child(4) { transition-delay: 490ms; }
-.odsek.vidno .omeni-znacka:nth-child(5) { transition-delay: 540ms; }
-.odsek.vidno .omeni-znacka:nth-child(6) { transition-delay: 590ms; }
-.odsek.vidno .omeni-znacka:nth-child(7) { transition-delay: 640ms; }
-.odsek.vidno .omeni-znacka:nth-child(8) { transition-delay: 690ms; }
+.odsek.vidno .zapis-znacka { opacity: 1; transform: none; }
+.odsek.vidno .zapis-znacka:nth-child(1) { transition-delay: 340ms; }
+.odsek.vidno .zapis-znacka:nth-child(2) { transition-delay: 390ms; }
+.odsek.vidno .zapis-znacka:nth-child(3) { transition-delay: 440ms; }
+.odsek.vidno .zapis-znacka:nth-child(4) { transition-delay: 490ms; }
+.odsek.vidno .zapis-znacka:nth-child(5) { transition-delay: 540ms; }
+.odsek.vidno .zapis-znacka:nth-child(6) { transition-delay: 590ms; }
+.odsek.vidno .zapis-znacka:nth-child(7) { transition-delay: 640ms; }
+.odsek.vidno .zapis-znacka:nth-child(8) { transition-delay: 690ms; }
 
-.omeni-oznaka {
+.zapis-oznaka {
   font-size: 11.5px;
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -145,7 +145,7 @@
   color: var(--faint);
 }
 
-.omeni h2 {
+.zapis h2 {
   margin: 14px 0 0;
   font-size: clamp(24px, 2.9vw, 34px);
   font-weight: 700;
@@ -153,7 +153,7 @@
   letter-spacing: -0.02em;
   color: var(--ink);
 }
-.omeni p {
+.zapis p {
   margin: 16px 0 0;
   max-width: 54ch;
   font-size: 15.5px;
@@ -162,8 +162,8 @@
 }
 
 /* --- uvod ---------------------------------------------------------------- */
-.omeni-uvod { padding-top: min(26vh, 220px); }
-.omeni-glavni {
+.zapis-uvod { padding-top: min(26vh, 220px); }
+.zapis-glavni {
   margin: 18px 0 0;
   font-size: clamp(34px, 5.4vw, 66px);
   font-weight: 700;
@@ -171,7 +171,7 @@
   letter-spacing: -0.03em;
   color: var(--ink);
 }
-.omeni-vodilo {
+.zapis-vodilo {
   margin-top: 26px !important;
   max-width: 58ch;
   font-size: clamp(16px, 1.5vw, 19px) !important;
@@ -179,7 +179,7 @@
 }
 
 /* --- besedilo ob sliki --------------------------------------------------- */
-.omeni-par {
+.zapis-par {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 56px;
@@ -187,16 +187,16 @@
 }
 /* Obrnjen razdelek postavi sliko na levo. Izmenjava strani drzi oko v gibanju;
    vse slike na isti strani berejo kot stolpec, ne kot pripoved. */
-.omeni-par.obrnjen .omeni-besedilo { order: 2; }
+.zapis-par.obrnjen .zapis-besedilo { order: 2; }
 
-.omeni-slika {
+.zapis-slika {
   margin: 0;
   aspect-ratio: 4 / 5;
   border-radius: 18px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.05);
 }
-.omeni-slika img {
+.zapis-slika img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -205,27 +205,27 @@
   dynamic-range-limit: standard;
 }
 
-.omeni-sirok h2 { max-width: 20ch; }
+.zapis-sirok h2 { max-width: 20ch; }
 
 /* --- orodja -------------------------------------------------------------- */
-.omeni-stolpci {
+.zapis-stolpci {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   gap: 38px 30px;
   margin-top: 30px;
 }
-.omeni-skupina h3 {
+.zapis-skupina h3 {
   margin: 0 0 14px;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.01em;
   color: var(--ink);
 }
-.omeni-znacke { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.zapis-znacke { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
 /* Znacke nimajo loma svetlobe. Vsaka ploskev z url(#dg-refract) pozene svoj
    feDisplacementMap; znack je triintrideset in na pilulki sirine 60 px se lom
    niti ne vidi. Zameglitev in obroc ostaneta. */
-.omeni-znacka {
+.zapis-znacka {
   backdrop-filter: saturate(var(--dg-sat)) blur(var(--dg-blur));
   -webkit-backdrop-filter: saturate(var(--dg-sat)) blur(var(--dg-blur));
   padding: 7px 13px;
@@ -237,7 +237,7 @@
 /* --- vrtiljak na koncu --------------------------------------------------- */
 /* Vrtiljak gre cez celo sirino okna, glava in besedilo pa ostaneta v stolpcu.
    Prej je bil omejen na stolpec in kartice so bile odrezane sredi zaslona. */
-.omeni-vrtiljak {
+.zapis-vrtiljak {
   /* Sirina kartice je dolocena tu, ker jo bereta oba: kartica zase in tir za
      svojo zalogo. Na kartici bi bila zunaj dosega tira. */
   --kartica: min(480px, 30vw);
@@ -248,7 +248,7 @@
   margin-left: calc(50% - 50vw);
 }
 
-.omeni-tir {
+.zapis-tir {
   display: flex;
   gap: 26px;
   /* Zaloga na obeh straneh je pol okna minus pol kartice, zato je izbrana
@@ -266,9 +266,9 @@
      Ce bi brskalnik hkrati pripenjal, bi si nasprotovala. */
   scrollbar-width: none;
 }
-.omeni-tir::-webkit-scrollbar { display: none; }
+.zapis-tir::-webkit-scrollbar { display: none; }
 
-.omeni-kartica {
+.zapis-kartica {
   flex: none;
   /* Sirina je izracunana tako, da so na zaslonu natanko tri: sredinska in po
      ena na vsaki strani. Vrednost pride z ovoja. */
@@ -296,22 +296,22 @@
      imenom. Squish tece tudi brez nje dovolj gladko. */
 }
 /* Lege v vrtiljaku. Razrede postavlja JS ob vsakem premiku. */
-.omeni-kartica.stran-leva  { transform: translateX(-26px) scale(0.9); opacity: 0.5; }
-.omeni-kartica.stran-desna { transform: translateX(26px) scale(0.9); opacity: 0.5; }
-.omeni-kartica.sredina     { transform: none; opacity: 1; }
+.zapis-kartica.stran-leva  { transform: translateX(-26px) scale(0.9); opacity: 0.5; }
+.zapis-kartica.stran-desna { transform: translateX(26px) scale(0.9); opacity: 0.5; }
+.zapis-kartica.sredina     { transform: none; opacity: 1; }
 /* Kartice, ki niso sosede sredinske, so povsem umaknjene. */
-.omeni-kartica.dalec { opacity: 0.18; transform: scale(0.86); }
+.zapis-kartica.dalec { opacity: 0.18; transform: scale(0.86); }
 
-.omeni-naslov {
+.zapis-naslov {
   margin: 16px 0 0 !important;
   font-size: 22px !important;
   line-height: 1.2 !important;
 }
-.omeni-telo { font-size: 14px !important; }
+.zapis-telo { font-size: 14px !important; }
 
-.omeni-nazaj,
-.omeni-naprej,
-.omeni-zapri {
+.zapis-nazaj,
+.zapis-naprej,
+.zapis-zapri {
   display: grid;
   place-items: center;
   width: 42px;
@@ -322,29 +322,29 @@
   cursor: pointer;
   transition: color var(--t-fast) var(--ease), transform var(--t-med) var(--spring);
 }
-.omeni-nazaj svg, .omeni-naprej svg, .omeni-zapri svg { width: 16px; height: 16px; }
-.omeni-nazaj:hover, .omeni-naprej:hover, .omeni-zapri:hover { color: var(--ink); }
+.zapis-nazaj svg, .zapis-naprej svg, .zapis-zapri svg { width: 16px; height: 16px; }
+.zapis-nazaj:hover, .zapis-naprej:hover, .zapis-zapri:hover { color: var(--ink); }
 
-.omeni-nazaj, .omeni-naprej { position: absolute; top: 50%; margin-top: -21px; }
-.omeni-nazaj { left: 22px; transform: rotate(180deg); }
-.omeni-nazaj:active { transform: rotate(180deg) scale(0.9); }
-.omeni-naprej { right: 22px; }
-.omeni-naprej:active, .omeni-zapri:active { transform: scale(0.9); }
+.zapis-nazaj, .zapis-naprej { position: absolute; top: 50%; margin-top: -21px; }
+.zapis-nazaj { left: 22px; transform: rotate(180deg); }
+.zapis-nazaj:active { transform: rotate(180deg) scale(0.9); }
+.zapis-naprej { right: 22px; }
+.zapis-naprej:active, .zapis-zapri:active { transform: scale(0.9); }
 
-.omeni-zapri {
+.zapis-zapri {
   position: fixed;
   top: max(34px, calc(env(safe-area-inset-top) + 18px));
   right: max(34px, calc(env(safe-area-inset-right) + 18px));
   z-index: 2;
 }
 
-.omeni-konec { padding: 40px 0 min(20vh, 180px); }
-.omeni-konec p { font-size: 19px !important; color: var(--faint); }
+.zapis-konec { padding: 40px 0 min(20vh, 180px); }
+.zapis-konec p { font-size: 19px !important; color: var(--faint); }
 
 @media (max-width: 860px) {
-  .omeni-par { grid-template-columns: 1fr; gap: 28px; }
-  .omeni-par.obrnjen .omeni-besedilo { order: 0; }
-  .omeni-nazaj, .omeni-naprej { display: none; }
+  .zapis-par { grid-template-columns: 1fr; gap: 28px; }
+  .zapis-par.obrnjen .zapis-besedilo { order: 0; }
+  .zapis-nazaj, .zapis-naprej { display: none; }
   .odsek { padding: 64px 0; }
 }
 

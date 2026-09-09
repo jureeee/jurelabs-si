@@ -1,7 +1,10 @@
 /**
- * O meni.
+ * Pogon uredniske strani.
  *
  * Dolg zapis, ki se odkriva ob drsenju, in vrtiljak na koncu kot zakljucek.
+ * Isti pogon poganja Delo in O meni - razlikujeta se le po besedilu, ki pride
+ * iz vsebina.js. Dve strani z isto mehaniko ne smeta biti dve kopiji te
+ * datoteke; ko bi popravil drsenje v eni, bi na drugo pozabil.
  *
  * Zaporedje je namerno: najprej ena poved, ki pove, kdo si; nato razdelki, ki
  * se pojavijo sele, ko prides do njih; sele na koncu vrtiljak. Kdor odide po
@@ -11,7 +14,7 @@
  * manjse, kot je.
  */
 
-import "./about.css";
+import "./zapis.css";
 import { mediji } from "./mediji.js";
 
 const ZAPRI =
@@ -19,152 +22,103 @@ const ZAPRI =
 const PUSCICA =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>';
 
-/** Orodja, s katerimi delam. Splosno navzven, ne interna imena izdelkov. */
-const ORODJA = {
-  Jeziki: ["Python", "C", "JavaScript", "TypeScript", "HTML", "CSS", "SQL", "Bash"],
-  "Ogrodja in orodja": ["React", "Vite", "Flask", "Three.js", "Node", "Git", "Docker"],
-  Sistemi: ["Linux", "Windows Server", "Active Directory", "Omrezja", "Virtualizacija"],
-  Podrocja: ["Racunalniski vid", "Avtomatizacija", "Nadzorni sistemi", "Vgrajeni sistemi"],
-};
-
-/** Zakljucne kartice. Ena misel na kartico. */
-const KARTICE = [
-  {
-    oznaka: "Pristop",
-    naslov: "Razumeti,\nne le uporabiti.",
-    telo: "Sistem, ki ga ne razumem pod povrsjem, znam le upravljati. Zanima me, zakaj deluje.",
-  },
-  {
-    oznaka: "Metoda",
-    naslov: "Ucim se z gradnjo.",
-    telo: "Nova tehnologija postane moja sele, ko z njo nekaj nastane. Dokumentacija je zacetek, ne konec.",
-  },
-  {
-    oznaka: "Merilo",
-    naslov: "Deluje ali ne deluje.",
-    telo: "Cilj ni zapletenost, ampak resitev, ki dela in ki jo je cez pol leta se mogoce razumeti.",
-  },
-  {
-    oznaka: "Naprej",
-    naslov: "Dovolj tezko,\nda je zanimivo.",
-    telo: "Zanima me delo, kjer se srecajo programska oprema, sistemi in nove tehnologije.",
-  },
-];
+/**
+ * Odprta je lahko le ena stran naenkrat.
+ *
+ * Obe zivita v telesu dokumenta in obe prekrivata galaksijo; ce bi se odprli
+ * skupaj, bi se prekrivali med sabo, spodnja pa bi ostala ujeta pod zgornjo,
+ * ker se zapre le tista, ki ima gumb na vrhu.
+ */
+let odprta = null;
 
 const znacke = (seznam) =>
-  `<div class="omeni-znacke">${seznam
-    .map((z) => `<span class="omeni-znacka dg">${z}</span>`)
+  `<div class="zapis-znacke">${seznam
+    .map((z) => `<span class="zapis-znacka dg">${z}</span>`)
     .join("")}</div>`;
 
-export function installAbout() {
+/** Naslovi lomijo vrstico z \n, ker je to v vsebini berljivejse od <br>. */
+const naslovHtml = (t) => t.replace(/\n/g, "<br>");
+
+/**
+ * Izris enega razdelka.
+ *
+ * @param {object} o razdelek iz vsebine
+ * @param {(i: number) => string} slika naslov slike po zaporedni stevilki
+ */
+function odsekHtml(o, slika) {
+  const oznaka = `<div class="zapis-oznaka">${o.oznaka}</div>`;
+
+  if (o.tip === "skupine") {
+    const stolpci = Object.entries(o.skupine)
+      .map(([ime, seznam]) => `<div class="zapis-skupina"><h3>${ime}</h3>${znacke(seznam)}</div>`)
+      .join("");
+    return `<section class="odsek zapis-orodja">${oznaka}
+      <div class="zapis-stolpci">${stolpci}</div></section>`;
+  }
+
+  if (o.tip === "sirok") {
+    return `<section class="odsek zapis-sirok">${oznaka}
+      <h2>${naslovHtml(o.naslov)}</h2>
+      <p>${o.telo}</p></section>`;
+  }
+
+  return `<section class="odsek zapis-par${o.obrnjen ? " obrnjen" : ""}">
+      <div class="zapis-besedilo">
+        ${oznaka}
+        <h2>${naslovHtml(o.naslov)}</h2>
+        <p>${o.telo}</p>
+        ${o.znacke ? znacke(o.znacke) : ""}
+      </div>
+      <figure class="zapis-slika"><img alt="" loading="lazy" src="${slika(o.slika)}" /></figure>
+    </section>`;
+}
+
+/** @param {import("./vsebina.js").DELO} vsebina */
+export function installZapis(vsebina) {
   const slike = mediji.filter((m) => !m.video).map((m) => m.url);
   const slika = (i) => slike[i % slike.length] ?? "";
 
   const koren = document.createElement("div");
-  koren.className = "omeni";
+  koren.className = "zapis";
   koren.innerHTML = `
-    <div class="omeni-zavesa"></div>
-    <button class="omeni-zapri dg" type="button" aria-label="Zapri">${ZAPRI}</button>
+    <div class="zapis-zavesa"></div>
+    <button class="zapis-zapri dg" type="button" aria-label="Zapri">${ZAPRI}</button>
 
-    <div class="omeni-tok">
-      <header class="odsek omeni-uvod">
-        <div class="omeni-oznaka">Jure Blatnik</div>
-        <h1 class="omeni-glavni">Gradim programsko opremo<br>in sisteme, na katerih tece.</h1>
-        <p class="omeni-vodilo">
-          Delam na presecisu razvoja, infrastrukture in tehnicnih sistemov.
-          Vecina tega, kar sem zgradil, je nastala iz dejanske potrebe pri delu.
-        </p>
+    <div class="zapis-tok">
+      <header class="odsek zapis-uvod">
+        <div class="zapis-oznaka">${vsebina.uvod.oznaka}</div>
+        <h1 class="zapis-glavni">${naslovHtml(vsebina.uvod.naslov)}</h1>
+        <p class="zapis-vodilo">${vsebina.uvod.vodilo}</p>
       </header>
 
-      <section class="odsek omeni-par">
-        <div class="omeni-besedilo">
-          <div class="omeni-oznaka">Kaj delam</div>
-          <h2>Strojna in programska oprema,<br>ne eno ali drugo.</h2>
-          <p>
-            Streznisko okolje, omrezja in tehnicni sistemi na eni strani, polni
-            razvoj aplikacij na drugi. Obojega ne locujem - vecina problemov
-            stoji ravno na meji med njima.
-          </p>
-        </div>
-        <figure class="omeni-slika"><img alt="" loading="lazy" src="${slika(1)}" /></figure>
-      </section>
+      ${vsebina.odseki.map((o) => odsekHtml(o, slika)).join("")}
 
-      <section class="odsek omeni-par obrnjen">
-        <div class="omeni-besedilo">
-          <div class="omeni-oznaka">Delo</div>
-          <h2>Trace Space</h2>
-          <p>
-            Nadzorna plosca za senzorje kakovosti zraka in varnosti. Zbira
-            meritve, prepozna vzorce in opozori, preden postane tezava.
-          </p>
-          ${znacke(["Python", "Flask", "SQLite", "Nadzorne plosce"])}
-        </div>
-        <figure class="omeni-slika"><img alt="" loading="lazy" src="${slika(4)}" /></figure>
-      </section>
-
-      <section class="odsek omeni-par">
-        <div class="omeni-besedilo">
-          <div class="omeni-oznaka">Delo</div>
-          <h2>Vantage</h2>
-          <p>
-            Aplikacija za odkrivanje, nastavljanje in vodenje omreznih kamer ter
-            njihovih leg. Namesto desetih locenih vmesnikov ena povrsina, ki jih
-            zna vse.
-          </p>
-          ${znacke(["Python", "React", "TypeScript", "ONVIF", "SSE"])}
-        </div>
-        <figure class="omeni-slika"><img alt="" loading="lazy" src="${slika(7)}" /></figure>
-      </section>
-
-      <section class="odsek omeni-sirok">
-        <div class="omeni-oznaka">Lastni projekti</div>
-        <h2>Racunalniski vid v realnem casu</h2>
-        <p>
-          Zaznavanje, prepoznavanje in sledenje predmetov z modeli YOLO,
-          napisano v C in razposlano kot samostojna aplikacija. Nastalo je zunaj
-          delovnih obveznosti.
-        </p>
-      </section>
-
-      <section class="odsek omeni-orodja">
-        <div class="omeni-oznaka">S cim delam</div>
-        <div class="omeni-stolpci">
-          ${Object.entries(ORODJA)
-            .map(
-              ([skupina, seznam]) => `
-            <div class="omeni-skupina">
-              <h3>${skupina}</h3>
-              ${znacke(seznam)}
-            </div>`
-            )
-            .join("")}
-        </div>
-      </section>
-
-      <section class="odsek omeni-zakljucek">
-        <div class="omeni-oznaka">Kako delam</div>
-        <div class="omeni-vrtiljak">
-          <div class="omeni-tir">
-            ${KARTICE.map(
-              (k) => `
-              <article class="omeni-kartica dg">
-                <div class="omeni-oznaka">${k.oznaka}</div>
-                <h2 class="omeni-naslov">${k.naslov.replace(/\n/g, "<br>")}</h2>
-                <p class="omeni-telo">${k.telo}</p>
+      <section class="odsek zapis-zakljucek">
+        <div class="zapis-oznaka">${vsebina.kartice.oznaka}</div>
+        <div class="zapis-vrtiljak">
+          <div class="zapis-tir">
+            ${vsebina.kartice.seznam
+              .map(
+                (k) => `
+              <article class="zapis-kartica dg">
+                <div class="zapis-oznaka">${k.oznaka}</div>
+                <h2 class="zapis-naslov">${naslovHtml(k.naslov)}</h2>
+                <p class="zapis-telo">${k.telo}</p>
               </article>`
-            ).join("")}
+              )
+              .join("")}
           </div>
-          <button class="omeni-nazaj dg" type="button" aria-label="Prejsnja">${PUSCICA}</button>
-          <button class="omeni-naprej dg" type="button" aria-label="Naslednja">${PUSCICA}</button>
+          <button class="zapis-nazaj dg" type="button" aria-label="Prejsnja">${PUSCICA}</button>
+          <button class="zapis-naprej dg" type="button" aria-label="Naslednja">${PUSCICA}</button>
         </div>
       </section>
 
-      <footer class="odsek omeni-konec"><p>Se vedno gradim.</p></footer>
+      <footer class="odsek zapis-konec"><p>${vsebina.konec}</p></footer>
     </div>`;
   document.body.appendChild(koren);
 
-  const tok = koren.querySelector(".omeni-tok");
-  const tir = koren.querySelector(".omeni-tir");
+  const tok = koren.querySelector(".zapis-tok");
+  const tir = koren.querySelector(".zapis-tir");
 
   // --- razdelki se pojavijo, ko prides do njih -----------------------------
   const opazovalec = new IntersectionObserver(
@@ -174,7 +128,7 @@ export function installAbout() {
   koren.querySelectorAll(".odsek").forEach((o) => opazovalec.observe(o));
 
   // --- vrtiljak ------------------------------------------------------------
-  const kartice = [...tir.querySelectorAll(".omeni-kartica")];
+  const kartice = [...tir.querySelectorAll(".zapis-kartica")];
 
   /** Koliko znasa en zobnik kolesca. Windows javi 100, drugod se razlikuje. */
   const ZOBNIK = 100;
@@ -271,8 +225,8 @@ export function installAbout() {
 
   oznaciLege();
 
-  koren.querySelector(".omeni-naprej").addEventListener("click", () => pojdi(kje + 1));
-  koren.querySelector(".omeni-nazaj").addEventListener("click", () => pojdi(kje - 1));
+  koren.querySelector(".zapis-naprej").addEventListener("click", () => pojdi(kje + 1));
+  koren.querySelector(".zapis-nazaj").addEventListener("click", () => pojdi(kje - 1));
 
   /**
    * Kolescek nad vrtiljakom.
@@ -341,7 +295,14 @@ export function installAbout() {
   // --- odpiranje in zapiranje ---------------------------------------------
   let zapiranje = null;
 
+  const api = { odpri, zapri };
+
   function odpri() {
+    // Druga stran se umakne brez animacije - dve zavesi cez galaksijo hkrati
+    // sta dvojna zatemnitev, ne prehod.
+    if (odprta && odprta !== api) odprta.takoj();
+    odprta = api;
+
     if (zapiranje) {
       clearTimeout(zapiranje);
       zapiranje = null;
@@ -368,8 +329,16 @@ export function installAbout() {
     );
   }
 
+  /** Zapre v hipu, brez odhodne animacije. Za zamenjavo strani. */
+  function takoj() {
+    clearTimeout(zapiranje);
+    zapiranje = null;
+    koren.classList.remove("odprt", "zapira");
+  }
+
   function zapri() {
     if (zapiranje) return;
+    if (odprta === api) odprta = null;
     koren.classList.add("zapira");
     // setTimeout in ne rAF: na skriti strani rAF ne tece.
     zapiranje = setTimeout(() => {
@@ -378,10 +347,10 @@ export function installAbout() {
     }, 420);
   }
 
-  koren.querySelector(".omeni-zapri").addEventListener("click", zapri);
+  koren.querySelector(".zapis-zapri").addEventListener("click", zapri);
   addEventListener("keydown", (e) => {
     if (e.key === "Escape" && koren.classList.contains("odprt")) zapri();
   });
 
-  return { odpri, zapri };
+  return Object.assign(api, { takoj });
 }
