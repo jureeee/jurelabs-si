@@ -162,6 +162,45 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
   });
 
   /**
+   * Predpriprava prvega zaslona.
+   *
+   * Polja so prazna, dokler opazovalec ne pove, da so v pogledu - torej se
+   * nic ne prenese, dokler ne klikneš na profil. Prvi zaslon si zato vsakic
+   * zasluzi kratko cakanje.
+   *
+   * Odkar so slike stisnjene, je prvi zaslon skupaj vreden priblizno dva
+   * megabajta. Toliko lahko prenesemo ze prej, dokler uporabnik gleda
+   * galaksijo in mreza ni nikjer - brskalnik prenesene slike obdrzi, zato
+   * jih napolni() pozneje dobi iz predpomnilnika, brez novega prenosa.
+   *
+   * Samo slike. Videi so desetkrat vecji od slik in bi pobrali pas za nekaj,
+   * cesar morda nihce ne bo odprl; poleg tega se predvajajo sele ob prehodu
+   * miske. Okno je zato prvih PREDPRIPRAVA polj mreze, iz katerih videe
+   * izpustimo - ne prvih PREDPRIPRAVA slik, ker bi tako segli globlje v
+   * mrezo, kot prvi zaslon sploh pokaze.
+   *
+   * Tece v prostem casu in sele po nalozeni strani, da ne tekmuje z modelom
+   * galaksije, ki je edino, kar uporabnik takrat res gleda.
+   */
+  const PREDPRIPRAVA = 18;
+  const vProstemCasu = window.requestIdleCallback ?? ((f) => setTimeout(f, 2500));
+  const zacniPredpripravo = () =>
+    vProstemCasu(
+      () =>
+        mediji
+          .slice(0, PREDPRIPRAVA)
+          .filter((m) => !m.video)
+          .forEach((m) => {
+            const i = new Image();
+            i.decoding = "async";
+            i.src = m.url;
+          }),
+      { timeout: 6000 }
+    );
+  if (document.readyState === "complete") zacniPredpripravo();
+  else addEventListener("load", zacniPredpripravo, { once: true });
+
+  /**
    * Opazovalec vidnosti.
    *
    * rootMargin da pas okoli zaslona: mediji se zacnejo nalagati tik preden
