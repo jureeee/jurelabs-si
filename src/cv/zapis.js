@@ -31,6 +31,26 @@ const PUSCICA =
  */
 let odprta = null;
 
+/**
+ * Prijava odprte strani.
+ *
+ * Register stoji tu, ker je bila ta datoteka prva, ki je odpirala strani, in
+ * ker vse strani uporabljajo isto ploskev. Uporablja ga tudi Stik, ki ima
+ * svojo vsebino, a isto zaveso - dve zavesi cez galaksijo hkrati sta dvojna
+ * zatemnitev, ne prehod.
+ *
+ * @param {{takoj: () => void}} api stran, ki se odpira
+ */
+export function prevzemiOdprto(api) {
+  if (odprta && odprta !== api) odprta.takoj();
+  odprta = api;
+}
+
+/** Odjava ob zapiranju. Register se ne sme drzati strani, ki je ni vec. */
+export function sprostiOdprto(api) {
+  if (odprta === api) odprta = null;
+}
+
 const znacke = (seznam) =>
   `<div class="zapis-znacke">${seznam
     .map((z) => `<span class="zapis-znacka dg">${z}</span>`)
@@ -373,8 +393,7 @@ export function installZapis(vsebina) {
   function odpri() {
     // Druga stran se umakne brez animacije - dve zavesi cez galaksijo hkrati
     // sta dvojna zatemnitev, ne prehod.
-    if (odprta && odprta !== api) odprta.takoj();
-    odprta = api;
+    prevzemiOdprto(api);
 
     if (zapiranje) {
       clearTimeout(zapiranje);
@@ -409,7 +428,7 @@ export function installZapis(vsebina) {
 
   function zapri() {
     if (zapiranje) return;
-    if (odprta === api) odprta = null;
+    sprostiOdprto(api);
     koren.classList.add("zapira");
     // setTimeout in ne rAF: na skriti strani rAF ne tece.
     zapiranje = setTimeout(() => {

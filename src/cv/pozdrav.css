@@ -1,0 +1,24 @@
+/* ---------------------------------------------------------------------------
+   POZDRAV
+
+   Platno lezi cez celo stran, pod besedilom. Ne prestreza miske: pozdrav je
+   ozadje in ne sme loviti klikov, namenjenih povezavam.
+
+   mix-blend-mode: screen pomeni, da se svetloba znakov sesteva z galaksijo pod
+   njimi namesto da bi jo prekrila. Znaki zato ne lezijo na sceni, ampak
+   svetijo v njej - in tam, kjer je pod znakom zvezda, znak zasije mocneje.
+--------------------------------------------------------------------------- */
+
+.pozdrav-platno {
+  position: absolute;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+  mix-blend-mode: screen;
+
+  /* Prihod je pocasnejsi od ostalih prehodov na strani: pozdrav pride sekundo
+     za stranjo in ne sme tekmovati z njo za pozornost. */
+  opacity: 0;
+  transition: opacity 900ms var(--ease);
+}
+.pozdrav-platno.vidno { opacity: 1; }

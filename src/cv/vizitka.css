@@ -1,0 +1,406 @@
+/* ---------------------------------------------------------------------------
+   VIZITKA
+
+   Prenesena iz Trace Space (static/v2/style.css). Postavitev, razmerja in
+   animacije so nedotaknjene: vizitka je znamka in mora biti povsod ista.
+
+   Dvoje je drugace. Prvic, trije zetoni, ki jih ta stran nima - --accent,
+   --hairline in --mono - so definirani spodaj, ne da bi jih vsiljevali celi
+   strani. Drugic, ploskev je temna in stoji v steklu: v Trace Space je lezala
+   na svetli nadzorni plosci, tu pa nad galaksijo, kjer bi bel list zaslepil.
+
+   Bele ostajajo epruveta in mehurcki. Tam belina ni podlaga, ampak steklo in
+   svetloba - obrniti ju v temno bi pomenilo narisati drugo stvar.
+--------------------------------------------------------------------------- */
+
+.viz-sheet,
+.viz-btn,
+.duh-let {
+  /* Modra znamke ostane ista kot v Trace Space; po njej se vizitka prepozna. */
+  --accent: #5d8fff;
+  --hairline: rgba(255, 255, 255, 0.14);
+  --mono: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+}
+
+.viz-btn {
+  position: relative; display: flex; align-items: center; gap: 0;
+  width: 34px; height: 34px; padding: 0 6px; border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: rgba(255, 255, 255, 0);
+  box-shadow: none;
+  color: var(--ink); font-size: 13.5px; font-weight: 600; letter-spacing: 0.01em;
+  cursor: pointer; overflow: hidden;
+  transition:
+    width 460ms var(--ease), height 460ms var(--ease), padding 460ms var(--ease),
+    gap 460ms var(--ease), background 300ms var(--ease),
+    box-shadow 300ms var(--ease), border-color 300ms var(--ease),
+    transform var(--t-med) var(--spring);
+}
+.viz-btn:hover,
+.viz-btn:focus-visible,
+.viz-btn.on {
+  width: 100%; height: 46px; gap: 8px; padding: 7px 10px 7px 7px;
+  border-color: rgba(255, 255, 255, 0.9);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.66));
+  /* sij je box-shadow in ne psevdoelement, ker ga overflow: hidden ne obreze */
+  box-shadow:
+    0 0 0 1px rgba(150, 170, 255, 0.2),
+    0 14px 30px rgba(120, 130, 210, 0.2),
+    0 0 34px rgba(216, 170, 255, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+.viz-btn:active { transform: scale(0.972); }
+.viz-btn-txt {
+  flex: 1; text-align: center; max-width: 0; opacity: 0; overflow: hidden;
+  white-space: nowrap; color: #10151f;
+  transition: max-width 460ms var(--ease), opacity 260ms var(--ease) 120ms;
+}
+.viz-btn:hover .viz-btn-txt,
+.viz-btn:focus-visible .viz-btn-txt,
+.viz-btn.on .viz-btn-txt { max-width: 160px; opacity: 1; }
+.viz-btn-info {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; flex: none; margin-left: auto; border-radius: 50%;
+  color: var(--faint); opacity: 0.85; cursor: pointer;
+  transition: transform var(--t-med) var(--spring), opacity var(--t-fast),
+    color var(--t-fast) var(--ease);
+}
+.viz-btn-info svg { width: 19px; height: 19px; }
+.viz-btn:hover .viz-btn-info { color: var(--accent); opacity: 1; }
+.viz-btn-info:hover { opacity: 1; transform: scale(1.12); }
+.viz-btn-info:active { transform: scale(0.9); }
+
+/* Duhec: telo je ena slika, obrazi so plasti nad njo - menja se samo obraz. */
+.duh {
+  position: relative; width: 30px; height: 30px; flex: none; display: block;
+  animation: duhPlava 4.8s ease-in-out infinite;
+}
+/* Na gumbu duhec caka skrit: pokaze se sele, ko gres cezenj. Mesto zanj
+   ostane rezervirano, da se napis ob tem ne premakne. Prelivamo samo
+   prosojnost in ostrino -- transform je od lebdenja. */
+.viz-btn .duh {
+  width: 0; opacity: 0; filter: blur(3px);
+  transition: width 460ms var(--ease), opacity 300ms var(--ease),
+    filter 300ms var(--ease);
+}
+.viz-btn:not(.leti):hover .duh,
+.viz-btn:not(.leti):focus-visible .duh,
+.viz-btn.on:not(.leti) .duh { width: 30px; opacity: 1; filter: blur(0); }
+.duh img { position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: contain; pointer-events: none; user-select: none; }
+.duh .duh-body { filter: drop-shadow(0 3px 5px rgba(107, 90, 205, 0.22)); }
+.duh .duh-face { opacity: 0; transition: opacity 130ms ease; }
+.duh .duh-face.on { opacity: 1; }
+@keyframes duhPlava {
+  0%, 100% { transform: translateY(1.5px) rotate(-1.4deg); }
+  50% { transform: translateY(-1.5px) rotate(1.4deg); }
+}
+
+/* Duhec, ki je zapustil gumb in se potika po platnu. Gibanje pise JS, zato
+   tu ni animacije -- samo plast in izhodisce vrtenja. */
+.duh-let {
+  position: fixed; left: 0; top: 0; width: 68px; height: 68px;
+  z-index: 250; pointer-events: none; transform-origin: 50% 50%;
+  will-change: transform; opacity: 0.8;
+}
+.duh-let .duh { width: 100%; height: 100%; animation: none; opacity: 1; filter: none; }
+/* Halo: duhec sveti, zato se loci od platna tudi tam, kjer je belo na belem. */
+.duh-let::before {
+  content: ""; position: absolute; inset: -30%; z-index: -1; border-radius: 50%;
+  background: radial-gradient(circle, rgba(219, 230, 255, 0.85) 0%,
+    rgba(198, 180, 255, 0.36) 44%, rgba(255, 255, 255, 0) 72%);
+  filter: blur(7px);
+  animation: haloDih 3.4s ease-in-out infinite;
+}
+@keyframes haloDih {
+  0%, 100% { transform: scale(0.93); opacity: 0.72; }
+  50% { transform: scale(1.07); opacity: 1; }
+}
+.viz-btn.leti .duh { opacity: 0; }
+
+/* Meni med odprto vizitko utihne: imena izginejo, ostane samo steklo. */
+:root.viz-open, :root.viz-open body { overflow: hidden; }
+
+/* List sam: meni, raztegnjen cez celo stran. Zato ni sence okrog - to ni
+   okno nad stranjo, ampak ista ploskev, ki je zrasla. */
+.viz-sheet {
+  position: fixed; inset: 0; z-index: 240; display: grid; place-items: center;
+  padding: clamp(20px, 4vw, 54px);
+  background:
+    radial-gradient(58% 46% at 78% 76%, rgba(196, 216, 255, 0.5), transparent 72%),
+    radial-gradient(46% 40% at 14% 16%, rgba(255, 214, 240, 0.4), transparent 74%),
+    rgba(255, 255, 255, 0.82);
+  backdrop-filter: saturate(1.5) blur(30px);
+  -webkit-backdrop-filter: saturate(1.5) blur(30px);
+}
+.viz-close {
+  position: absolute; top: 18px; right: 20px; z-index: 3;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 1px solid var(--hairline); background: rgba(255, 255, 255, 0.7);
+  color: var(--muted); cursor: pointer;
+  transition: transform var(--t-med) var(--spring), background var(--t-fast),
+    color var(--t-fast);
+}
+.viz-close svg { width: 18px; height: 18px; }
+.viz-close:hover { background: #fff; color: var(--ink); }
+.viz-close:active { transform: scale(0.9); }
+
+/* Zvezdice in mehurcki so na svoji plasti pod vsebino in brez zaznavanja
+   miske -- ozadje naj zivi, branja in klikanja pa naj ne moti. */
+.viz-okras { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.viz-iskra { position: absolute; pointer-events: none; opacity: 0;
+  animation: iskraSij 2.2s var(--ease) forwards; }
+.viz-iskra svg { width: 100%; height: 100%; display: block;
+  filter: drop-shadow(0 0 6px rgba(150, 180, 255, 0.75)); }
+.viz-iskra path { fill: rgba(206, 220, 255, 0.95); }
+@keyframes iskraSij {
+  0% { transform: scale(0.25) rotate(-18deg); opacity: 0; }
+  35% { transform: scale(1) rotate(0deg); opacity: 1; }
+  62% { transform: scale(0.94) rotate(7deg); opacity: 0.9; }
+  100% { transform: scale(0.4) rotate(22deg); opacity: 0; }
+}
+.viz-mehur {
+  position: absolute; bottom: -60px; border-radius: 50%; pointer-events: none;
+  opacity: 0; will-change: transform;
+  background: radial-gradient(circle at 32% 27%, rgba(255, 255, 255, 0.95),
+    rgba(214, 226, 255, 0.42) 46%, rgba(196, 210, 255, 0.16) 72%,
+    rgba(255, 255, 255, 0.05) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: 0 0 12px rgba(178, 200, 255, 0.34),
+    inset 0 -4px 8px rgba(255, 255, 255, 0.5);
+  animation: mehurGor 14s linear forwards;
+}
+@keyframes mehurGor {
+  0% { transform: translate3d(0, 0, 0) scale(0.85); opacity: 0; }
+  9% { opacity: var(--o, 0.7); }
+  50% { transform: translate3d(var(--dx, 0px), -52vh, 0) scale(1); }
+  88% { opacity: var(--o, 0.7); }
+  100% { transform: translate3d(calc(var(--dx, 0px) * -0.4), -104vh, 0) scale(1.06);
+    opacity: 0; }
+}
+
+.viz-card {
+  position: relative; z-index: 1; width: min(1180px, 100%); max-height: 100%;
+  display: flex; flex-direction: column; gap: clamp(10px, 3vh, 38px);
+  padding: clamp(16px, 3vw, 34px);
+}
+.viz-vrh {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 32px; flex-wrap: wrap;
+}
+/* Stik je bil najprej v zgornjem desnem kotu, dalec od imena, ki mu pripada,
+   potem pod znamko. Zdaj stoji v LEVEM SPODNJEM kotu: zgoraj ime in podatki o
+   programu, na sredini ilustraciji, spodaj levo pa, kdo je to naredil in kje
+   ga najdes -- kot na tiskani vizitki. */
+.viz-vrh-levo { flex-direction: column; align-items: flex-start; gap: 0; }
+/* Edino, kar se je premaknilo: stik gre v levi spodnji kot ZASLONA, ne
+   kartice. Zato je fiksen -- ce bi bil v toku kartice, bi ostal ob njenem
+   levem robu, ta pa je zaradi sredinske postavitve dalec od roba okna. Ker
+   je iz toka, se postavitev ostalih elementov ne premakne niti za piksel. */
+.viz-meta.viz-kot {
+  position: fixed; left: clamp(18px, 2.6vw, 46px); bottom: clamp(18px, 2.6vw, 46px);
+  min-width: 0; padding-top: 0; z-index: 2;
+}
+.viz-meta.viz-kot .viz-meta-t { margin-top: 14px; }
+.viz-meta.viz-kot .viz-pika.meta { right: auto; left: -16px; bottom: -20px; }
+.viz-beseda {
+  display: flex; align-items: baseline; gap: 0.42em;
+  font-size: clamp(34px, 5.4vw, 66px); font-weight: 300; letter-spacing: 0.15em;
+  line-height: 1; color: #1c2436; white-space: nowrap;
+}
+.viz-beseda .b { color: #5d8fff; }
+
+/* Napis "made by jureb": crke se odkrivajo od leve, konica pisala pa tece
+   po robu odkritega - zato deluje, kot da nekdo pise, in ne kot da se
+   besedilo pojavi. */
+.viz-roka {
+  position: relative; display: inline-flex; align-items: center; gap: 8px;
+  margin: clamp(8px, 1.6vh, 18px) 0 0 4px;
+}
+.viz-roka-txt {
+  font-family: "Ink Free", "Segoe Script", "Brush Script MT", "Segoe UI Variable Text", cursive;
+  font-size: clamp(26px, 3.4vw, 42px); font-weight: 400; font-style: italic;
+  color: #232a3a; letter-spacing: 0.01em; white-space: nowrap;
+  clip-path: inset(-25% -6% -35% 0);
+}
+.viz-srce { color: #5d8fff; font-size: clamp(18px, 2.2vw, 27px); }
+.viz-pero {
+  position: absolute; left: 0; bottom: 2px; width: 3px; height: 19px;
+  border-radius: 2px; opacity: 0; pointer-events: none;
+  background: linear-gradient(180deg, #2b3550, #5d8fff);
+  box-shadow: 0 0 8px rgba(93, 143, 255, 0.6);
+}
+
+.viz-meta { position: relative; min-width: 250px; padding-top: 6px; }
+.viz-meta-t { font-size: 15px; font-weight: 600; color: var(--ink); margin-top: 20px; }
+.viz-meta-s { font-size: 13.5px; color: var(--faint); margin-top: 2px; }
+.viz-links { display: flex; flex-direction: column; gap: 9px; }
+.viz-link {
+  display: flex; align-items: center; gap: 11px; text-decoration: none;
+  color: #2b3446; font-size: 14px; width: fit-content; border-radius: 8px;
+  padding: 3px 6px 3px 3px;
+  transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease),
+    transform var(--t-med) var(--spring);
+}
+.viz-link:hover { color: #3b6fe0; background: rgba(93, 143, 255, 0.09); }
+.viz-link:active { transform: scale(0.97); }
+.viz-ico { display: inline-flex; width: 22px; height: 22px; color: #5d8fff; }
+.viz-ico svg { width: 100%; height: 100%; }
+
+/* Drobni tisk o programu: na vizitki je to na svojem mestu, v svojem oknu
+   pa je bilo samo se eno okno vec. */
+.viz-opro {
+  display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: -6px;
+  font-size: 12px; color: var(--faint); line-height: 1.5;
+}
+.viz-opro span { display: inline-flex; gap: 7px; align-items: baseline; }
+.viz-opro b { font-weight: 600; color: #55617a; font-size: 11px;
+  letter-spacing: 0.03em; text-transform: uppercase; }
+
+.viz-dno {
+  position: relative; display: flex; align-items: flex-end;
+  justify-content: space-between; gap: 24px; min-height: 0; flex: 1;
+}
+.viz-ascii { position: relative; flex: 1 1 0; min-width: 0; align-self: center;
+  margin-left: -10px; }
+.viz-ascii canvas {
+  display: block; width: 100%; max-width: 780px; height: auto;
+  aspect-ratio: 5 / 4; max-height: min(54vh, 460px);
+}
+.viz-ascii-oznaka {
+  display: flex; align-items: center; gap: 8px; margin-top: -6px;
+  font: 600 9.5px/1.2 var(--mono); letter-spacing: 0.19em; text-transform: uppercase;
+  color: rgba(60, 74, 110, 0.42);
+}
+.viz-ascii-oznaka i {
+  width: 5px; height: 5px; border-radius: 99px; background: #5d8fff;
+  box-shadow: 0 0 10px rgba(93, 143, 255, 0.8);
+}
+
+.viz-epruveta {
+  position: relative; flex: none; display: grid; place-items: center;
+  width: clamp(150px, 22vw, 260px);
+}
+.viz-blob {
+  position: absolute; inset: -18% -22% -8% -30%; z-index: -1;
+  border-radius: 46% 54% 40% 60% / 52% 44% 56% 48%;
+  background: rgba(203, 219, 255, 0.5); filter: blur(2px);
+}
+.epr {
+  position: relative; width: 100%; height: auto; overflow: visible;
+  cursor: pointer; user-select: none;
+  filter: drop-shadow(0 18px 24px rgba(76, 121, 210, 0.16));
+}
+.epr-body { transform-box: fill-box; transform-origin: center bottom; }
+.epr-glass { fill: rgba(255, 255, 255, 0.88); stroke: url(#eprRob); stroke-width: 9;
+  stroke-linejoin: round; }
+.epr-inner { fill: none; stroke: rgba(255, 255, 255, 0.95); stroke-width: 4; }
+.epr-liquid { fill: url(#eprTek); }
+.epr-shine { fill: none; stroke: rgba(255, 255, 255, 0.95); stroke-width: 9;
+  stroke-linecap: round; }
+.epr-eyeball { fill: #111936; transform-box: fill-box; transform-origin: center; }
+.epr-shine2 { fill: #fff; }
+.epr-cheek { fill: #ffb9d0; opacity: 0.76; }
+.epr-mouth { fill: none; stroke: #111936; stroke-width: 5.5; stroke-linecap: round;
+  stroke-linejoin: round; }
+.epr-brow { fill: none; stroke: #111936; stroke-width: 5; stroke-linecap: round; opacity: 0; }
+.epr-bubble { fill: rgba(255, 255, 255, 0.62); stroke: #9bbaff; stroke-width: 4; opacity: 0; }
+.epr-sparkle { fill: none; stroke: #5d8fff; stroke-width: 4; stroke-linecap: round;
+  opacity: 0.85; }
+
+/* Okras s predloge: mrezice pik in dve zvezdici. */
+.viz-pika {
+  position: absolute; width: 96px; height: 76px; pointer-events: none;
+  background-image: radial-gradient(circle, rgba(120, 150, 230, 0.5) 1.6px, transparent 1.7px);
+  background-size: 16px 16px; opacity: 0.7;
+}
+.viz-pika.meta { right: -10px; bottom: -14px; z-index: -1; }
+.viz-pika.bl { bottom: 10px; left: 6px; width: 78px; height: 58px; }
+.viz-zvezda {
+  position: absolute; color: #7ea3ff; pointer-events: none;
+  animation: vizUtrip 3.6s ease-in-out infinite;
+}
+.viz-zvezda.a { top: 12%; left: 2%; font-size: 22px; }
+.viz-zvezda.b { top: 20%; left: 6.5%; font-size: 13px; animation-delay: 1.2s; }
+@keyframes vizUtrip {
+  0%, 100% { opacity: 0.35; transform: scale(0.9); }
+  50% { opacity: 0.9; transform: scale(1.06); }
+}
+
+:root[data-theme="dark"] .viz-sheet {
+  background:
+    radial-gradient(58% 46% at 78% 76%, rgba(80, 110, 190, 0.3), transparent 72%),
+    radial-gradient(46% 40% at 14% 16%, rgba(150, 100, 170, 0.24), transparent 74%),
+    rgba(245, 247, 255, 0.94);
+}
+:root[data-theme="dark"] .viz-btn { color: #1b1f27; }
+
+@media (max-width: 940px) {
+  .viz-dno { flex-direction: column-reverse; align-items: center; }
+  .viz-ascii canvas { max-width: 100%; }
+  .viz-epruveta { width: clamp(130px, 34vw, 190px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .duh, .viz-zvezda { animation: none; }
+  .viz-okras { display: none; }
+}
+
+/* ---------------------------------------------------------------------------
+   TEMNA RAZLICICA
+
+   Vse spodaj obrne le ploskve, na katerih besedilo lezi. Barve vsebine niso
+   spremenjene: --ink, --muted in --faint so na tej strani ze svetli.
+--------------------------------------------------------------------------- */
+
+/* Ploskev vizitke. Ista dva odtenka kot v svetli razlicici, le da zdaj
+   svetita iz teme namesto da bi jo barvala; pod njima je steklo, skozi
+   katero se galaksija se vidi, a ne moti branja. */
+.viz-sheet {
+  background:
+    radial-gradient(58% 46% at 78% 76%, rgba(93, 143, 255, 0.16), transparent 72%),
+    radial-gradient(46% 40% at 14% 16%, rgba(255, 150, 214, 0.12), transparent 74%),
+    rgba(12, 15, 21, 0.82);
+  backdrop-filter: saturate(1.4) blur(30px);
+  -webkit-backdrop-filter: saturate(1.4) blur(30px);
+}
+
+/* Stekleni okvir: ploskev ni prilepljena na rob zaslona, ampak stoji v njem
+   kot ostale ploskve na strani - enak odmik kot plosca nastavitev. */
+.viz-sheet::after {
+  content: "";
+  position: absolute;
+  inset: max(34px, calc(env(safe-area-inset-top) + 18px));
+  border-radius: 34px;
+  pointer-events: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.viz-close {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+}
+.viz-close:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--ink);
+}
+
+/* Gumb, ki vizitko odpre. Zaprt je komaj viden, odprt zasije - isti gib kot
+   prej, le da se svetloba zdaj sesteva na temno in ne odsteva od bele. */
+.viz-btn:hover,
+.viz-btn:focus-visible,
+.viz-btn.on {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
+  box-shadow:
+    0 0 0 1px rgba(93, 143, 255, 0.18),
+    0 14px 30px rgba(0, 0, 0, 0.5),
+    0 0 34px rgba(93, 143, 255, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+/* Iskre so bile na belem listu modrikaste, da so se sploh videle. Na temnem
+   je obratno: bele so tiste, ki se vidijo. */
+.viz-iskra path { fill: rgba(214, 226, 255, 0.85); }

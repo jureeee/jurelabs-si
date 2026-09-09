@@ -1,0 +1,107 @@
+/* ---------------------------------------------------------------------------
+   STIK
+
+   Zaveso, prihod in gumb za zapiranje si deli z uredniskimi stranmi (zapis.css);
+   tu je le tisto, kar je na tej strani drugace.
+
+   Postavitev je namerno kratka: naslov, ena poved, tri povezave, vizitka.
+   Kdor pride na Stik, isce naslov - dolgo besedilo bi ga oddaljilo od njega.
+--------------------------------------------------------------------------- */
+
+.stik-tok {
+  display: flex;
+  flex-direction: column;
+  /* Vsebina stoji v zgornji polovici, ker spodnjo zasede pozdrav. Sredinjena
+     bi mu lezala v napis in oba bi se borila za isto mesto. */
+  justify-content: flex-start;
+  padding-top: clamp(12px, 10vh, 96px);
+}
+
+/* Pozdrav lezi cez celo ploskev in pod vsebino: znaki se sestavljajo po vsem
+   zaslonu, brati pa se mora besedilo. Brez zaznavanja miske, sicer bi lovil
+   klike, namenjene povezavam. */
+.stik-pozdrav {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.stik-vsebina {
+  position: relative;
+  z-index: 1;
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: clamp(24px, 6vw, 90px);
+}
+
+.stik-glavni {
+  margin: 18px 0 0;
+  font-size: clamp(32px, 4.6vw, 58px);
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.stik-vodilo {
+  margin-top: 22px;
+  max-width: 52ch;
+  font-size: clamp(15px, 1.4vw, 18px);
+  line-height: 1.55;
+  color: var(--muted);
+  /* Da zadnja beseda ne ostane sama v vrsti. */
+  text-wrap: pretty;
+}
+
+/* --- povezave -------------------------------------------------------------
+   Vsaka je svoja ploskev iz stekla, dovolj velika, da je cilj za prst in ne
+   le za miskin konec. Ob prehodu se dvigne - toliko, da se vidi, da je ziva. */
+.stik-povezave {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 38px;
+}
+
+.stik-povezava {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 20px 13px 15px;
+  border-radius: 999px;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 14.5px;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  transition:
+    transform var(--t-med) var(--spring),
+    color var(--t-fast) var(--ease);
+}
+.stik-povezava:hover { transform: translateY(-2px); }
+.stik-povezava:active { transform: translateY(0) scale(0.975); }
+
+.stik-ikona {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  color: var(--muted);
+  transition: color var(--t-fast) var(--ease);
+}
+.stik-ikona svg { width: 100%; height: 100%; display: block; }
+.stik-povezava:hover .stik-ikona { color: var(--ink); }
+
+/* --- vizitka --------------------------------------------------------------
+   Gumb vizitke stoji pod povezavami in ne med njimi: povezave peljejo stran,
+   vizitka pa odpre nekaj tukaj. Dve razlicni dejanji ne sodita v isto vrsto. */
+.stik-vizitka {
+  margin-top: 44px;
+  display: flex;
+}
+.stik-vizitka-host { display: flex; }
+
+@media (max-width: 720px) {
+  .stik-povezave { flex-direction: column; align-items: flex-start; }
+}

@@ -25,6 +25,7 @@ import { installProfile } from "./profile.js";
 import { installContextMenu } from "./context.js";
 import { installZapis } from "./zapis.js";
 import { DELO, OMENI, ARHIV } from "./vsebina.js";
+import { installStik } from "./stik.js";
 import { installCursor, installMagnetic } from "./cursor.js";
 import { installSelectionGlow } from "./selection.js";
 
@@ -633,6 +634,8 @@ const strani = new Map([
   ["Delo", installZapis(DELO)],
   ["O meni", installZapis(OMENI)],
   ["Arhiv", installZapis(ARHIV)],
+  // Stik ima svojo vsebino, a isto zaveso in isti register odprte strani.
+  ["Stik", installStik()],
 ]);
 nav?.querySelectorAll('[role="tab"]').forEach((t) => {
   const stran = strani.get(t.textContent.trim());
