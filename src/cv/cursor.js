@@ -46,6 +46,10 @@ const OBLIKE = Object.entries(
       // Barvo in velikost doloca CSS, ne datoteka.
       .replace(/\s(width|height|color)="[^"]*"/g, "")
       .replace(/fill="(?!currentColor)[^"]*"/g, 'fill="currentColor"')
+      // Datoteke nosijo angleski <title>. Kot namig se nikoli ne pokaze, ker
+      // kazalec ne prestreza kazanja, v drevesu strani pa je edino anglesko
+      // besedilo na slovenski strani in bralnik zaslona bi ga prebral.
+      .replace(/<title>[\s\S]*?<\/title>/gi, "")
   );
 
 /** Na koliko sekund se oblika zamenja. */

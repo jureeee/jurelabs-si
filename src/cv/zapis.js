@@ -108,7 +108,7 @@ export function installZapis(vsebina) {
               )
               .join("")}
           </div>
-          <button class="zapis-nazaj dg" type="button" aria-label="Prejsnja">${PUSCICA}</button>
+          <button class="zapis-nazaj dg" type="button" aria-label="Prejšnja">${PUSCICA}</button>
           <button class="zapis-naprej dg" type="button" aria-label="Naslednja">${PUSCICA}</button>
         </div>
       </section>

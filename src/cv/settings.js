@@ -297,7 +297,7 @@ function stranGlavna(pojdi) {
       {
         naslovek: "Gibanje",
         vrstice: [
-          { ime: "Odziv na misko", opis: "Pogled sledi kazalcu", kontrola: stikalo("odzivNaMisko") },
+          { ime: "Odziv na miško", opis: "Pogled sledi kazalcu", kontrola: stikalo("odzivNaMisko") },
         ],
       },
       {

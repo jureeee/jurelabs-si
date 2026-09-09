@@ -29,7 +29,7 @@ const IKONA_VIDEO =
 const PODATKI = {
   ime: "blatnikjuree",
   pravo: "Jure",
-  bio: "✨ Ce ne ujamem zvezd, pridem po tebe.",
+  bio: "✨ Če ne ujamem zvezd, pridem po tebe.",
   sledilcev: 325,
   sledi: 169,
 };
@@ -128,7 +128,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
       <div class="prof-zavihki prof-del" style="--i:2" role="tablist">
         <button class="prof-zavihek dg" type="button" role="tab" aria-selected="true">Objave</button>
         <button class="prof-zavihek dg" type="button" role="tab" aria-selected="false">Shranjeno</button>
-        <button class="prof-zavihek dg" type="button" role="tab" aria-selected="false">Oznaceno</button>
+        <button class="prof-zavihek dg" type="button" role="tab" aria-selected="false">Označeno</button>
         <button class="prof-razpored dg" type="button" aria-label="Razporeditev">${IKONA_RAZPORED}</button>
       </div>
 
@@ -372,13 +372,13 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
   const RAZPOREDI = [
     { kljuc: "tri", ime: "Trije stolpci" },
     { kljuc: "dve", ime: "Dva stolpca" },
-    { kljuc: "stiri", ime: "Stirje stolpci" },
+    { kljuc: "stiri", ime: "Štirje stolpci" },
     { kljuc: "mozaik", ime: "Mozaik" },
     { kljuc: "stopnice", ime: "Stopnice" },
     { kljuc: "gost", ime: "Gosto (6-7)" },
     { kljuc: "trak", ime: "Trak" },
     { kljuc: "izvirno", ime: "Izvirna razmerja" },
-    { kljuc: "polno", ime: "Cez cel zaslon" },
+    { kljuc: "polno", ime: "Čez cel zaslon" },
     { kljuc: "stolpci", ime: "Zidak" },
   ];
   // Razmik je svoja izbira in ne del razporeditve: velja za vse in ga
