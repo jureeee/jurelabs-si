@@ -302,6 +302,15 @@
 /* Kartice, ki niso sosede sredinske, so povsem umaknjene. */
 .zapis-kartica.dalec { opacity: 0.18; transform: scale(0.86); }
 
+/* Vse razen sredinske so klikne - klik jih pripelje na sredino. Ob prehodu se
+   malenkost dvignejo in posvetlijo, sicer ni znaka, da se da nanje pritisniti.
+   Premik mora ostati enak kot v legi, sicer bi kartica ob prehodu poskocila
+   vstran. */
+.zapis-kartica:not(.sredina) { cursor: pointer; }
+.zapis-kartica.stran-leva:hover  { transform: translateX(-26px) scale(0.925); opacity: 0.72; }
+.zapis-kartica.stran-desna:hover { transform: translateX(26px) scale(0.925); opacity: 0.72; }
+.zapis-kartica.dalec:hover { opacity: 0.34; transform: scale(0.885); }
+
 .zapis-naslov {
   margin: 16px 0 0 !important;
   font-size: 22px !important;

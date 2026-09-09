@@ -229,6 +229,23 @@ export function installZapis(vsebina) {
   koren.querySelector(".zapis-nazaj").addEventListener("click", () => pojdi(kje - 1));
 
   /**
+   * Klik na stransko kartico jo pripelje na sredino.
+   *
+   * Sredinska na klik ne odgovarja: tam besedilo beres in ga vcasih izberes,
+   * premik pod prstom pa bi bil za to kazen. Iz istega razloga premik odpade,
+   * ce je klik koncal izbiranje - takrat si vlekel cez besedilo, nisi ciljal
+   * kartice.
+   */
+  tir.addEventListener("click", (e) => {
+    const k = e.target instanceof Element ? e.target.closest(".zapis-kartica") : null;
+    if (!k) return;
+    const i = kartice.indexOf(k);
+    if (i < 0 || i === kje) return;
+    if (getSelection()?.isCollapsed === false) return;
+    pojdi(i);
+  });
+
+  /**
    * Kolescek nad vrtiljakom.
    *
    * Zobniki se zberejo v kratkem oknu in sele nato prevedejo v kartice, po
