@@ -609,7 +609,19 @@ const profil = installProfile({
   onOdprt: () => { zamrznjeno = true; },
   onZaprt: () => { zamrznjeno = false; },
 });
-document.querySelector(".profil")?.addEventListener("click", () => profil.odpri());
+const profilGumb = document.querySelector(".profil");
+profilGumb?.addEventListener("click", () => profil.odpri());
+// Vstopna animacija se konca, a z fill: both se naprej drzi transform in
+// preglasi vsakega iz sloga - odboj ob odpiranju kapsule in stisk ob pritisku
+// ne bi imela ucinka. Ista past kot pri filter drugod: lastnost, ki po koncu
+// animacije ostane, jemlje slogu besedo.
+profilGumb?.addEventListener(
+  "animationend",
+  (e) => {
+    if (e.animationName === "profilVstop") profilGumb.classList.add("vstopil");
+  },
+  { once: true }
+);
 
 const plosca = installSettings();
 document

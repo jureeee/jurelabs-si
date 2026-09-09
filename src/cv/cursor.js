@@ -121,6 +121,8 @@ export function installCursor() {
   let ciljRob = "";     // njena zaobljenost
   let nacin = "prost";  // prost | lepi | crtica
   let zadnjaOblika = null;
+  let zadnjaSirina = -1;  // zadnji zapisani meri, da ne pisemo istega znova
+  let zadnjaVisina = -1;
 
   addEventListener(
     "pointermove",
@@ -136,7 +138,9 @@ export function installCursor() {
 
       if (lepljiv !== cilj) {
         cilj = lepljiv;
-        // Lego in zaobljenost preberemo ob menjavi cilja, ne vsako slicico.
+        // Zaobljenost preberemo ob menjavi cilja: branje sloga sili brskalnik
+        // v ponoven izracun in tega ne pocnemo vsako slicico. Lego meri
+        // slicica sama, ker se med prehodom spreminja.
         if (cilj) {
           ciljR = cilj.getBoundingClientRect();
           ciljRob = getComputedStyle(cilj).borderRadius;
@@ -159,11 +163,6 @@ export function installCursor() {
   addEventListener("pointerup", () => el.classList.remove("pritisk"));
   addEventListener("pointerleave", () => el.classList.add("skrit"));
   addEventListener("pointerenter", () => el.classList.remove("skrit"));
-  // Lege se ob drsenju premaknejo; ceneje je pozabiti kot meriti vsako slicico.
-  addEventListener("scroll", () => { ciljR = cilj?.getBoundingClientRect() ?? null; }, {
-    passive: true,
-    capture: true,
-  });
 
   function slicica() {
     requestAnimationFrame(slicica);
@@ -171,7 +170,19 @@ export function installCursor() {
     let ciljX = misX;
     let ciljY = misY;
 
-    if (nacin === "lepi" && ciljR) {
+    if (nacin === "lepi" && cilj) {
+      // Lego merimo vsako slicico, ne le ob prihodu.
+      //
+      // Ploskev se lahko pod kazalcem spreminja: profilna kapsula se ob
+      // prehodu miske razsiri iz kroga v kapsulo, strani se premikajo ob
+      // drsenju. Ce bi lego prebrali samo enkrat, bi kazalec ostal v obliki,
+      // ki jo je imela ploskev, preden se je zacela siriti - in prav ta krog
+      // je bil na profilu videti kot napaka.
+      //
+      // Ena meritev na slicico za eno samo ploskev je zanemarljiva; drago je
+      // bilo iskanje ploskve, ne merjenje.
+      ciljR = cilj.getBoundingClientRect();
+
       const sx = ciljR.left + ciljR.width / 2;
       const sy = ciljR.top + ciljR.height / 2;
       const dx = misX - sx;
@@ -210,17 +221,27 @@ export function installCursor() {
       // Prevzame obliko ploskve, na kateri sedi. Zapisemo le ob spremembi.
       if (zadnjaOblika !== cilj) {
         zadnjaOblika = cilj;
-        telo.style.width = `${ciljR.width}px`;
-      telo.style.height = `${ciljR.height}px`;
-      // Lega, ki jo racuna zanka, je SREDISCE ploskve, telo pa se rise od
-      // svojega levega zgornjega kota - zato ga je treba za polovico odmakniti.
-      telo.style.margin = `${-ciljR.height / 2}px 0 0 ${-ciljR.width / 2}px`;
         telo.style.borderRadius = ciljRob;
         telo.style.transform = "rotate(0deg) scale(1, 1)";
+      }
+      // Mere pisemo ob vsaki spremembi in ne le ob menjavi ploskve: profilna
+      // kapsula se pod kazalcem razsiri iz kroga v kapsulo in kazalec mora
+      // rasti z njo. Primerjava z zadnjim zapisom drzi pravilo, da sloga ne
+      // razveljavljamo po nepotrebnem - med prehodom se piseta le ti dve meri.
+      if (zadnjaSirina !== ciljR.width || zadnjaVisina !== ciljR.height) {
+        zadnjaSirina = ciljR.width;
+        zadnjaVisina = ciljR.height;
+        telo.style.width = `${ciljR.width}px`;
+        telo.style.height = `${ciljR.height}px`;
+        // Lega, ki jo racuna zanka, je SREDISCE ploskve, telo pa se rise od
+        // svojega levega zgornjega kota - zato ga je treba za polovico odmakniti.
+        telo.style.margin = `${-ciljR.height / 2}px 0 0 ${-ciljR.width / 2}px`;
       }
     } else {
       if (zadnjaOblika !== null) {
         zadnjaOblika = null;
+        zadnjaSirina = -1;
+        zadnjaVisina = -1;
         telo.style.width = "";
         telo.style.height = "";
         telo.style.margin = "";

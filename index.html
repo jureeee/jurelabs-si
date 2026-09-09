@@ -229,7 +229,10 @@
       .profil {
         position: fixed;
         top: max(34px, calc(env(safe-area-inset-top) + 18px));
-        left: max(34px, calc(env(safe-area-inset-left) + 18px));
+        /* Odmik od roba je imenovan, ker ga odboj ob odpiranju potrebuje se
+           enkrat - z njim sesteje svojih 7 px. */
+        --odmik: max(34px, calc(env(safe-area-inset-left) + 18px));
+        left: var(--odmik);
         z-index: 21;
 
         display: flex;
@@ -244,11 +247,16 @@
         text-align: left;
         overflow: hidden;
 
-        /* Sirina je tista, ki se animira - ne transform. Skaliranje bi
-           raztegnilo tudi sliko in besedilo. */
+        /* Mere in lego animiramo, ne transform. Skaliranje bi raztegnilo tudi
+           sliko in besedilo, transform pa je tu ze zaseden: magnetni ucinek
+           ga pise neposredno v slog ob vsakem premiku miske in bi vsak
+           transform iz stilske datoteke preglasil. */
         width: 46px;
         height: 46px;
-        transition: width 520ms var(--spring);
+        transition:
+          width 520ms var(--spring),
+          height 520ms var(--spring),
+          left 520ms var(--spring);
 
         opacity: 0;
         animation: profilVstop 720ms var(--spring) 200ms both;
@@ -259,33 +267,40 @@
         to   { opacity: 1; transform: translateX(0) scale(1); filter: blur(0); }
       }
 
+      /* Vstopna animacija ima fill: both, zato tudi po koncu drzi transform in
+         preglasi vsakega iz sloga - odboj ob odpiranju in stisk ob pritisku ne
+         bi delovala. Ko odigra, jo JS odvzame; opacity je treba postaviti
+         nazaj, ker jo je do tedaj drzala animacija. */
+      .profil.vstopil { animation: none; opacity: 1; }
+
+      /* Odpiranje: kapsula se ne le raztegne v desno, ampak se odrine od leve.
+         Vzmet v prehodu odnese odmik cez 7 px in ga vrne, zato je videti kot
+         odboj in ne kot risanje pravokotnika v desno. */
       .profil:hover,
-      .profil:focus-visible { width: 178px; }
+      .profil:focus-visible {
+        width: 178px;
+        height: 52px;
+        left: calc(var(--odmik) + 7px);
+      }
       .profil:active { transform: scale(0.97); }
 
-      /* Slika in ime lezita eno cez drugo, oba odmaknjena od roba. Ce bi bila
-         v toku, bi izginotje slike premaknilo besedilo in animacija bi
-         poskocila; tako se le izmenjata na mestu. */
+      /* Sij ob robovih mora ostati nad sliko. ::before je prvi otrok, zato bi
+         ga slika, ki pride za njim, sicer pokrila. */
+      .profil::before { z-index: 2; }
+
+      /* Slika ni vec krog, ki bi ob odpiranju izginil, ampak podlaga kapsule.
+         Odmaknjena je 6 px od roba, torej je natanko tolika kot notranjost
+         kapsule - in ker se siri kapsula, se siri z njo. Zato tu ni nobene
+         animacije velikosti: krog se raztegne v kapsulo sam od sebe.
+         999 px zaokrozitve je krog, dokler je polje kvadratno, in kapsula,
+         ko se raztegne. */
       .profil-slika {
         position: absolute;
-        left: 6px;
-        top: 6px;
-        width: 34px;
-        height: 34px;
-        border-radius: 50%;
+        inset: 6px;
+        z-index: 0;
+        border-radius: 999px;
         overflow: hidden;
         background: rgba(255, 255, 255, 0.08);
-        transition:
-          opacity 300ms var(--ease),
-          filter 380ms var(--ease),
-          transform 480ms var(--spring);
-      }
-      /* Ob odpiranju se slika razblini in umakne, da ostane samo ime. */
-      .profil:hover .profil-slika,
-      .profil:focus-visible .profil-slika {
-        opacity: 0;
-        filter: blur(9px);
-        transform: scale(0.72);
       }
       .profil-slika img {
         /* Glej opombo o HDR v profile.css - ista slika, isti razlog. */
@@ -294,19 +309,33 @@
         width: 100%; height: 100%;
         object-fit: cover; object-position: 50% 38%;
         display: block;
+        transition:
+          filter 420ms var(--ease),
+          transform 520ms var(--spring);
+      }
+      /* Odprta kapsula: slika stopi v ozadje, da ime pride v ospredje.
+
+         Blur in zatemnitev sta na sliki in ne na ovoju: ovoj sliko obrezuje,
+         zabrisati ovoj bi pomenilo zabrisati ze obrezan rob in ta bi se
+         razlil. Rahla povecava potisne zabrisani rob pod masko. */
+      .profil:hover .profil-slika img,
+      .profil:focus-visible .profil-slika img {
+        filter: blur(2.4px) brightness(0.42) saturate(0.85);
+        transform: scale(1.14);
       }
 
       .profil-ime {
         position: absolute;
         left: 17px;
         top: 50%;
+        z-index: 3;
         display: flex;
         flex-direction: column;
         justify-content: center;
         gap: 2px;
         white-space: nowrap;
         opacity: 0;
-        /* Pride sele, ko je slika ze skoraj zbledela in je prostor odprt. */
+        /* Pride sele, ko se je slika ze umaknila v ozadje in je prostor odprt. */
         transform: translateY(-50%) translateX(-10px) scale(0.96);
         filter: blur(6px);
         transition:
@@ -321,6 +350,9 @@
         transform: translateY(-50%) translateX(0) scale(1);
       }
 
+      /* Ime stoji na zatemnjeni fotografiji in ne na steklu, zato barva ne
+         pride iz zetonov teme. V svetli temi je --ink temen in ime bi na
+         temni sliki izginilo; fotografija se s temo ne obrne. */
       .profil-ime-vrh {
         font-size: 14px;
         font-weight: 700;
@@ -328,14 +360,14 @@
            skupaj kot besedo in ne kot niz znakov. */
         letter-spacing: -0.012em;
         line-height: 1.1;
-        color: var(--ink);
+        color: #f2f5fa;
       }
       .profil-ime-rocaj {
         font-size: 11.5px;
         font-weight: 500;
         letter-spacing: 0.012em;
         line-height: 1.1;
-        color: var(--muted);
+        color: rgba(242, 245, 250, 0.72);
       }
 
       .nav-profile {
