@@ -3,6 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <!-- Barva vmesnika brskalnika okoli strani. Ucinek ima na Chromu za
+         Android in v Safariju, na namizju pa sele, ko je stran namescena kot
+         aplikacija - trak z zavihki je vmesnik brskalnika in ga stran ne more
+         prebarvati. Vrednosti sta isti kot ozadje strani v obeh temah, da rob
+         med stranjo in brskalnikom izgine.
+
+         Sledita sistemski nastavitvi in ne nastavitvi Tema v plosci: oznaka
+         zna brati le medijsko poizvedbo, ne pa atributa, ki ga postavi JS. -->
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#eef1f5" media="(prefers-color-scheme: light)" />
     <title>Jure Blatnik</title>
     <link rel="icon" href="data:," />
     <style>
