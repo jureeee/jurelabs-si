@@ -233,6 +233,11 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
    * je ni videti. Ta tece po pravem robu zaslona in loci, ali je polje odslo
    * navzdol ali navzgor - smer nosi pomen, saj mora polje oditi tja, kamor ga
    * je odneslo.
+   *
+   * Prihod je enkraten. Ko je polje enkrat prislo, ga nehamo opazovati: sicer
+   * bi ob vsakem drsenju nazaj spet zbledelo in se po eno na 90 ms vracalo,
+   * kar je videti kot ponovno nalaganje - polje pa je ves cas tu in slika je
+   * ze prenesena. Odhod zato vidis samo pri poljih, ki jih se nisi videl.
    */
   const videz = new IntersectionObserver(
     (vnosi) => {
@@ -241,6 +246,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
         polje.classList.remove("odhaja-dol", "odhaja-gor");
         if (v.isIntersecting) {
           vPrikaz(polje);
+          videz.unobserve(polje);
           return;
         }
         polje.classList.remove("vidno");
