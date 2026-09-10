@@ -177,13 +177,16 @@ const KRONA = (() => {
 /**
  * Kje na prvem zaslonu stojita in kako velika sta, kot delez ploskve.
  *
+ * Oba stojita v spodnji polovici, ob straneh: sredina in zgornji del pripadata
+ * napisu. Krona je levo nad podpisom, metulj desno.
+ *
  * Mreza je pri okrasih drobnejsa kot pri crkah. Crka je velika in preprosta,
  * risba pa ima tanke poteze; pri istem koraku bi od nje ostalo nekaj
  * raztresenih znakov brez obrisa.
  */
 const OKRASI = [
-  { svg: METULJ, x: 0.855, y: 0.62, sirina: 0.19, gostota: 5 },
-  { svg: KRONA, x: 0.5, y: 0.145, sirina: 0.17, gostota: 5 },
+  { svg: METULJ, x: 0.855, y: 0.73, sirina: 0.19, gostota: 5 },
+  { svg: KRONA, x: 0.19, y: 0.83, sirina: 0.17, gostota: 5 },
 ];
 
 /** Koliko casa napis miruje, preden se zacne prelivati v naslednji jezik. */
@@ -228,6 +231,16 @@ const RAZMIK = 0.06;
  * pravih legah in vzmet nima s tem nobenega dela.
  */
 const SIRJENJE = 1.42;
+
+/**
+ * Debelina crk, kot delez velikosti pisave.
+ *
+ * Metamorphous ima le eno debelino, zato poteze zadebelimo sami: crko poleg
+ * zapolnitve se obrisemo. To ni isto kot vecji znaki - vecji znaki naredijo
+ * gostejso packo, debelejsa poteza pa siri samo crko, tako da gre po njeni
+ * sirini vec znakov in stebla postanejo trdna.
+ */
+const DEBELINA = 0.055;
 
 /** Kako mocno znak vlece proti tarci in koliko ga dusi. */
 const VZMET = 0.055;
@@ -306,15 +319,24 @@ function sirinaRazmaknjena(ctx, besedilo, velikost) {
   const razmik = velikost * RAZMIK;
   let sirina = 0;
   for (const c of besedilo) sirina += ctx.measureText(c).width + razmik;
-  return Math.max(0, sirina - razmik) * SIRJENJE;
+  // Obris crko razsiri za svojo debelino na vsako stran; ce tega ne stejemo,
+  // je napis izracunan ozji, kot je narisan, in zadnja crka pade cez rob.
+  return Math.max(0, sirina - razmik + velikost * DEBELINA) * SIRJENJE;
 }
 
 /** Izris crko za crko z razmikom. Vrne skupno sirino. */
 function narisiRazmaknjeno(ctx, besedilo, x, y, velikost) {
   const razmik = velikost * RAZMIK;
+  ctx.strokeStyle = ctx.fillStyle;
+  ctx.lineWidth = velikost * DEBELINA;
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
   let kje = x;
   for (const c of besedilo) {
     ctx.fillText(c, kje, y);
+    // Obris zadebeli potezo navzven; brez njega je crka tanka kot nit in po
+    // njeni sirini gre komaj en znak.
+    ctx.strokeText(c, kje, y);
     kje += ctx.measureText(c).width + razmik;
   }
   return Math.max(0, kje - x - razmik);
