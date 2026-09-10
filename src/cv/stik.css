@@ -36,7 +36,8 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: rgba(3, 5, 9, 0.42);
+  /* 0,42 je bilo premalo, da bi se napis bral brez napora. */
+  background: rgba(3, 5, 9, 0.6);
 }
 
 /* Napis pa je v toku: z drsenjem gre gor kot vsak drug element strani. */
