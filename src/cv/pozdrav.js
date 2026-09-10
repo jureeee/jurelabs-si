@@ -3,19 +3,18 @@
  *
  * Kako nastane oblika: besedilo izrisemo na pomozno platno, ga preberemo po
  * mrezi in vsaka polna tocka postane tarca. S tem oblike ne opisuje noben
- * seznam koordinat - crke pride iz pisave, torej so pravilne v vsakem jeziku,
- * s sumniki vred. Atlas znakov ni potreben.
+ * seznam koordinat - crke pridejo iz pisave, torej so pravilne v vsakem
+ * jeziku, s sumniki vred.
  *
  * Ob menjavi jezika vsak znak dobi PROSTORSKO NAJBLIZJO prosto tarco, ne
  * tarce z isto zaporedno stevilko. Zato znaki ne odletijo cez cel napis, ampak
  * se premaknejo za nekaj crk - in menjava se bere kot preliv, ne kot skok.
+ * Zamik potovanja raste z lego po vodoravnici, zato tece kot val z leve.
  *
- * Zamik potovanja raste z lego po vodoravnici, zato menjava tece kot val z
- * leve proti desni.
- *
- * Znakov je vec kot tarc. Odvecni ne izginejo: odplavajo v ozadje in cakajo,
- * saj bo naslednje besedilo morda daljse. Prazen zaslon med jeziki bi bil
- * videti kot napaka.
+ * Znaki so dveh vrst. Prvi sestavljajo besedilo. Drugi lezijo v ozadju na
+ * Chladnijevih figurah - vzorcih, ki jih na plosci nariše stojece valovanje
+ * pri dani frekvenci. Ti ostanejo tudi, ko besedilo odide: ob drsenju po
+ * strani se besedilo umakne, ozadje pa gre naprej pod vsebino.
  */
 
 import "./pozdrav.css";
@@ -39,29 +38,30 @@ const KOT_NAPIS = "jure labs";
 /**
  * Znaki, iz katerih so delci.
  *
- * Namenoma niso pike. Pika je prah, znak je pisava - in ravno to je bila
- * poanta: napis iz znakov, ki so sami po sebi znaki.
+ * Zvezde, srca, rombi, kriz i, snezinke - oblike in ne crtice. Pika ali
+ * pomisljaj sta prah; znak z obliko se vidi tudi, ko je droben, in napis iz
+ * njih je videti sestavljen in ne natipkan.
  */
-const ZNAKI = "01·+×/\\|-—=<>[]{}()*^~:;.,'\"!?abcdefghijklmnoprstuvzABCDEFGHIJKLMNOPRSTUVZ";
+const ZNAKI = [
+  "✦", "✧", "★", "☆", "✶", "✷", "✸", "✹", "✺", "✻", "✼", "❂",
+  "❉", "❊", "❋", "✿", "❀", "❁", "♥", "♡", "♦", "♢", "♠", "♣",
+  "●", "○", "◉", "◎", "◆", "◇", "■", "□", "▲", "△", "▼", "▽",
+  "✚", "✕", "✖", "✱", "✲", "✳", "❄", "❅", "❆", "⚡", "☀", "☾",
+  "⚙", "✤", "✣", "✥", "⁕", "⁎", "∗", "⍟",
+];
 
 /** Koliko casa napis miruje, preden se zacne prelivati v naslednji jezik. */
 const MIROVANJE_S = 6.5;
 /** Koliko traja preliv od zacetka prvega znaka do prihoda zadnjega. */
 const VAL_S = 1.9;
 
-/**
- * Kje na ploskvi stoji napis in koliko sirine sme zavzeti.
- *
- * Ne na sredini: sredina pripada besedilu strani. Pozdrav lezi pod njim, v
- * spodnji tretjini, in je zato ozadje - ne tekmec za isto mesto.
- */
-const LEGA_Y = 0.74;
-const NAJVEC_SIRINE = 0.72;
-
-/** Razmik med tarcami v slikovnih pikah. Nizje = gostejsi in tezji napis. */
-const GOSTOTA = 7;
-/** Zgornja meja stevila delcev. Cez to gre risanje pocasi, videz pa ne boljsi. */
-const NAJVEC_DELCEV = 1500;
+/** Razmik med tarcami. Vecji od velikosti znakov, sicer se ti prekrivajo. */
+const GOSTOTA = 11;
+/** Zgornja meja stevila znakov v besedilu in v ozadju. */
+const NAJVEC_BESEDILA = 900;
+const NAJVEC_OZADJA = 620;
+/** Koliko sirine sme zavzeti napis. */
+const NAJVEC_SIRINE = 0.74;
 
 /** Kako mocno znak vlece proti tarci in koliko ga dusi. */
 const VZMET = 0.055;
@@ -71,19 +71,39 @@ const DUSENJE = 0.86;
 const KAZALEC_R = 150;
 const KAZALEC_MOC = 2.6;
 
+/**
+ * Frekvence v ozadju.
+ *
+ * Chladnijeva figura je crta, po kateri plosca pri dani frekvenci miruje -
+ * tam, kjer se dve stojeci valovanji iznicita. Vzorec dobimo tako, da
+ * povsod izracunamo
+ *
+ *     f = cos(n pi x) cos(m pi y) - cos(m pi x) cos(n pi y)
+ *
+ * in obdrzimo tocke, kjer je |f| blizu nic. Razlicna n in m dajo razlicne
+ * vzorce; imena in herci so tu zato, ker vzorec brez imena ni nic.
+ */
+const FREKVENCE = [
+  { hz: 126, ime: "Sun pulse", n: 2, m: 3, meja: 0.13 },
+  { hz: 180, ime: "Personal", n: 3, m: 4, meja: 0.13 },
+  { hz: 432, ime: "Harmonic", n: 4, m: 5, meja: 0.12 },
+  { hz: 528, ime: "Uplifting", n: 5, m: 6, meja: 0.115 },
+  { hz: 540, ime: "Signature", n: 6, m: 5, meja: 0.115 },
+  { hz: 963, ime: "Cosmic", n: 7, m: 8, meja: 0.108 },
+];
+/** Na koliko casa se vzorec zamenja. */
+const FREKVENCA_S = 18;
+
 const nakljucno = (a, b) => a + Math.random() * (b - a);
 const znak = () => ZNAKI[(Math.random() * ZNAKI.length) | 0];
 
 /**
  * Tocke, na katerih je besedilo polno.
  *
- * Besedilo narisemo na pomozno platno in ga preberemo po mrezi. Bralna mreza
- * je zamaknjena za pol koraka v lihih vrsticah, sicer tocke sestavijo ocitno
- * kvadratno resetko in napis je videti kot vezenina.
- *
- * @returns {{x: number, y: number}[]}
+ * Bralna mreza je v lihih vrsticah zamaknjena za pol koraka, sicer tocke
+ * sestavijo ocitno kvadratno resetko in napis je videti kot vezenina.
  */
-function tockeBesedila(besedilo, sirinaNaVoljo, velikostPisave) {
+function tockeBesedila(besedilo, sirinaNaVoljo, velikostPisave, gostota = GOSTOTA) {
   const platno = document.createElement("canvas");
   const ctx = platno.getContext("2d", { willReadFrequently: true });
   const pisava = (v) => `700 ${v}px "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif`;
@@ -91,9 +111,8 @@ function tockeBesedila(besedilo, sirinaNaVoljo, velikostPisave) {
   // Velikost prilagodimo sirini, ki jo imamo: dolg stavek v nemscini ne sme
   // odteci cez rob, kratek v anglescini pa naj ne ostane droben.
   ctx.font = pisava(velikostPisave);
-  const izmerjena = ctx.measureText(besedilo).width;
-  const merilo = Math.min(1, sirinaNaVoljo / Math.max(1, izmerjena));
-  const velikost = Math.max(18, velikostPisave * merilo);
+  const merilo = Math.min(1, sirinaNaVoljo / Math.max(1, ctx.measureText(besedilo).width));
+  const velikost = Math.max(16, velikostPisave * merilo);
 
   ctx.font = pisava(velikost);
   const m = ctx.measureText(besedilo);
@@ -111,9 +130,9 @@ function tockeBesedila(besedilo, sirinaNaVoljo, velikostPisave) {
 
   const slika = ctx.getImageData(0, 0, sirina, visina).data;
   const tocke = [];
-  for (let y = 0, vrstica = 0; y < visina; y += GOSTOTA, vrstica++) {
-    const zamik = vrstica % 2 ? GOSTOTA / 2 : 0;
-    for (let x = zamik; x < sirina; x += GOSTOTA) {
+  for (let y = 0, vrstica = 0; y < visina; y += gostota, vrstica++) {
+    const zamik = vrstica % 2 ? gostota / 2 : 0;
+    for (let x = zamik; x < sirina; x += gostota) {
       if (slika[((y | 0) * sirina + (x | 0)) * 4 + 3] > 128) {
         tocke.push({ x: x - sirina / 2, y: y - visina / 2 });
       }
@@ -122,28 +141,45 @@ function tockeBesedila(besedilo, sirinaNaVoljo, velikostPisave) {
   return tocke;
 }
 
+/** Tocke na vozlicnih crtah Chladnijeve figure, razporejene cez ploskev. */
+function tockeFrekvence(vzorec, sirina, visina, najvec) {
+  const tocke = [];
+  const korak = 9;
+  const { n, m, meja } = vzorec;
+  for (let py = korak / 2; py < visina; py += korak) {
+    for (let px = korak / 2; px < sirina; px += korak) {
+      const x = px / sirina;
+      const y = py / visina;
+      const f =
+        Math.cos(n * Math.PI * x) * Math.cos(m * Math.PI * y) -
+        Math.cos(m * Math.PI * x) * Math.cos(n * Math.PI * y);
+      if (Math.abs(f) < meja) tocke.push({ x: px, y: py });
+    }
+  }
+  // Ce jih je prevec, jih prevzorcimo enakomerno - izrez bi pustil prazen kot.
+  if (tocke.length <= najvec) return tocke;
+  const izbrane = [];
+  const skok = tocke.length / najvec;
+  for (let i = 0; i < najvec; i++) izbrane.push(tocke[Math.floor(i * skok)]);
+  return izbrane;
+}
+
 /**
  * Vsakemu znaku najblizja prosta tarca.
  *
- * Tarce jemljemo po vrsti od leve; za vsako poiscemo najblizji se neporabljen
- * znak. Iskanje je omejeno na tiste, ki so v navpicnem pasu okoli tarce, zato
- * ne pregledamo vseh - pri tisocih tarcah bi bilo to milijon primerjav ob
- * vsaki menjavi jezika.
+ * Tarce jemljemo po vrsti; za vsako poiscemo najblizjega se neporabljenega
+ * med danimi znaki. Pas okoli tarce rastemo, dokler v njem ni nicesar.
  */
-function poveziNajblizje(delci, tocke, sredX, sredY) {
-  const prosti = delci.map((_, i) => i);
-  const zaseden = new Uint8Array(delci.length);
-
+function poveziNajblizje(delci, kandidati, tocke, sredX, sredY) {
+  const zaseden = new Set();
   for (const t of tocke) {
     const cx = sredX + t.x;
     const cy = sredY + t.y;
-
     let najboljsi = -1;
     let najblizje = Infinity;
-    // Pas rastemo, dokler v njem ni nicesar prostega.
     for (let pas = 90; pas <= 4000 && najboljsi < 0; pas *= 3) {
-      for (const i of prosti) {
-        if (zaseden[i]) continue;
+      for (const i of kandidati) {
+        if (zaseden.has(i)) continue;
         const d = delci[i];
         if (Math.abs(d.y - cy) > pas) continue;
         const dx = d.x - cx;
@@ -156,7 +192,7 @@ function poveziNajblizje(delci, tocke, sredX, sredY) {
       }
     }
     if (najboljsi < 0) break;
-    zaseden[najboljsi] = 1;
+    zaseden.add(najboljsi);
     const d = delci[najboljsi];
     d.ciljX = cx;
     d.ciljY = cy;
@@ -177,29 +213,25 @@ export function installPozdrav(gnezdo) {
 
   let sirina = 1;
   let visina = 1;
-  let dpr = 1;
-  const delci = [];
-  const kotni = [];
+  const besedni = [];   // znaki, ki sestavljajo napis
+  const ozadje = [];    // znaki na Chladnijevi figuri
+  const kotni = [];     // podpis v kotu
 
   let jezikA = 0;
   let jezikB = 0;
   let prvikrat = true;
   let menjavaOb = 0;
+  let frekvencaOb = 0;
+  let frekvencaKje = 0;
   let zanka = null;
   let viden = false;
   let zadnjiSek = 0;
+  /** 0 = na vrhu strani, 1 = napis je odsel. Ozadje ostane. */
+  let umik = 0;
   const kazalec = { x: -1e4, y: -1e4, ziv: false };
 
-  function besedilo() {
-    return `${DELI[0][jezikA]}, ${DELI[1][jezikB]} ${IME}`;
-  }
+  const besedilo = () => `${DELI[0][jezikA]}, ${DELI[1][jezikB]} ${IME}`;
 
-  /**
-   * Naslednji jezik.
-   *
-   * Prvi krog gre po vrsti, oba dela iz istega jezika. Ko je krog sklenjen, se
-   * dela premikata razlicno hitro in se zato mesata.
-   */
   function naprejJezik() {
     if (prvikrat) {
       jezikA = (jezikA + 1) % JEZIKOV;
@@ -213,7 +245,7 @@ export function installPozdrav(gnezdo) {
 
   function meri() {
     const r = gnezdo.getBoundingClientRect();
-    dpr = Math.min(devicePixelRatio || 1, 2);
+    const dpr = Math.min(devicePixelRatio || 1, 2);
     sirina = Math.max(1, Math.round(r.width));
     visina = Math.max(1, Math.round(r.height));
     platno.width = Math.round(sirina * dpr);
@@ -223,91 +255,130 @@ export function installPozdrav(gnezdo) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  function ustvariDelce(koliko) {
-    while (delci.length < koliko) {
-      delci.push({
-        x: nakljucno(0, sirina),
-        y: nakljucno(0, visina),
-        vx: 0,
-        vy: 0,
-        ciljX: 0,
-        ciljY: 0,
-        imaCilj: false,
-        cakaj: 0,
-        z: znak(),
-        velikost: nakljucno(7, 12),
-        alfa: nakljucno(0.35, 0.9),
-      });
+  function noviDelec(velikostA, velikostB) {
+    return {
+      x: nakljucno(0, sirina),
+      y: nakljucno(0, visina),
+      vx: 0,
+      vy: 0,
+      ciljX: 0,
+      ciljY: 0,
+      imaCilj: false,
+      cakaj: 0,
+      z: znak(),
+      velikost: nakljucno(velikostA, velikostB),
+      alfa: nakljucno(0.45, 1),
+    };
+  }
+
+  function napolni(polje, koliko, a, b) {
+    while (polje.length < koliko) polje.push(noviDelec(a, b));
+  }
+
+  /** Preusmeri znake besedila na novo besedilo. */
+  function preusmeriBesedilo() {
+    const velikost = Math.min(visina * 0.16, sirina * 0.082);
+    const tocke = tockeBesedila(besedilo(), sirina * NAJVEC_SIRINE, velikost).slice(
+      0,
+      NAJVEC_BESEDILA
+    );
+    napolni(besedni, Math.min(NAJVEC_BESEDILA, Math.round(tocke.length * 1.1)), 9, 21);
+
+    const sredX = sirina / 2;
+    const sredY = visina / 2;
+    for (const d of besedni) d.imaCilj = false;
+    const kandidati = besedni.map((_, i) => i);
+    const zaseden = poveziNajblizje(besedni, kandidati, tocke, sredX, sredY);
+
+    for (let i = 0; i < besedni.length; i++) {
+      const d = besedni[i];
+      if (!zaseden.has(i)) {
+        d.imaCilj = false;
+        d.cakaj = 0;
+        continue;
+      }
+      // Val z leve proti desni: zamik raste z lego tarce po vodoravnici.
+      const delez = (d.ciljX - sredX) / Math.max(1, sirina * NAJVEC_SIRINE * 0.5);
+      d.cakaj = ((delez + 1) / 2) * VAL_S;
+      d.z = znak();
     }
   }
 
-  /** Preusmeri znake na novo besedilo. */
-  function preusmeri() {
-    const velikost = Math.min(visina * 0.11, sirina * 0.055);
-    const tocke = tockeBesedila(besedilo(), sirina * NAJVEC_SIRINE, velikost).slice(
-      0,
-      NAJVEC_DELCEV
-    );
-    ustvariDelce(Math.min(NAJVEC_DELCEV, Math.round(tocke.length * 1.12)));
+  /** Preusmeri znake ozadja na naslednjo figuro. */
+  function preusmeriOzadje() {
+    const vzorec = FREKVENCE[frekvencaKje % FREKVENCE.length];
+    const tocke = tockeFrekvence(vzorec, sirina, visina, NAJVEC_OZADJA);
+    napolni(ozadje, tocke.length, 6, 13);
+    for (const d of ozadje) d.imaCilj = false;
+    const kandidati = ozadje.map((_, i) => i);
+    // Tocke figure so ze v koordinatah ploskve, zato brez zamika sredisca.
+    poveziNajblizje(ozadje, kandidati, tocke, 0, 0);
+    for (const d of ozadje) d.cakaj = nakljucno(0, 1.4);
+  }
 
-    const sredX = sirina / 2;
-    const sredY = visina * LEGA_Y;
-    for (const d of delci) d.imaCilj = false;
-    const zaseden = poveziNajblizje(delci, tocke, sredX, sredY);
-
-    // Val: zamik po legi tarce. Racunamo ga sele tu, ker sele zdaj vemo,
-    // katera tarca je cigava.
-    for (const d of delci) {
-      if (d.imaCilj) {
-        const delez = (d.ciljX - sredX) / Math.max(1, sirina * NAJVEC_SIRINE * 0.5);
-        d.cakaj = ((delez + 1) / 2) * VAL_S;
-        // Ob menjavi znak zamenja tudi svojo crko - napis se prelije tudi po
-        // vsebini, ne le po legi.
-        d.z = znak();
-      } else {
-        d.cakaj = 0;
-      }
+  /** Podpis v kotu. Stoji pri miru, zato se izracuna ob vsaki meritvi. */
+  function sestaviKot() {
+    kotni.length = 0;
+    const tocke = tockeBesedila(KOT_NAPIS, sirina * 0.2, Math.min(40, sirina * 0.024), 6);
+    let najX = 0;
+    let najY = 0;
+    for (const t of tocke) {
+      najX = Math.max(najX, Math.abs(t.x));
+      najY = Math.max(najY, Math.abs(t.y));
     }
-    for (let i = 0; i < delci.length; i++) if (!zaseden[i]) delci[i].imaCilj = false;
+    const x0 = 46 + najX;
+    const y0 = visina - 44 - najY;
+    for (const t of tocke) {
+      kotni.push({ x: x0 + t.x, y: y0 + t.y, z: znak(), velikost: nakljucno(5, 9) });
+    }
   }
 
   function korak(dt) {
-    for (const d of delci) {
-      if (d.cakaj > 0) {
-        d.cakaj -= dt;
-      } else if (d.imaCilj) {
-        d.vx += (d.ciljX - d.x) * VZMET;
-        d.vy += (d.ciljY - d.y) * VZMET;
-      } else {
-        // Brez tarce znak lenobno plava. Rahel nagib navzgor, da se ne useda
-        // na dno kot prah.
-        d.vx += nakljucno(-0.05, 0.05);
-        d.vy += nakljucno(-0.07, 0.03);
-      }
+    for (const polje of [besedni, ozadje]) {
+      for (const d of polje) {
+        if (d.cakaj > 0) {
+          d.cakaj -= dt;
+        } else if (d.imaCilj) {
+          d.vx += (d.ciljX - d.x) * VZMET;
+          d.vy += (d.ciljY - d.y) * VZMET;
+        } else {
+          d.vx += nakljucno(-0.05, 0.05);
+          d.vy += nakljucno(-0.07, 0.03);
+        }
 
-      if (kazalec.ziv) {
-        const dx = d.x - kazalec.x;
-        const dy = d.y - kazalec.y;
-        const r = Math.hypot(dx, dy);
-        if (r < KAZALEC_R && r > 0.01) {
-          const moc = (1 - r / KAZALEC_R) * KAZALEC_MOC;
-          d.vx += (dx / r) * moc;
-          d.vy += (dy / r) * moc;
+        if (kazalec.ziv) {
+          const dx = d.x - kazalec.x;
+          const dy = d.y - kazalec.y;
+          const r = Math.hypot(dx, dy);
+          if (r < KAZALEC_R && r > 0.01) {
+            const moc = (1 - r / KAZALEC_R) * KAZALEC_MOC;
+            d.vx += (dx / r) * moc;
+            d.vy += (dy / r) * moc;
+          }
+        }
+
+        d.vx *= DUSENJE;
+        d.vy *= DUSENJE;
+        d.x += d.vx;
+        d.y += d.vy;
+
+        if (!d.imaCilj) {
+          if (d.x < -40) d.x = sirina + 40;
+          if (d.x > sirina + 40) d.x = -40;
+          if (d.y < -40) d.y = visina + 40;
+          if (d.y > visina + 40) d.y = -40;
         }
       }
+    }
+  }
 
-      d.vx *= DUSENJE;
-      d.vy *= DUSENJE;
-      d.x += d.vx;
-      d.y += d.vy;
-
-      // Znaki brez tarce se ob robu zavijejo nazaj, da ne odplavajo za vedno.
-      if (!d.imaCilj) {
-        if (d.x < -40) d.x = sirina + 40;
-        if (d.x > sirina + 40) d.x = -40;
-        if (d.y < -40) d.y = visina + 40;
-        if (d.y > visina + 40) d.y = -40;
-      }
+  function risiPolje(polje, mnozitelj, barva) {
+    if (mnozitelj <= 0.01) return;
+    ctx.fillStyle = barva;
+    for (const d of polje) {
+      ctx.globalAlpha = (d.imaCilj ? d.alfa : d.alfa * 0.16) * mnozitelj;
+      ctx.font = `${d.velikost}px "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols 2", sans-serif`;
+      ctx.fillText(d.z, d.x, d.y);
     }
   }
 
@@ -315,48 +386,35 @@ export function installPozdrav(gnezdo) {
     ctx.clearRect(0, 0, sirina, visina);
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    for (const d of delci) {
-      // Znak brez tarce je bledejsi: oko naj lovi napis, ne ozadja.
-      ctx.globalAlpha = d.imaCilj ? d.alfa : d.alfa * 0.16;
-      ctx.font = `${d.velikost}px ui-monospace, "Cascadia Mono", Consolas, monospace`;
-      ctx.fillStyle = "#e9edf3";
-      ctx.fillText(d.z, d.x, d.y);
-    }
-    for (const k of kotni) {
-      ctx.globalAlpha = 0.5;
-      ctx.font = `${k.velikost}px ui-monospace, "Cascadia Mono", Consolas, monospace`;
+    // Ozadje ostane tudi ob drsenju; besedilo in podpis se umakneta.
+    risiPolje(ozadje, 0.34, "#9fb6d8");
+    risiPolje(besedni, 1 - umik, "#e9edf3");
+    if (umik < 0.99) {
       ctx.fillStyle = "#c8d4e8";
-      ctx.fillText(k.z, k.x, k.y);
+      for (const k of kotni) {
+        ctx.globalAlpha = 0.5 * (1 - umik);
+        ctx.font = `${k.velikost}px "Segoe UI Symbol", "Apple Symbols", sans-serif`;
+        ctx.fillText(k.z, k.x, k.y);
+      }
     }
     ctx.globalAlpha = 1;
-  }
-
-  /** Podpis v kotu. Stoji pri miru, zato se izracuna enkrat ob meritvi. */
-  function sestaviKot() {
-    kotni.length = 0;
-    // Spodaj levo in ne desno: desni kot pripada doku z iskanjem in
-    // nastavitvami, in podpis bi mu lezal pod gumbi.
-    const tocke = tockeBesedila(KOT_NAPIS, sirina * 0.2, Math.min(40, sirina * 0.024));
-    let najX = 0;
-    for (const t of tocke) najX = Math.max(najX, Math.abs(t.x));
-    const x0 = 52 + najX;
-    const y0 = visina - 54;
-    for (const t of tocke) {
-      kotni.push({ x: x0 + t.x, y: y0 + t.y, z: znak(), velikost: nakljucno(5, 8) });
-    }
   }
 
   function slicica(ms) {
     zanka = requestAnimationFrame(slicica);
     const sek = ms * 0.001;
-    // Dolge premore po vrnitvi na zavihek odrezemo, sicer znaki poskocijo.
     const dt = zadnjiSek ? Math.min(sek - zadnjiSek, 0.05) : 1 / 60;
     zadnjiSek = sek;
 
     if (sek >= menjavaOb) {
       naprejJezik();
-      preusmeri();
+      preusmeriBesedilo();
       menjavaOb = sek + MIROVANJE_S + VAL_S;
+    }
+    if (sek >= frekvencaOb) {
+      frekvencaKje += 1;
+      preusmeriOzadje();
+      frekvencaOb = sek + FREKVENCA_S;
     }
     korak(dt);
     risi();
@@ -375,7 +433,8 @@ export function installPozdrav(gnezdo) {
     if (!viden) return;
     meri();
     sestaviKot();
-    preusmeri();
+    preusmeriBesedilo();
+    preusmeriOzadje();
   };
 
   return {
@@ -388,14 +447,14 @@ export function installPozdrav(gnezdo) {
       jezikA = 0;
       jezikB = 0;
       prvikrat = true;
-      preusmeri();
+      preusmeriBesedilo();
+      preusmeriOzadje();
       platno.classList.add("vidno");
       addEventListener("pointermove", naMisko, { passive: true });
       addEventListener("pointerleave", naIzhod, { passive: true });
       addEventListener("resize", naSpremembo);
       if (mirno.matches) {
-        // Brez gibanja: znake postavimo na tarce in narisemo enkrat.
-        for (const d of delci) {
+        for (const d of [...besedni, ...ozadje]) {
           if (!d.imaCilj) continue;
           d.x = d.ciljX;
           d.y = d.ciljY;
@@ -405,9 +464,14 @@ export function installPozdrav(gnezdo) {
         return;
       }
       zadnjiSek = 0;
-      // Prvi napis je ze postavljen, zato se odstevanje zacne zdaj.
-      menjavaOb = performance.now() * 0.001 + MIROVANJE_S + VAL_S;
+      const zdaj = performance.now() * 0.001;
+      menjavaOb = zdaj + MIROVANJE_S + VAL_S;
+      frekvencaOb = zdaj + FREKVENCA_S;
       zanka = requestAnimationFrame(slicica);
+    },
+    /** @param {number} p 0 na vrhu strani, 1 ko je napis odsel */
+    nastaviUmik(p) {
+      umik = Math.max(0, Math.min(p, 1));
     },
     skrij() {
       if (!viden) return;

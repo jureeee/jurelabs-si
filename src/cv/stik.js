@@ -1,18 +1,21 @@
 /**
  * Stik.
  *
- * Ploskev cez galaksijo, kot ostale strani, a brez dolgega besedila: kdor
- * pride sem, isce naslov in ne zgodbe. Zato so povezave prve in velike,
- * vse drugo pa pride za njimi.
+ * Trije zasloni, en pod drugim:
  *
- * Uporablja isto zaveso in isti prihod kot uredniske strani (razredi zapis-*),
- * ker ne sme biti videti kot druga vrsta okna. Vsebina znotraj je svoja.
+ *   1. samo pozdrav iz znakov, na sredini, in podpis "jure labs" spodaj levo,
+ *   2. naslov, poved in povezave - torej to, po kar je kdo prisel,
+ *   3. Zemlja, ki se zavrti in ustavi pri Sloveniji.
  *
- * Dve stvari se pojavita sami:
- *   - vizitka, ki se razpre iz gumba cez celo stran,
- *   - pozdrav, ki se sestavi iz delcev sekundo po odprtju. Sekunda je
- *     namerna: najprej se ustali stran, sele nato pride pozdrav, sicer se
- *     dva gibanja prekrivata in nobeno ni videti.
+ * Ob drsenju se pozdrav umakne, frekvencno ozadje pa ostane in tece naprej
+ * pod vsebino. Zato prvi zaslon ni predsoba, ki bi jo bilo treba prehoditi -
+ * isto ozadje drzi vse tri skupaj.
+ *
+ * Platno pozdrava je sestra drsnega toka in ne njegov otrok: tako miruje,
+ * medtem ko vsebina drsi cezenj.
+ *
+ * Zemlja in pozdrav se nalozita sele ob prvem odprtju - model je tri megabajte
+ * in nima kaj lezati v glavnem svezniku.
  */
 
 import "./stik.css";
@@ -63,29 +66,45 @@ export function installStik() {
     <div class="zapis-zavesa"></div>
     <button class="zapis-zapri dg" type="button" aria-label="Zapri">${ZAPRI}</button>
 
+    <div class="stik-pozdrav" aria-hidden="true"></div>
+
     <div class="zapis-tok stik-tok">
-      <div class="stik-pozdrav" aria-hidden="true"></div>
+      <section class="stik-zaslon stik-uvod"></section>
 
-      <div class="stik-vsebina">
-        <div class="zapis-oznaka">Stik</div>
-        <h1 class="stik-glavni">Najlažje po e-pošti.</h1>
-        <p class="stik-vodilo">
-          Odgovorim v dnevu ali dveh. Če gre za delo, napiši, kaj potrebuješ in
-          do kdaj – ostalo se zmeniva sproti.
-        </p>
+      <section class="stik-zaslon stik-info">
+        <div class="stik-vsebina">
+          <div class="zapis-oznaka">Stik</div>
+          <h1 class="stik-glavni">Najlažje po e-pošti.</h1>
+          <p class="stik-vodilo">
+            Odgovorim v dnevu ali dveh. Če gre za delo, napiši, kaj potrebuješ in
+            do kdaj – ostalo se zmeniva sproti.
+          </p>
 
-        <div class="stik-povezave">
-          ${POVEZAVE.map(
-            (p) => `
-            <a class="stik-povezava dg" href="${p.url}" target="_blank" rel="noopener noreferrer">
-              <span class="stik-ikona">${IKONE[p.ikona]}</span>
-              <span class="stik-ime">${p.ime}</span>
-            </a>`
-          ).join("")}
+          <div class="stik-povezave">
+            ${POVEZAVE.map(
+              (p) => `
+              <a class="stik-povezava dg" href="${p.url}" target="_blank" rel="noopener noreferrer">
+                <span class="stik-ikona">${IKONE[p.ikona]}</span>
+                <span class="stik-ime">${p.ime}</span>
+              </a>`
+            ).join("")}
+          </div>
+
+          <div class="stik-vizitka"><div class="stik-vizitka-host"></div></div>
         </div>
+      </section>
 
-        <div class="stik-vizitka"><div class="stik-vizitka-host"></div></div>
-      </div>
+      <section class="stik-zaslon stik-kje">
+        <div class="stik-kje-besedilo">
+          <div class="zapis-oznaka">Kje sem</div>
+          <h2 class="stik-naslov2">Ljubljana, Slovenija.</h2>
+          <p class="stik-vodilo">
+            Delam od tod. Za delo na daljavo razdalja ni ovira – za kavo pa je
+            dobro vedeti, da je do mene bliže, kot je videti od zgoraj.
+          </p>
+        </div>
+        <div class="stik-zemlja" aria-hidden="true"></div>
+      </section>
     </div>`;
   document.body.appendChild(koren);
 
@@ -93,29 +112,64 @@ export function installStik() {
 
   mountVizitka(koren.querySelector(".stik-vizitka-host"), { opro: OPRO });
 
-  // --- pozdrav -------------------------------------------------------------
-  // Pogon je velik in ga nima smisla nalozili, dokler Stika nihce ne odpre.
-  // Naloziva ga ob prvem odprtju in ga nato obdrziva.
-  const gnezdo = koren.querySelector(".stik-pozdrav");
-  let pozdrav = null;
-  let nalaganje = null;
-  let cakalec = null;
+  // --- tezke stvari se nalozijo sele ob prvem odprtju ----------------------
+  const naloziEnkrat = (uvoz, namesti) => {
+    let stvar = null;
+    let tece = null;
+    return () => {
+      if (stvar) return Promise.resolve(stvar);
+      if (!tece) {
+        tece = uvoz()
+          .then((m) => (stvar = namesti(m)))
+          .catch(() => null);
+      }
+      return tece;
+    };
+  };
 
-  function pripraviPozdrav() {
-    if (pozdrav) return Promise.resolve(pozdrav);
-    if (!nalaganje) {
-      nalaganje = import("./pozdrav.js")
-        .then((m) => {
-          pozdrav = m.installPozdrav(gnezdo);
-          return pozdrav;
-        })
-        .catch(() => null);
-    }
-    return nalaganje;
-  }
+  const gnezdoPozdrava = koren.querySelector(".stik-pozdrav");
+  const gnezdoZemlje = koren.querySelector(".stik-zemlja");
+  let pozdrav = null;
+  let zemlja = null;
+
+  const pripraviPozdrav = naloziEnkrat(
+    () => import("./pozdrav.js"),
+    (m) => (pozdrav = m.installPozdrav(gnezdoPozdrava))
+  );
+  const pripraviZemljo = naloziEnkrat(
+    () => import("./zemlja.js"),
+    (m) => (zemlja = m.installZemlja(gnezdoZemlje))
+  );
+
+  // --- drsenje -------------------------------------------------------------
+  /**
+   * Umik pozdrava je vezan na lego drsnika in ne na prag: napis se umika
+   * postopno, ze med prvim zasukom kolesca, in ne izgine naenkrat.
+   *
+   * Zemlja se zavrti, ko pride tretji zaslon v pogled. Zacela bi se vrteti ze
+   * ob odprtju, a bi se do tja ze ustavila in obiskovalec bi videl le mirno
+   * kroglo.
+   */
+  tok.addEventListener(
+    "scroll",
+    () => {
+      const visina = tok.clientHeight || 1;
+      pozdrav?.nastaviUmik(tok.scrollTop / (visina * 0.7));
+    },
+    { passive: true }
+  );
+
+  const opazovalec = new IntersectionObserver(
+    (vnosi) => {
+      if (vnosi.some((v) => v.isIntersecting)) pripraviZemljo().then((z) => z?.pokazi());
+    },
+    { root: tok, threshold: 0.25 }
+  );
+  opazovalec.observe(koren.querySelector(".stik-kje"));
 
   // --- odpiranje in zapiranje ---------------------------------------------
   let zapiranje = null;
+  let cakalec = null;
   const api = { odpri, zapri };
 
   function odpri() {
@@ -128,6 +182,7 @@ export function installStik() {
     }
     koren.classList.add("odprt");
     tok.scrollTop = 0;
+    pozdrav?.nastaviUmik(0);
 
     tok.classList.add("prihaja");
     tok.addEventListener(
@@ -151,6 +206,7 @@ export function installStik() {
     zapiranje = null;
     koren.classList.remove("odprt", "zapira");
     pozdrav?.skrij();
+    zemlja?.skrij();
   }
 
   function zapri() {
@@ -158,6 +214,7 @@ export function installStik() {
     sprostiOdprto(api);
     clearTimeout(cakalec);
     pozdrav?.skrij();
+    zemlja?.skrij();
     koren.classList.add("zapira");
     // setTimeout in ne rAF: na skriti strani rAF ne tece.
     zapiranje = setTimeout(() => {
