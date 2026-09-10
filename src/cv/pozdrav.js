@@ -81,6 +81,18 @@ const NAJVEC_SIRINE = 0.82;
 /** Razmik med vrsticama, kot delez visine crk. */
 const VRSTICA = 1.12;
 
+/**
+ * Razmik med crkami, kot delez velikosti pisave.
+ *
+ * Gotska pisava je sama po sebi zbita - crke se skoraj dotikajo. Ko je vsaka
+ * sestavljena iz posameznih znakov, se sosednje zlijejo in napisa ni mogoce
+ * brati. Zato jih razmaknemo.
+ *
+ * Razmik risemo sami, crko za crko, in ne prek ctx.letterSpacing: tega starejsi
+ * brskalniki ne poznajo in bi ga tiho prezrli, napis pa bi ostal zbit.
+ */
+const RAZMIK = 0.17;
+
 /** Kako mocno znak vlece proti tarci in koliko ga dusi. */
 const VZMET = 0.055;
 const DUSENJE = 0.86;
@@ -152,6 +164,25 @@ const znak = () => ZNAKI[(Math.random() * ZNAKI.length) | 0];
  * Bralna mreza je v lihih vrsticah zamaknjena za pol koraka, sicer tocke
  * sestavijo ocitno kvadratno resetko in napis je videti kot vezenina.
  */
+/** Sirina besedila, ko so crke razmaknjene. */
+function sirinaRazmaknjena(ctx, besedilo, velikost) {
+  const razmik = velikost * RAZMIK;
+  let sirina = 0;
+  for (const c of besedilo) sirina += ctx.measureText(c).width + razmik;
+  return Math.max(0, sirina - razmik);
+}
+
+/** Izris crko za crko z razmikom. Vrne skupno sirino. */
+function narisiRazmaknjeno(ctx, besedilo, x, y, velikost) {
+  const razmik = velikost * RAZMIK;
+  let kje = x;
+  for (const c of besedilo) {
+    ctx.fillText(c, kje, y);
+    kje += ctx.measureText(c).width + razmik;
+  }
+  return Math.max(0, kje - x - razmik);
+}
+
 function tockeBesedila(vrstice, sirinaNaVoljo, velikostPisave, gostota = GOSTOTA) {
   const seznam = Array.isArray(vrstice) ? vrstice : [vrstice];
   if (seznam.length > 1) return tockeVecVrstic(seznam, sirinaNaVoljo, velikostPisave, gostota);
@@ -163,12 +194,15 @@ function tockeBesedila(vrstice, sirinaNaVoljo, velikostPisave, gostota = GOSTOTA
   // Velikost prilagodimo sirini, ki jo imamo: dolg stavek v nemscini ne sme
   // odteci cez rob, kratek v anglescini pa naj ne ostane droben.
   ctx.font = pisava(velikostPisave);
-  const merilo = Math.min(1, sirinaNaVoljo / Math.max(1, ctx.measureText(besedilo).width));
+  const merilo = Math.min(
+    1,
+    sirinaNaVoljo / Math.max(1, sirinaRazmaknjena(ctx, besedilo, velikostPisave))
+  );
   const velikost = Math.max(16, velikostPisave * merilo);
 
   ctx.font = pisava(velikost);
   const m = ctx.measureText(besedilo);
-  const sirina = Math.ceil(m.width) + 8;
+  const sirina = Math.ceil(sirinaRazmaknjena(ctx, besedilo, velikost)) + 8;
   const nad = Math.ceil(m.actualBoundingBoxAscent || velikost * 0.8);
   const pod = Math.ceil(m.actualBoundingBoxDescent || velikost * 0.25);
   const visina = nad + pod + 8;
@@ -178,7 +212,7 @@ function tockeBesedila(vrstice, sirinaNaVoljo, velikostPisave, gostota = GOSTOTA
   ctx.font = pisava(velikost);
   ctx.fillStyle = "#fff";
   ctx.textBaseline = "alphabetic";
-  ctx.fillText(besedilo, 4, nad + 4);
+  narisiRazmaknjeno(ctx, besedilo, 4, nad + 4, velikost);
 
   const slika = ctx.getImageData(0, 0, sirina, visina).data;
   const tocke = [];
@@ -202,7 +236,9 @@ function tockeBesedila(vrstice, sirinaNaVoljo, velikostPisave, gostota = GOSTOTA
 function tockeVecVrstic(vrstice, sirinaNaVoljo, velikostPisave, gostota) {
   const merilno = document.createElement("canvas").getContext("2d");
   merilno.font = `400 ${velikostPisave}px ${PISAVA}`;
-  const najsirsa = Math.max(...vrstice.map((v) => merilno.measureText(v).width));
+  const najsirsa = Math.max(
+    ...vrstice.map((v) => sirinaRazmaknjena(merilno, v, velikostPisave))
+  );
   const merilo = Math.min(1, sirinaNaVoljo / Math.max(1, najsirsa));
   const velikost = Math.max(16, velikostPisave * merilo);
 
