@@ -60,6 +60,103 @@ const ZNAKI = [
   "⚙", "✤", "✣", "✥", "⁕", "⁎", "∗", "⍟",
 ];
 
+/**
+ * Okrasa: metulj in krona.
+ *
+ * Nista sliki, ampak predlogi. Narisemo ju na pomozno platno, preberemo po
+ * mrezi in vsaka polna tocka postane tarca za znak - natanko tako kot crke.
+ * Zato sta iz istih zvezd in srckov kot napis in ne tujek na strani.
+ *
+ * Risba je nasa in ne prevzeta: predloge so tuje avtorsko delo, tu pa je
+ * oblika, ki lovi njihovo misel - krila iz plamenskih jezikov in krona iz
+ * trnastih konic.
+ */
+
+/**
+ * Plamenski jezik oziroma trn.
+ *
+ * Od izhodisca gre v dano smer, spotoma se odkloni in se konca v konici.
+ * Sirina je pri dnu polna in proti vrhu pade na nic, zato je oblika kaplja in
+ * ne trak. Ker jih dela koda, se dajo vsi hkrati upogniti z eno stevilko.
+ */
+function konica(kot, dolzina, sirina, zavoj) {
+  const r = (kot * Math.PI) / 180;
+  const sx = Math.cos(r);
+  const sy = Math.sin(r);
+  const px = -sy;
+  const py = sx;
+  const kx = sx * dolzina + px * zavoj;
+  const ky = sy * dolzina + py * zavoj;
+  const a = `${(sx * dolzina * 0.45 + px * (zavoj * 0.2 + sirina * 1.9)).toFixed(1)} ${(
+    sy * dolzina * 0.45 + py * (zavoj * 0.2 + sirina * 1.9)
+  ).toFixed(1)}`;
+  const b = `${(sx * dolzina * 0.5 + px * (zavoj * 0.4 - sirina * 2.3)).toFixed(1)} ${(
+    sy * dolzina * 0.5 + py * (zavoj * 0.4 - sirina * 2.3)
+  ).toFixed(1)}`;
+  return (
+    `M ${(px * sirina).toFixed(1)} ${(py * sirina).toFixed(1)} Q ${a} ${kx.toFixed(1)} ${ky.toFixed(
+      1
+    )} Q ${b} ${(-px * sirina).toFixed(1)} ${(-py * sirina).toFixed(1)} Z`
+  );
+}
+
+/** Eno krilo: dolgi jeziki navzgor, krajsi navzdol. */
+function kriloPoti() {
+  const poti = [];
+  for (let i = 0; i < 9; i++) {
+    const d = i / 8;
+    poti.push(konica(-96 + d * 74, 108 - d * 26, 9.5 - d * 5.2, 16 - d * 30));
+  }
+  for (let i = 0; i < 6; i++) {
+    const d = i / 5;
+    poti.push(konica(24 + d * 52, 74 - d * 20, 8 - d * 4, -10 - d * 20));
+  }
+  return poti;
+}
+
+const METULJ = (() => {
+  const k = kriloPoti()
+    .map((d) => `<path d="${d}" />`)
+    .join("");
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-150 -140 300 260" fill="#fff">` +
+    `<g>${k}</g><g transform="scale(-1 1)">${k}</g>` +
+    `<ellipse cx="0" cy="14" rx="5.5" ry="30" />` +
+    `<ellipse cx="0" cy="-16" rx="4" ry="12" />` +
+    `<path d="M -3 -26 Q -16 -52 -30 -58" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" />` +
+    `<path d="M 3 -26 Q 16 -52 30 -58" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" />` +
+    `</svg>`
+  );
+})();
+
+const KRONA = (() => {
+  const trni = [];
+  // Sedem konic; srednja najvisja, robni najnizji in bolj nagnjeni navzven.
+  for (let i = 0; i < 7; i++) {
+    const d = (i - 3) / 3;                 // -1 na levi, 1 na desni
+    const x = d * 84;
+    const visina = 120 - Math.abs(d) * 52;
+    const nagib = d * 26;
+    trni.push(
+      `<g transform="translate(${x.toFixed(1)} 44)">` +
+        `<path d="${konica(-90 + nagib, visina, 13 - Math.abs(d) * 4, -nagib * 0.6)}" />` +
+        `</g>`
+    );
+  }
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-120 -90 240 170" fill="#fff">` +
+    trni.join("") +
+    `<path d="M -96 44 Q 0 74 96 44 L 96 66 Q 0 96 -96 66 Z" />` +
+    `</svg>`
+  );
+})();
+
+/** Kje na prvem zaslonu stojita in kako velika sta, kot delez ploskve. */
+const OKRASI = [
+  { svg: METULJ, x: 0.845, y: 0.72, sirina: 0.2 },
+  { svg: KRONA, x: 0.5, y: 0.145, sirina: 0.135 },
+];
+
 /** Koliko casa napis miruje, preden se zacne prelivati v naslednji jezik. */
 const MIROVANJE_S = 6.5;
 /** Koliko traja preliv od zacetka prvega znaka do prihoda zadnjega. */
@@ -96,12 +193,11 @@ const RAZMIK = 0.17;
 /**
  * Raztezek crk po sirini.
  *
- * Gotska pisava je ozka in visoka - crke stojijo kot resetke. Raztegnjene po
- * sirini izgubijo to pokoncnost in se priblizajo predlogi, ki je bila siroka
- * in polozena. Raztezemo ob izrisu na pomozno platno, zato so tocke ze v
+ * Metamorphous je ze sama po sebi polozena, zato je raztezek majhen - le
+ * toliko, da crke niso pokoncne. Pri prejsnji, ozki gotici je bil 1,45. Raztezemo ob izrisu na pomozno platno, zato so tocke ze v
  * pravih legah in vzmet nima s tem nobenega dela.
  */
-const SIRJENJE = 1.45;
+const SIRJENJE = 1.12;
 
 /** Kako mocno znak vlece proti tarci in koliko ga dusi. */
 const VZMET = 0.055;
@@ -127,12 +223,13 @@ const KAZALEC_MOC = 2.6;
 /**
  * Blescanje.
  *
- * Znaki v mirovanju ne gorijo s polno mocjo, ampak pri OSNOVNA_ALFA; vsak
- * zase pa vsake toliko casa za hip zasveti in ugasne. Ker so casi nakljucni in
+ * Znaki v mirovanju gorijo pri 40 odstotkih, ob blisku pa pri polni moci.
+ * Prej je bila razlika med 60 in 100 in se skoraj ni videla; sele pri 40 se
+ * blisk res prizge. Ker so casi nakljucni in
  * za vsak znak svoji, napis ni videti kot utripajoca luc, ampak kot nekaj, kar
  * se iskri - kot zvezde, ki jih napis prekriva.
  */
-const OSNOVNA_ALFA = 0.6;
+const OSNOVNA_ALFA = 0.4;
 const BLESK_NAJKRAJ_S = 2.2;
 const BLESK_NAJDLJE_S = 11;
 /** Kolikokrat na sekundo sij upade na desetino. Visje = kratek blisk. */
@@ -268,6 +365,41 @@ function tockeVecVrstic(vrstice, sirinaNaVoljo, velikostPisave, gostota) {
   return tocke;
 }
 
+/**
+ * Tocke, na katerih je narisana oblika polna.
+ *
+ * Isto kot pri besedilu, le da vir ni pisava, ampak SVG. Nalozimo ga kot
+ * sliko, narisemo na pomozno platno in preberemo po mrezi.
+ */
+function tockeIzSvg(svg, sirinaCilj, gostota) {
+  return new Promise((res) => {
+    const slika = new Image();
+    slika.onload = () => {
+      const razmerje = slika.height / Math.max(1, slika.width);
+      const s = Math.max(8, Math.round(sirinaCilj));
+      const v = Math.max(8, Math.round(s * razmerje));
+      const platno = document.createElement("canvas");
+      platno.width = s;
+      platno.height = v;
+      const ctx = platno.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(slika, 0, 0, s, v);
+      const piksli = ctx.getImageData(0, 0, s, v).data;
+      const tocke = [];
+      for (let y = 0, vrstica = 0; y < v; y += gostota, vrstica++) {
+        const zamik = vrstica % 2 ? gostota / 2 : 0;
+        for (let x = zamik; x < s; x += gostota) {
+          if (piksli[((y | 0) * s + (x | 0)) * 4 + 3] > 110) {
+            tocke.push({ x: x - s / 2, y: y - v / 2 });
+          }
+        }
+      }
+      res(tocke);
+    };
+    slika.onerror = () => res([]);
+    slika.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  });
+}
+
 /** Tocke na vozlicnih crtah Chladnijeve figure, razporejene cez ploskev. */
 function tockeFrekvence(vzorec, sirina, visina, najvec) {
   const tocke = [];
@@ -352,6 +484,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
   const mereB = { s: 1, v: 1 };
 
   const besedni = [];   // znaki, ki sestavljajo napis
+  const okrasni = [];   // znaki, ki sestavljajo metulja in krono
   const ozadje = [];    // znaki na Chladnijevi figuri
   const kotni = [];     // podpis v kotu
 
@@ -451,6 +584,28 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
     }
   }
 
+  /**
+   * Postavi znake na metulja in krono.
+   *
+   * Tece enkrat ob prikazu in ob spremembi velikosti. Oblike so nespremenljive,
+   * zato jih ni treba preracunavati ob vsakem preliv besedila - le znaki na
+   * njih se blescijo in bezijo pred kazalcem, tako kot vsi drugi.
+   */
+  async function postaviOkrase() {
+    const vsi = [];
+    for (const o of OKRASI) {
+      const tocke = await tockeIzSvg(o.svg, mereB.s * o.sirina, GOSTOTA);
+      const sredX = mereB.s * o.x;
+      const sredY = mereB.v * o.y;
+      for (const t of tocke) vsi.push({ x: sredX + t.x, y: sredY + t.y });
+    }
+    napolni(okrasni, vsi.length, mereB, 7, 15);
+    for (const d of okrasni) d.imaCilj = false;
+    // Tocke so ze v koordinatah ploskve, zato brez zamika sredisca.
+    poveziNajblizje(okrasni, okrasni.map((_, i) => i), vsi, 0, 0);
+    for (const d of okrasni) d.cakaj = nakljucno(0, 1.8);
+  }
+
   /** Preusmeri znake ozadja na naslednjo figuro. */
   function preusmeriOzadje() {
     const vzorec = FREKVENCE[frekvencaKje % FREKVENCE.length];
@@ -545,6 +700,9 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
     ctxB.textAlign = "center";
     ctxB.textBaseline = "middle";
     risiPolje(ctxB, besedni, 1, "#e9edf3");
+    // Okrasa sta hladno rozna, da se locita od napisa in nista videti kot
+    // njegov del, ki bi se odlomil.
+    risiPolje(ctxB, okrasni, 0.92, "#ff9ed6");
     ctxB.fillStyle = "#c8d4e8";
     for (const k of kotni) {
       ctxB.globalAlpha = 0.5;
@@ -577,7 +735,9 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
       preusmeriOzadje();
       frekvencaOb = sek + FREKVENCA_S;
     }
-    korakPolja(besedni, mereB, dt, kazalecZa(gnezdoBesedila), sek);
+    const kazalecB = kazalecZa(gnezdoBesedila);
+    korakPolja(besedni, mereB, dt, kazalecB, sek);
+    korakPolja(okrasni, mereB, dt, kazalecB, sek);
     korakPolja(ozadje, mereO, dt, kazalecZa(gnezdoOzadja), sek);
     risi();
   }
@@ -600,6 +760,8 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
   const sunek = (dy) => {
     const moc = Math.max(-ODBOJ_NAJVEC, Math.min(dy * ODBOJ, ODBOJ_NAJVEC));
     for (const d of besedni) d.vy += moc;
+    // Okrasa se odzoveta sibkeje: sta tezja od crk in se ne zibata tako lahko.
+    for (const d of okrasni) d.vy += moc * 0.55;
   };
 
   const naSpremembo = () => {
@@ -608,6 +770,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
     sestaviKot();
     preusmeriBesedilo();
     preusmeriOzadje();
+    postaviOkrase();
   };
 
   return {
@@ -627,6 +790,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
         ? document.fonts.load('400 100px "Pozdrav"').catch(() => null)
         : Promise.resolve(null);
 
+      postaviOkrase();
       pripravljena.then(() => {
         if (!viden) return;
         sestaviKot();
@@ -634,7 +798,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
         platnoO.classList.add("vidno");
         platnoB.classList.add("vidno");
         if (!mirno.matches) return;
-        for (const d of besedni.concat(ozadje)) {
+        for (const d of besedni.concat(okrasni, ozadje)) {
           if (!d.imaCilj) continue;
           d.x = d.ciljX;
           d.y = d.ciljY;
