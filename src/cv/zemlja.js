@@ -84,8 +84,15 @@ const SLO_LAT = 46.0569;
 const MISKA_ODKLON = 0.075;
 const MISKA_SLEDENJE = 2.4;
 
-/** Koliko radianov na piko poteka doda vlecenje. */
-const VLEK = 0.006;
+/**
+ * Koliko radianov na piko poteka doda vlecenje.
+ *
+ * Nizko namenoma. Pri 0,006 se je globus pod prstom vrtel kot vrtavka in je
+ * bilo tezko ustaviti ga tam, kjer si hotel; telo te velikosti se ne sme
+ * odzivati kot gumb. Pri 0,0022 gre poteg cez pol zaslona priblizno v cetrt
+ * obrata - dovolj, da ga obrnes, premalo, da bi ti usel.
+ */
+const VLEK = 0.0022;
 /**
  * Koliksen del vrtilne hitrosti ostane po sekundi, ko globus spustis.
  *
@@ -94,7 +101,7 @@ const VLEK = 0.006;
  */
 const IZTEK = 0.86;
 /** Zgornja meja hitrosti, da divje vlecenje ne konca v vrtavki. */
-const NAJVEC_HITROSTI = 3.4;
+const NAJVEC_HITROSTI = 1.5;
 
 /**
  * Vrnitev v izhodisce.
@@ -122,6 +129,26 @@ const VRNITEV_PRAG = 0.002;
 /** Koliko obratov naredi ob priletu in koliko casa za to porabi. */
 const OBRATOV = 1.7;
 const PRILET_MS = 5200;
+
+/**
+ * Odriv ob vlecenju.
+ *
+ * Ko globus zagrabis in potegnes, se ne le zavrti - malo se tudi PREMAKNE v
+ * smer potega, kot da bi ga odrinil, in se nato vrne. Brez tega je vrtenje
+ * gib slike; s tem je gib telesa, ki ima tezo in se upira.
+ *
+ * Vzmet je namenoma podduseno nastavljena - dusenje je nekaj vec kot polovica
+ * mejnega. Zato se ne vrne naravnost, ampak enkrat zaniha cez sredino in sele
+ * potem obmiruje; prav ta en odboj je tisto, kar se bere kot prozno in ne kot
+ * mehanizem, ki se zapira.
+ *
+ * Odmik meri v delezih polmera, ne v pikah - drugace bi bil na velikem zaslonu
+ * komaj viden, na malem pa bi globus odnesel z njega.
+ */
+const ODRIV = 0.0011;
+const ODRIV_NAJVEC = 0.11;
+const ODRIV_MOC = 26;
+const ODRIV_DUSENJE = 5.2;
 
 /** Koliko nad povrsjem lezi crta, da je krogla ne poje. */
 const DVIG = 1.004;
@@ -174,7 +201,8 @@ export function installZemlja(gnezdo) {
 
   let skupina = null;       // vozlisce z Zemljo
   let meja = null;
-  let polmerLok = 1;
+  let polmerLok = 1;        // v prostoru mreze - zanj je merjena meja
+  let polmerSvet = 1;       // v prostoru prizora - v njem se globus premika
   let koncnaLega = null;    // lega, v kateri globus gleda na cilj
   let severOsnovni = null;  // smer severa, preden zavrtimo
   let sredisce = null;
@@ -187,6 +215,9 @@ export function installZemlja(gnezdo) {
   const sledi = { x: 0, y: 0 };
   /** Vrtilna hitrost kot os krat radiani na sekundo. */
   const hitrost = new THREE.Vector3();
+  /** Odriv: koliko je globus premaknjen s svojega mesta in kako hitro se vraca. */
+  const odmik = new THREE.Vector3();
+  const odmikHitrost = new THREE.Vector3();
 
   let zanka = null;
   let viden = false;
@@ -291,6 +322,7 @@ export function installZemlja(gnezdo) {
     sredisce = skatla.getCenter(new THREE.Vector3());
     const mere = skatla.getSize(new THREE.Vector3());
     const r = Math.max(mere.x, mere.y, mere.z) * 0.5;
+    polmerSvet = r;
     const d = (r / Math.tan((kamera.fov * Math.PI) / 360)) * ZRAK;
     kamera.position.set(sredisce.x, sredisce.y, sredisce.z + d);
     kamera.lookAt(sredisce);
@@ -336,7 +368,10 @@ export function installZemlja(gnezdo) {
       );
     const q = pogled.multiply(zasuk).multiply(koncnaLega);
     nosilec.quaternion.copy(q);
-    nosilec.position.copy(sredisce).addScaledVector(sredisce.clone().applyQuaternion(q), -1);
+    nosilec.position
+      .copy(sredisce)
+      .addScaledVector(sredisce.clone().applyQuaternion(q), -1)
+      .add(odmik);
     nosilec.updateWorldMatrix(true, true);
   }
 
@@ -391,6 +426,18 @@ export function installZemlja(gnezdo) {
         );
         spremenilo = true;
       }
+    }
+
+    // Odriv se vraca na svoje mesto. Vzmet tece tudi med vlecenjem - takrat
+    // se z vlekom prepira in globus zaostaja za potegom, kar je prav to, kar
+    // se cuti kot teza.
+    if (odmik.lengthSq() > 1e-10 || odmikHitrost.lengthSq() > 1e-10) {
+      odmikHitrost.addScaledVector(odmik, -ODRIV_MOC * dt);
+      odmikHitrost.multiplyScalar(Math.exp(-ODRIV_DUSENJE * dt));
+      odmik.addScaledVector(odmikHitrost, dt);
+      const meja = polmerSvet * ODRIV_NAJVEC;
+      if (odmik.length() > meja) odmik.setLength(meja);
+      spremenilo = true;
     }
 
     // Sledenje kazalcu. Eksponentno priblizevanje: hitro na zacetku, brez
@@ -455,6 +502,9 @@ export function installZemlja(gnezdo) {
 
     const kot = dolzina * VLEK;
     dotaknil();
+    // Odriv gre v smer potega po zaslonu; y je navzdol, prizor navzgor.
+    odmik.x += dx * ODRIV * polmerSvet;
+    odmik.y -= dy * ODRIV * polmerSvet;
     zasuk.premultiply(new THREE.Quaternion().setFromAxisAngle(os, kot));
     uporabiZasuk();
     osveziNapis();
