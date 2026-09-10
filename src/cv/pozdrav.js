@@ -175,19 +175,29 @@ const KRONA = (() => {
 })();
 
 /**
- * Kje na prvem zaslonu stojita in kako velika sta, kot delez ploskve.
+ * Kje na strani stojita metulj in krona.
  *
- * Oba stojita v spodnji polovici, ob straneh: sredina in zgornji del pripadata
- * napisu. Krona je levo nad podpisom, metulj desno.
+ * Ne vec ob napisu na prvem zaslonu: y meri delez CELE strani in ne enega
+ * zaslona. Metulj visi v dnu prvega zaslona, krona v dnu drugega; tretji
+ * pripada Zemlji in tam ni ne enega ne drugega. Razmik med njima je vecji od
+ * enega zaslona, zato nikoli nista oba hkrati pred tabo: dokler eden odhaja
+ * cez zgornji rob, drugega se ni od spodaj.
+ *
+ * Ne gorita enakomerno. Vsak ima svoje dihanje - dolg val, ki ga skoraj
+ * ugasne in spet prizge - in svoj odtenek, ki ob tem lezi sem in tja. Faza in
+ * doba sta razlicni, da nista nikoli v koraku; ce bi bila, bi bilo videti kot
+ * utripanje strani in ne kot dve svoji stvari.
  *
  * Mreza je pri okrasih drobnejsa kot pri crkah. Crka je velika in preprosta,
  * risba pa ima tanke poteze; pri istem koraku bi od nje ostalo nekaj
  * raztresenih znakov brez obrisa.
  */
 const OKRASI = [
-  { svg: METULJ, x: 0.855, y: 0.73, sirina: 0.19, gostota: 5 },
-  { svg: KRONA, x: 0.19, y: 0.83, sirina: 0.17, gostota: 5 },
+  { svg: METULJ, x: 0.845, y: 0.3, sirina: 0.2, gostota: 5, odtenek: 328, zamah: 26, doba: 47, faza: 0 },
+  { svg: KRONA, x: 0.185, y: 0.615, sirina: 0.18, gostota: 5, odtenek: 286, zamah: 24, doba: 61, faza: 0.42 },
 ];
+/** Koliko od okrasa ostane v dnu diha; v vrhu je cel. */
+const OKRAS_DNO = 0.18;
 
 /** Koliko casa napis miruje, preden se zacne prelivati v naslednji jezik. */
 const MIROVANJE_S = 6.5;
@@ -515,8 +525,9 @@ function poveziNajblizje(delci, kandidati, tocke, sredX, sredY) {
 /**
  * @param {HTMLElement} gnezdoOzadja platno pod celo stranjo, ki miruje
  * @param {HTMLElement} gnezdoBesedila platno prvega zaslona, ki drsi z njim
+ * @param {HTMLElement} [drsnik] tok strani; okrasa lezita v njem, ne na zaslonu
  */
-export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
+export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
   const platnoO = document.createElement("canvas");
   platnoO.className = "pozdrav-ozadje";
   platnoO.setAttribute("aria-hidden", "true");
@@ -534,11 +545,22 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
   // Vsako platno ima svoje mere: ozadje pokriva celo stran, besedilo en zaslon.
   const mereO = { s: 1, v: 1 };
   const mereB = { s: 1, v: 1 };
+  /**
+   * Prostor okrasov ni platno, ampak stran.
+   *
+   * Sirok je kot okno, visok pa kot ves tok - zato lahko okras stoji tam, kjer
+   * ga ob prihodu se ni videti. Riseta se na platno ozadja, le premaknjena za
+   * toliko, kolikor je stran zdrsela; tako se vedeta kot navadna elementa
+   * strani, platna pa je treba le eno.
+   */
+  const mereK = { s: 1, v: 1 };
+  const vrhStrani = () => (drsnik ? drsnik.scrollTop : 0);
 
   const besedni = [];   // znaki, ki sestavljajo napis
-  const okrasni = [];   // znaki, ki sestavljajo metulja in krono
   const ozadje = [];    // znaki na Chladnijevi figuri
   const kotni = [];     // podpis v kotu
+  /** Vsak okras ima svoje znake, da lahko diha in menja odtenek po svoje. */
+  const okrasni = OKRASI.map((o) => ({ o, delci: [] }));
 
   let jezikA = 0;
   let jezikB = 0;
@@ -579,6 +601,8 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
   const meri = () => {
     meriPlatno(platnoO, ctxO, gnezdoOzadja, mereO);
     meriPlatno(platnoB, ctxB, gnezdoBesedila, mereB);
+    mereK.s = mereO.s;
+    mereK.v = Math.max(mereO.v, drsnik ? drsnik.scrollHeight : mereO.v * 3);
   };
 
   function noviDelec(mere, najmanj, najvec) {
@@ -639,23 +663,39 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
   /**
    * Postavi znake na metulja in krono.
    *
-   * Tece enkrat ob prikazu in ob spremembi velikosti. Oblike so nespremenljive,
-   * zato jih ni treba preracunavati ob vsakem preliv besedila - le znaki na
-   * njih se blescijo in bezijo pred kazalcem, tako kot vsi drugi.
+   * Tece ob prikazu in ob spremembi velikosti. Vsak okras dobi svoje znake in
+   * svoje tarce, ker se tudi izrisuje zase - z lastnim dihom in odtenkom.
+   * Koordinate so v prostoru strani, ne zaslona.
    */
   async function postaviOkrase() {
-    const vsi = [];
-    for (const o of OKRASI) {
-      const tocke = await tockeIzSvg(o.svg, mereB.s * o.sirina, o.gostota ?? GOSTOTA);
-      const sredX = mereB.s * o.x;
-      const sredY = mereB.v * o.y;
-      for (const t of tocke) vsi.push({ x: sredX + t.x, y: sredY + t.y });
+    for (const k of okrasni) {
+      const tocke = await tockeIzSvg(k.o.svg, mereK.s * k.o.sirina, k.o.gostota ?? GOSTOTA);
+      const sredX = mereK.s * k.o.x;
+      const sredY = mereK.v * k.o.y;
+      const cilji = tocke.map((t) => ({ x: sredX + t.x, y: sredY + t.y }));
+      napolni(k.delci, cilji.length, mereK, 5, 11);
+      for (const d of k.delci) d.imaCilj = false;
+      // Tarce so ze v koordinatah prostora, zato brez zamika sredisca.
+      poveziNajblizje(k.delci, k.delci.map((_, i) => i), cilji, 0, 0);
+      for (const d of k.delci) d.cakaj = nakljucno(0, 1.8);
     }
-    napolni(okrasni, vsi.length, mereB, 5, 11);
-    for (const d of okrasni) d.imaCilj = false;
-    // Tocke so ze v koordinatah ploskve, zato brez zamika sredisca.
-    poveziNajblizje(okrasni, okrasni.map((_, i) => i), vsi, 0, 0);
-    for (const d of okrasni) d.cakaj = nakljucno(0, 1.8);
+  }
+
+  /**
+   * Koliko okras ta hip gori in kaksne barve je.
+   *
+   * Dih je kosinus, ki se giblje med OKRAS_DNO in ena; odtenek pa sinus z
+   * nekoliko drugacno dobo, da barva ne pade z mocjo v isti tocki. Da se
+   * ujemata natanko, bi bilo videti kot ena sama nastavitev.
+   */
+  function stanjeOkrasa(k, sek) {
+    // Kdor je izklopil gibanje, ne sme dobiti niti dihanja: okras naj enkrat
+    // za vselej stoji tam, kjer je, in v svoji barvi.
+    if (mirno.matches) return { moc: 1, barva: `hsl(${k.o.odtenek}, 78%, 76%)` };
+    const dih = 0.5 - 0.5 * Math.cos((sek / k.o.doba + k.o.faza) * Math.PI * 2);
+    const moc = OKRAS_DNO + (1 - OKRAS_DNO) * dih;
+    const h = k.o.odtenek + Math.sin((sek / (k.o.doba * 0.63) + k.o.faza) * Math.PI * 2) * k.o.zamah;
+    return { moc, barva: `hsl(${h.toFixed(1)}, 78%, 76%)` };
   }
 
   /** Preusmeri znake ozadja na naslednjo figuro. */
@@ -742,7 +782,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
     ctx.globalAlpha = 1;
   }
 
-  function risi() {
+  function risi(sek) {
     ctxO.clearRect(0, 0, mereO.s, mereO.v);
     ctxO.textAlign = "center";
     ctxO.textBaseline = "middle";
@@ -750,13 +790,20 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
     // napisom, ki lezi cez nje, in oko ne ve, kam naj gleda.
     risiPolje(ctxO, ozadje, 0.26, "#9fb6d8");
 
+    // Okrasa lezita v prostoru strani, platno pa stoji pri miru - zato ju
+    // narisemo zamaknjena za toliko, kolikor je stran zdrsela.
+    ctxO.save();
+    ctxO.translate(0, -vrhStrani());
+    for (const k of okrasni) {
+      const { moc, barva } = stanjeOkrasa(k, sek);
+      risiPolje(ctxO, k.delci, 0.92 * moc, barva);
+    }
+    ctxO.restore();
+
     ctxB.clearRect(0, 0, mereB.s, mereB.v);
     ctxB.textAlign = "center";
     ctxB.textBaseline = "middle";
     risiPolje(ctxB, besedni, 1, "#e9edf3");
-    // Okrasa sta hladno rozna, da se locita od napisa in nista videti kot
-    // njegov del, ki bi se odlomil.
-    risiPolje(ctxB, okrasni, 0.92, "#ff9ed6");
     ctxB.fillStyle = "#c8d4e8";
     for (const k of kotni) {
       ctxB.globalAlpha = 0.5;
@@ -791,9 +838,14 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
     }
     const kazalecB = kazalecZa(gnezdoBesedila);
     korakPolja(besedni, mereB, dt, kazalecB, sek);
-    korakPolja(okrasni, mereB, dt, kazalecB, sek);
     korakPolja(ozadje, mereO, dt, kazalecZa(gnezdoOzadja), sek);
-    risi();
+
+    // Kazalec je za okrase v prostoru strani, torej nizje za toliko, kolikor
+    // je stran zdrsela - sicer bi znaki bezali pred prazno tocko.
+    const kazalecK = kazalecZa(gnezdoOzadja);
+    if (kazalecK.ziv) kazalecK.y += vrhStrani();
+    for (const k of okrasni) korakPolja(k.delci, mereK, dt, kazalecK, sek);
+    risi(sek);
   }
 
   const naMisko = (e) => {
@@ -815,7 +867,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
     const moc = Math.max(-ODBOJ_NAJVEC, Math.min(dy * ODBOJ, ODBOJ_NAJVEC));
     for (const d of besedni) d.vy += moc;
     // Okrasa se odzoveta sibkeje: sta tezja od crk in se ne zibata tako lahko.
-    for (const d of okrasni) d.vy += moc * 0.55;
+    for (const k of okrasni) for (const d of k.delci) d.vy += moc * 0.55;
   };
 
   const naSpremembo = () => {
@@ -852,13 +904,14 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
         platnoO.classList.add("vidno");
         platnoB.classList.add("vidno");
         if (!mirno.matches) return;
-        for (const d of besedni.concat(okrasni, ozadje)) {
+        const vsi = besedni.concat(ozadje, ...okrasni.map((k) => k.delci));
+        for (const d of vsi) {
           if (!d.imaCilj) continue;
           d.x = d.ciljX;
           d.y = d.ciljY;
           d.cakaj = 0;
         }
-        risi();
+        risi(performance.now() * 0.001);
       });
 
       addEventListener("pointermove", naMisko, { passive: true });

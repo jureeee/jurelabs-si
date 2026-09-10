@@ -140,7 +140,8 @@ export function installStik() {
 
   const pripraviPozdrav = naloziEnkrat(
     () => import("./pozdrav.js"),
-    (m) => (pozdrav = m.installPozdrav(gnezdoOzadja, gnezdoNapisa))
+    // Tok gre zraven, ker okrasa ne stojita na zaslonu, ampak na strani.
+    (m) => (pozdrav = m.installPozdrav(gnezdoOzadja, gnezdoNapisa, tok))
   );
   const pripraviZemljo = naloziEnkrat(
     () => import("./zemlja.js"),
