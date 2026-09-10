@@ -442,6 +442,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     { kljuc: "gost", ime: "Gosto (6-7)" },
     { kljuc: "trak", ime: "Trak" },
     { kljuc: "izvirno", ime: "Izvirna razmerja" },
+    { kljuc: "izvirnoxl", ime: "Izvirna razmerja XL" },
     { kljuc: "polno", ime: "Čez cel zaslon" },
     { kljuc: "stolpci", ime: "Zidak" },
   ];
@@ -455,9 +456,12 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
   // ne kako so polja v njej razporejena.
   const SIRINE = [
     { kljuc: "robovi", ime: "Do robov" },
+    { kljuc: "cez", ime: "Čez sredino" },
     { kljuc: "sredina", ime: "Na sredini" },
   ];
-  let razpored = "tri";
+  // Privzeto: izvirna razmerja v velikem. Mreza enakih kvadratov pove, koliko
+  // je slik; ta pove, kaksne so - in to je tisto, zaradi cesar jih kdo odpre.
+  let razpored = "izvirnoxl";
   let razmik = "da";
   let sirina = "robovi";
   mreza.dataset.razpored = razpored;

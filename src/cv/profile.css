@@ -250,6 +250,13 @@
   width: calc(100vw - 68px);
   margin-left: calc(50% - 50vw + 34px);
 }
+/* Cez sredino: nekje vmes. Mreza presega stolpec besedila, a se ne dotakne
+   robov zaslona - toliko sirja, da slike dobijo zrak, in toliko ozja, da
+   stran se vedno ima rob. */
+.prof-mreza[data-sirina="cez"] {
+  width: min(calc(100vw - 68px), calc(100% + 14vw));
+  margin-left: calc((100% - min(100vw - 68px, 100% + 14vw)) / 2);
+}
 .prof-mreza[data-sirina="sredina"] {
   width: 100%;
   margin-left: 0;
@@ -269,6 +276,10 @@
    in sij morata proc - zaobljeni robovi bi ob stiku pustili luknjice, sij pa
    bi se prelil na sosednjo sliko. */
 .prof-mreza[data-razmik="ne"] { gap: 0; }
+.prof-mreza[data-razmik="ne"][data-razpored="izvirno"],
+.prof-mreza[data-razmik="ne"][data-razpored="izvirnoxl"] { column-gap: 0; }
+.prof-mreza[data-razmik="ne"][data-razpored="izvirno"] .prof-polje,
+.prof-mreza[data-razmik="ne"][data-razpored="izvirnoxl"] .prof-polje { margin-bottom: 0; }
 .prof-mreza[data-razmik="ne"] .prof-polje { border-radius: 0; }
 .prof-mreza[data-razmik="ne"] .prof-polje > img:not(.prof-sij),
 .prof-mreza[data-razmik="ne"] .prof-polje > video:not(.prof-sij) { border-radius: 0; }
@@ -340,6 +351,23 @@
   aspect-ratio: var(--razmerje, 1);
   break-inside: avoid;
   margin-bottom: 22px;
+}
+
+/* Izvirno XL: isto, le da je stolpcev za polovico manj in je vsaka slika
+   temu primerno vecja. Pri stirih stolpcih je razmerje tisto, kar se vidi;
+   pri dveh se vidi tudi slika. */
+.prof-mreza[data-razpored="izvirnoxl"] {
+  display: block;
+  column-count: 2;
+  column-gap: 30px;
+}
+@media (min-width: 1600px) {
+  .prof-mreza[data-razpored="izvirnoxl"] { column-count: 3; }
+}
+.prof-mreza[data-razpored="izvirnoxl"] .prof-polje {
+  aspect-ratio: var(--razmerje, 1);
+  break-inside: avoid;
+  margin-bottom: 30px;
 }
 
 /* Cez cel zaslon: ena slika naenkrat, v svojem razmerju. */
