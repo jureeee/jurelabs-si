@@ -1,0 +1,73 @@
+/* ---------------------------------------------------------------------------
+   OGLED SLIKE
+
+   Isto zaporedje kot pri nastavitvah in vizitki: najprej se umakne svet, sele
+   nato pride slika. Tu je drugi korak sencilnik in ne prehod CSS, zato je tu
+   samo zavesa - platno pripelje svoj val samo.
+
+   Platno je vecje od slike, ker gube ob robu segajo cez njen rob; zato tu ni
+   ne ozadja ne obrobe, ki bi ta prostor pokazala.
+--------------------------------------------------------------------------- */
+
+.ogled {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+}
+
+.ogled-zavesa {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 8, 12, 0);
+  backdrop-filter: blur(0px) saturate(1);
+  -webkit-backdrop-filter: blur(0px) saturate(1);
+  transition:
+    background 420ms var(--ease),
+    backdrop-filter 420ms var(--ease),
+    -webkit-backdrop-filter 420ms var(--ease);
+}
+.ogled.odprt .ogled-zavesa {
+  background: rgba(6, 8, 12, 0.66);
+  backdrop-filter: blur(12px) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+}
+
+.ogled-platno {
+  position: relative;
+  display: block;
+  pointer-events: none;
+}
+
+.ogled-zapri {
+  position: absolute;
+  top: max(22px, calc(env(safe-area-inset-top) + 12px));
+  right: max(22px, calc(env(safe-area-inset-right) + 12px));
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--muted);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 320ms var(--ease),
+    background var(--t-fast) var(--ease),
+    color var(--t-fast) var(--ease),
+    transform var(--t-med) var(--spring);
+}
+.ogled.odprt .ogled-zapri {
+  opacity: 1;
+  /* Za zaveso: gumb naj pride, ko je ozadje ze umaknjeno. */
+  transition-delay: 260ms;
+}
+.ogled-zapri svg { width: 18px; height: 18px; }
+.ogled-zapri:hover { background: rgba(255, 255, 255, 0.16); color: var(--ink); }
+.ogled-zapri:active { transform: scale(0.9); }
+
+/* Polje v mrezi je zdaj tudi gumb: kaze, da se za njim nekaj odpre. */
+.prof-polje { cursor: pointer; }

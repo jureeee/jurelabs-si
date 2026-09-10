@@ -269,6 +269,25 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
   // kot val in ne kot naštevanje.
   const vPrikaz = narediVrsto(90, (polje) => polje.classList.add("vidno"));
 
+  /**
+   * Klik na polje odpre sliko cez stran.
+   *
+   * Ogled je tezek - nosi sencilnika in svoj izris - zato pride sele ob prvem
+   * kliku. Do takrat ni v svezenju in mreza se nalozi brez njega.
+   *
+   * Video ne gre skozenj: ucinek je preslikava mirujoce slike in na gibljivi
+   * bi bil samo hrup. Enako, kdor je gibanje izklopil - takrat ostane klik
+   * brez posledic, tako kot je bil prej.
+   */
+  const mirnoGibanje = matchMedia("(prefers-reduced-motion: reduce)");
+  mreza.addEventListener("click", (e) => {
+    const polje = e.target instanceof Element ? e.target.closest(".prof-polje") : null;
+    if (!polje || polje.dataset.video === "true" || mirnoGibanje.matches) return;
+    const url = polje.dataset.url;
+    if (!url) return;
+    import("./plapol.js").then((m) => m.odpri(url)).catch(() => null);
+  });
+
   function napolni(polje) {
     if (polje.dataset.polno === "1") return;
     polje.dataset.polno = "1";
