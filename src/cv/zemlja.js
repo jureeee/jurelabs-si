@@ -20,6 +20,11 @@
  * Vrtenje ni zanka, ki bi jo nekdo ustavil. Odigramo ga kot odmik od koncne
  * lege, ki gre proti nic - globus se zato ustavi natanko tam, kjer mora.
  *
+ * Globus se da tudi zavrteti z misko. Vlecenje po vodoravnici ga vrti okoli
+ * lastne osi, po navpicnici pa nagiba; nagib je omejen, da ne konca na glavi.
+ * Ker po koncanem priletu izrisa nihce ne poganja, med vlecenjem izrisemo
+ * sliko po sliki sami - zanka, ki bi tekla ves cas, bi risala prazno.
+ *
  * Prizor je svoj, loceni izris. Galaksija tece v svojem platnu pod njim in
  * ostane cela.
  */
@@ -75,6 +80,10 @@ const MEJA_VIDNA = false;
 /** Koliko prostora okoli globusa pusti kamera. 1 je tesno. */
 const ZRAK = 1.05;
 
+/** Koliko radianov na sliko premika vlecenje in do kod sme nagib. */
+const VLEK = 0.0085;
+const NAGIB_MEJA = Math.PI * 0.38;
+
 const easeOut = (t) => 1 - Math.pow(1 - t, 3);
 
 /**
@@ -122,6 +131,13 @@ export function installZemlja(gnezdo) {
   let viden = false;
   let zacetek = 0;
   let skupniKot = 0;
+  let koncnaLega = null;   // lega nosilca, preden vanjo posezemo z misko
+
+  /** Kar je uporabnik zavrtel sam. Sesteva se s priletom. */
+  let rocniObrat = 0;
+  let rocniNagib = 0;
+  /** Koliko priletu je ze odigrano; potrebuje ga izris na zahtevo. */
+  let odigranoDelez = 1;
 
   const nalozen = new Promise((res) => {
     new GLTFLoader().load(
@@ -200,24 +216,96 @@ export function installZemlja(gnezdo) {
     const x = new THREE.Vector3().crossVectors(y, z);
 
     const baza = new THREE.Matrix4().makeBasis(x, y, z);
-    const q = new THREE.Quaternion().setFromRotationMatrix(baza.transpose());
-    nosilec.quaternion.copy(q);
-    nosilec.position.copy(sredisce).addScaledVector(sredisce.clone().applyQuaternion(q), -1);
-    nosilec.updateWorldMatrix(true, true);
+    koncnaLega = new THREE.Quaternion().setFromRotationMatrix(baza.transpose());
+    nosilec.position.copy(sredisce).addScaledVector(
+      sredisce.clone().applyQuaternion(koncnaLega),
+      -1
+    );
+    uporabiNagib();
     koren.updateWorldMatrix(true, true);
   }
 
-  /** Odmik od koncne lege: vrtenje okoli lastne osi, ki gre proti nic. */
+  /**
+   * Nagib z misko.
+   *
+   * Zavrtimo okoli SVETOVNE osi x, torej okoli vodoravnice zaslona, in sele
+   * nato postavimo globus v koncno lego. Nagib okoli lastne osi bi bil odvisen
+   * od tega, kam je globus ravno obrnjen, in bi se ob vsakem obratu obnasal
+   * drugace.
+   */
+  function uporabiNagib() {
+    if (!koncnaLega) return;
+    const nagib = new THREE.Quaternion().setFromAxisAngle(
+      new THREE.Vector3(1, 0, 0),
+      rocniNagib
+    );
+    nosilec.quaternion.copy(nagib).multiply(koncnaLega);
+    nosilec.updateWorldMatrix(true, true);
+  }
+
+  /**
+   * Odmik od koncne lege: vrtenje okoli lastne osi.
+   *
+   * Sesteva prilet, ki gre proti nic, in to, kar je uporabnik zavrtel sam.
+   * Ce bi bila locena, bi vlecenje med priletom skakalo.
+   */
   function zavrti(kot) {
     skupina.quaternion
       .copy(zacetnaLega)
-      .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), kot));
+      .multiply(
+        new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), kot + rocniObrat)
+      );
   }
+
+  /** En izris na zahtevo. Med vlecenjem zanka ne tece. */
+  function narisi() {
+    if (!skupina) return;
+    zavrti(-skupniKot * (1 - odigranoDelez));
+    izrisovalnik.render(prizor, kamera);
+  }
+
+  // --- vlecenje z misko ----------------------------------------------------
+  let vlecem = false;
+  let zadnjiX = 0;
+  let zadnjiY = 0;
+
+  izrisovalnik.domElement.addEventListener("pointerdown", (e) => {
+    if (!viden) return;
+    vlecem = true;
+    zadnjiX = e.clientX;
+    zadnjiY = e.clientY;
+    izrisovalnik.domElement.setPointerCapture(e.pointerId);
+    izrisovalnik.domElement.classList.add("vlecem");
+  });
+
+  izrisovalnik.domElement.addEventListener("pointermove", (e) => {
+    if (!vlecem) return;
+    rocniObrat += (e.clientX - zadnjiX) * VLEK;
+    rocniNagib = Math.max(
+      -NAGIB_MEJA,
+      Math.min(rocniNagib + (e.clientY - zadnjiY) * VLEK, NAGIB_MEJA)
+    );
+    zadnjiX = e.clientX;
+    zadnjiY = e.clientY;
+    uporabiNagib();
+    // Med priletom zanka ze tece; takrat izris prepustimo njej.
+    if (!zanka) narisi();
+  });
+
+  const nehaj = (e) => {
+    if (!vlecem) return;
+    vlecem = false;
+    izrisovalnik.domElement.releasePointerCapture?.(e.pointerId);
+    izrisovalnik.domElement.classList.remove("vlecem");
+  };
+  izrisovalnik.domElement.addEventListener("pointerup", nehaj);
+  izrisovalnik.domElement.addEventListener("pointercancel", nehaj);
 
   function slicica(ms) {
     zanka = requestAnimationFrame(slicica);
     const t = Math.min((ms - zacetek) / VRTENJE_MS, 1);
-    zavrti(-skupniKot * (1 - easeOut(t)));
+    odigranoDelez = easeOut(t);
+    zavrti(-skupniKot * (1 - odigranoDelez));
 
     if (t >= 1 && meja) {
       const odMeje = ms - zacetek - VRTENJE_MS - PREMOR_MS;
@@ -268,6 +356,7 @@ export function installZemlja(gnezdo) {
         skupniKot = Math.PI * 2 * OBRATOV;
         meja.geometry.setDrawRange(0, 0);
 
+        odigranoDelez = 0;
         zacetek = performance.now();
         zanka = requestAnimationFrame(slicica);
       });

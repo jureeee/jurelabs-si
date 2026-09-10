@@ -134,16 +134,21 @@
   transform: translate(-50%, -50%);
   width: min(96vh, 52vw);
   height: min(96vh, 52vw);
-  pointer-events: none;
 }
 .zemlja-platno {
   display: block;
+  /* Globus se da zavrteti z misko, zato dogodke sprejema. Navpicno drsenje
+     ostane strani: touch-action mu pusti pan-y, vodoravno vlecenje pa gre
+     globusu. */
+  cursor: grab;
+  touch-action: pan-y;
   /* Prihod pise JS iz lege drsnika; prehod tu le zgladi skoke med sporocili. */
   opacity: 0;
   transform: translateY(13%) scale(0.82);
   transform-origin: 50% 50%;
   transition: opacity 200ms linear, transform 200ms linear;
 }
+.zemlja-platno.vlecem { cursor: grabbing; }
 
 /* Meglica cez spodnji del globusa.
    backdrop-filter zamegli to, kar je za njo, maska pa moc zameglitve stopnjuje
@@ -154,7 +159,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 42%;
+  height: 54%;
   z-index: 1;
   pointer-events: none;
   backdrop-filter: blur(11px);
@@ -164,15 +169,19 @@
   mask-image: linear-gradient(to bottom, transparent, #000 62%);
 }
 
-/* Besedilo stoji cez globus, v spodnji tretjini, kjer je slika ze zamegljena
-   in ga zato nic ne moti pri branju. */
+/* Besedilo lezi CEZ globus, ne pod njim: postavljeno je absolutno in sega v
+   njegovo spodnjo tretjino, kjer je slika ze zamegljena in branja nic ne moti.
+   V toku bi ga visina globusa potisnila pod rob in bi bilo videti kot podnapis
+   pod sliko namesto kot napis na njej. */
 .stik-kje-besedilo {
-  position: relative;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: clamp(56px, 15vh, 165px);
   z-index: 2;
-  align-self: flex-end;
   width: min(1180px, 100%);
   margin: 0 auto;
-  padding: 0 clamp(24px, 6vw, 90px) clamp(40px, 9vh, 110px);
+  padding: 0 clamp(24px, 6vw, 90px);
 }
 
 @media (max-width: 900px) {

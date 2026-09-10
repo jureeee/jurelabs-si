@@ -65,13 +65,21 @@ const MIROVANJE_S = 6.5;
 /** Koliko traja preliv od zacetka prvega znaka do prihoda zadnjega. */
 const VAL_S = 1.9;
 
-/** Razmik med tarcami. Vecji od velikosti znakov, sicer se ti prekrivajo. */
-const GOSTOTA = 11;
+/**
+ * Razmik med tarcami.
+ *
+ * Drobnejsi od velikosti znakov, zato se ti rahlo prekrivajo - in prav to je
+ * potrebno, da se vidi oblika pisave. Pri redki mrezi ostanejo od okrasnih
+ * serifov le posamezne pike in napis je videti kot katerikoli drug.
+ */
+const GOSTOTA = 8;
 /** Zgornja meja stevila znakov v besedilu in v ozadju. */
-const NAJVEC_BESEDILA = 900;
+const NAJVEC_BESEDILA = 2300;
 const NAJVEC_OZADJA = 620;
 /** Koliko sirine sme zavzeti napis. */
-const NAJVEC_SIRINE = 0.74;
+const NAJVEC_SIRINE = 0.82;
+/** Razmik med vrsticama, kot delez visine crk. */
+const VRSTICA = 1.12;
 
 /** Kako mocno znak vlece proti tarci in koliko ga dusi. */
 const VZMET = 0.055;
@@ -110,10 +118,17 @@ const znak = () => ZNAKI[(Math.random() * ZNAKI.length) | 0];
 /**
  * Tocke, na katerih je besedilo polno.
  *
+ * Sprejme eno vrstico ali vec. Vec vrstic je tu bistvenih: pozdrav v eni
+ * vrstici mora biti drobcen, da gre cez zaslon, v dveh pa so crke lahko
+ * dvakrat vecje - in sele takrat se vidi, kaksna je pisava.
+ *
  * Bralna mreza je v lihih vrsticah zamaknjena za pol koraka, sicer tocke
  * sestavijo ocitno kvadratno resetko in napis je videti kot vezenina.
  */
-function tockeBesedila(besedilo, sirinaNaVoljo, velikostPisave, gostota = GOSTOTA) {
+function tockeBesedila(vrstice, sirinaNaVoljo, velikostPisave, gostota = GOSTOTA) {
+  const seznam = Array.isArray(vrstice) ? vrstice : [vrstice];
+  if (seznam.length > 1) return tockeVecVrstic(seznam, sirinaNaVoljo, velikostPisave, gostota);
+  const besedilo = seznam[0];
   const platno = document.createElement("canvas");
   const ctx = platno.getContext("2d", { willReadFrequently: true });
   const pisava = (v) => `700 ${v}px ${PISAVA}`;
@@ -148,6 +163,30 @@ function tockeBesedila(besedilo, sirinaNaVoljo, velikostPisave, gostota = GOSTOT
       }
     }
   }
+  return tocke;
+}
+
+/**
+ * Vec vrstic, poravnanih na sredino in zlozenih ena pod drugo.
+ *
+ * Velikost doloci najsirsa vrstica: ce bi vsaka dobila svojo, bi bile crke v
+ * kratki vrstici vecje od crk v dolgi in napis bi razpadel na dva napisa.
+ */
+function tockeVecVrstic(vrstice, sirinaNaVoljo, velikostPisave, gostota) {
+  const merilno = document.createElement("canvas").getContext("2d");
+  merilno.font = `700 ${velikostPisave}px ${PISAVA}`;
+  const najsirsa = Math.max(...vrstice.map((v) => merilno.measureText(v).width));
+  const merilo = Math.min(1, sirinaNaVoljo / Math.max(1, najsirsa));
+  const velikost = Math.max(16, velikostPisave * merilo);
+
+  const posamezne = vrstice.map((v) => tockeBesedila(v, Infinity, velikost, gostota));
+  const visina = velikost * VRSTICA;
+  const zamik = ((vrstice.length - 1) * visina) / 2;
+
+  const tocke = [];
+  posamezne.forEach((del, i) => {
+    for (const t of del) tocke.push({ x: t.x, y: t.y + i * visina - zamik });
+  });
   return tocke;
 }
 
@@ -249,7 +288,9 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
   let zadnjiSek = 0;
   const kazalec = { x: -1e4, y: -1e4, ziv: false };
 
-  const besedilo = () => `${DELI[0][jezikA]}, ${DELI[1][jezikB]} ${IME}`;
+  // Dve vrstici: pozdrav zgoraj, ime spodaj. V eni vrstici bi bile crke
+  // pretesne, da bi se videla pisava.
+  const besedilo = () => [`${DELI[0][jezikA]}, ${DELI[1][jezikB]}`, IME];
 
   function naprejJezik() {
     if (prvikrat) {
@@ -299,12 +340,12 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
 
   /** Preusmeri znake besedila na novo besedilo. */
   function preusmeriBesedilo() {
-    const velikost = Math.min(mereB.v * 0.19, mereB.s * 0.1);
+    const velikost = Math.min(mereB.v * 0.3, mereB.s * 0.155);
     const tocke = tockeBesedila(besedilo(), mereB.s * NAJVEC_SIRINE, velikost).slice(
       0,
       NAJVEC_BESEDILA
     );
-    napolni(besedni, Math.min(NAJVEC_BESEDILA, Math.round(tocke.length * 1.1)), mereB, 9, 21);
+    napolni(besedni, Math.min(NAJVEC_BESEDILA, Math.round(tocke.length * 1.08)), mereB, 7, 16);
 
     const sredX = mereB.s / 2;
     const sredY = mereB.v / 2;
