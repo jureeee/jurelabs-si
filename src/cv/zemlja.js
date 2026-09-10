@@ -21,8 +21,9 @@
  * Vrti se OKOLI SVOJEGA SREDISCA. Nosilec je zato zamaknjen tako, da zasuk
  * okoli izhodisca ne odnese globusa vstran; brez tega bi krozil po zaslonu.
  *
- * Kar zadeva lego in teksture: model je izvozen s polom proti kameri, koncno
- * lego pa zgradimo sami iz smeri proti cilju in smeri proti severu.
+ * Kar zadeva lego in teksture: model nosi svoj zasuk, ki ni zemljepisni.
+ * Izmerjen je in zapisan v V_MODEL; koncno lego zgradimo iz smeri proti
+ * Sloveniji in smeri proti severu.
  *
  * Prizor je svoj, loceni izris. Galaksija tece v svojem platnu pod njim in
  * ostane cela.
@@ -34,39 +35,43 @@ import modelUrl from "../assets/3d models/zemlja.glb?url";
 import { MEJA_SLO } from "./meja-slo.js";
 
 /**
- * Kam gleda globus, ko pride v prizor.
+ * Kje na modelu je kaj.
  *
- * To NISTA koordinati Ljubljane, ceprav bi po imenu morali biti. Med tem
- * sistemom in tistim, po katerem so na modelu polozene teksture, je se ena
- * zasukanost, ki je nisem izmeril; vrednosti sta zato nastavljeni na roko,
- * dokler globus ne gleda na Sredozemlje.
+ * Teksture na tem modelu ne lezijo po poldnevnikih in vzporednikih, ampak v
+ * svojem, zasukanem okviru. Prej sta bili zato smer pogleda in lega Slovenije
+ * nastavljeni na roko - in obris je pristal nekaj sto kilometrov od drzave,
+ * nekje nad Malo Azijo.
  *
- * Prava resitev je iz stirih cetrtin modela sestaviti eno samo enakokotno
- * teksturo in jo poloziti na svojo kroglo. Takrat je preslikava nasa in
- * tocna, meja Slovenije pa pade tja, kamor sodi.
+ * Zasuk je zdaj izmerjen iz modela samega:
+ *
+ *   1. Iz mreze se prebere, kako se teksturne koordinate preslikajo v lego na
+ *      krogli. Model je razrezan na stiri ploscice, vsaka nosi cetrtino
+ *      enakokotne karte; iz oglisc sledi lon = lon0 - 182,903 u in
+ *      lat = lat0 + 90,876 v, z ostankom pod desetinko stopinje.
+ *   2. Iz ploscic se sestavi ena sama karta v okviru modela.
+ *   3. Grobi priblizek zasuka da nekaj prepoznavnih tock - Antarktika,
+ *      Avstralija, Madagaskar, Nova Zelandija.
+ *   4. Priblizek se uglasi tako, da se kopno na modelu ujame s kopnim iz
+ *      Natural Earth: sedemnajst tisoc obalnih celic, zasuk se isce po treh
+ *      oseh, dokler je ujemanje najboljse.
+ *
+ * Preverjeno tako, da so bile na tako preslikano karto modela narisane obale
+ * Natural Earth: ujamejo se po vsem svetu - Iberija, italijanski skorenj,
+ * Egeja, Sinaj, Ciper.
+ *
+ * Izmeri jo orodja/zemlja-zasuk.mjs; ce se model kdaj zamenja, se matrika
+ * dobi tako, da orodje spet stece.
+ *
+ * Matrika slika zemljepisno smer v prostor mreze. Tretji stolpec je negativen
+ * zato, ker nasa formula steje dolzino v nasprotno smer kot model.
  */
-const CILJ_LON = 14.5058;
-const CILJ_LAT = 68;
+const V_MODEL = new THREE.Matrix3().set(
+  0.96695152, -0.15534867, -0.20216714,
+  -0.24745765, -0.38088751, -0.89089248,
+  -0.06139603, -0.91147764, 0.40674198
+);
 
-/** Smer dolzine na modelu in zamik izhodisca; izmerjeno z mrezo. */
-const SMER = -1;
-const LON_ZAMIK = 0;
-
-/**
- * Kje na modelu je Slovenija.
- *
- * Ne po zemljepisnih koordinatah - te na tem modelu ne padejo tja, kamor bi
- * morale. Vrednosti sta izracunani iz lege, ki jo je na sliki oznacil clovek:
- * iz tocke na zaslonu smo z obratno preslikavo prisli nazaj v prostor modela.
- * Preverba je vrnila natanko isto lego na zaslonu.
- *
- * Zato meje ne polagamo po dolzini in sirini, ampak jo postavimo kot majhno
- * zaplato okoli te tocke: drzava je siroka tri stopinje in na taki razdalji
- * je ukrivljenost zanemarljiva.
- */
-const SLO_MODEL_LON = -52.9922;
-const SLO_MODEL_LAT = 49.0091;
-/** Sredisce drzave v pravih koordinatah - glede nanj merimo odmike v obrisu. */
+/** Sredisce Slovenije. Tja gleda globus, ko obmiruje, in tam je obris. */
 const SLO_LON = 14.5058;
 const SLO_LAT = 46.0569;
 
@@ -102,13 +107,18 @@ const ZRAK = 1.05;
 
 const easeOut = (t) => 1 - Math.pow(1 - t, 3);
 
-/** Tocka na krogli iz zemljepisnih koordinat, v prostoru modela. */
+/** Tocka na krogli iz zemljepisnih koordinat, v prostoru mreze. */
 function naKroglo(lonStopinj, latStopinj, r) {
-  const lon = ((SMER * lonStopinj + LON_ZAMIK) * Math.PI) / 180;
+  const lon = (lonStopinj * Math.PI) / 180;
   const lat = (latStopinj * Math.PI) / 180;
   const k = Math.cos(lat);
-  return new THREE.Vector3(r * k * Math.cos(lon), -r * Math.sin(lat), -r * k * Math.sin(lon));
+  return new THREE.Vector3(k * Math.cos(lon), Math.sin(lat), k * Math.sin(lon))
+    .applyMatrix3(V_MODEL)
+    .multiplyScalar(r);
 }
+
+/** Smer proti severnemu tecaju, v prostoru mreze. */
+const SEVER_MODEL = naKroglo(0, 90, 1);
 
 /** @param {HTMLElement} gnezdo ploskev, na katero se globus izrise */
 export function installZemlja(gnezdo) {
@@ -205,38 +215,15 @@ export function installZemlja(gnezdo) {
   /**
    * Crta po obodu drzave, otrok skupine - torej se vrti skupaj z Zemljo.
    *
-   * Obris polozimo na dotikalno ravnino v srediscu drzave in ga nato potisnemo
-   * nazaj na kroglo. Smer navzgor v tej ravnini vzamemo od zaslona: na modelu
-   * "sever" ni tam, kjer bi pricakovali, na sliki pa je Evropa pokoncna, zato
-   * je zaslon tu zanesljivejsi od modela.
+   * Vsako oglisce obrisa gre naravnost iz svojih zemljepisnih koordinat na
+   * kroglo. Prej je bil obris zaplata na dotikalni ravnini in je smer navzgor
+   * jemal kar z zaslona, ker preslikava ni bila znana; zdaj je izmerjena in
+   * ovinka ni vec treba.
    */
   function naredMejo() {
-    const sredina = naKroglo(SLO_MODEL_LON, SLO_MODEL_LAT, 1).normalize();
-
-    // Navzgor po zaslonu, prevedeno v prostor modela. matrixWorld ze vsebuje
-    // nosilca, zato ga ne odstevamo se posebej - dvojno odstevanje je napaka,
-    // ki jo preverba zlahka spregleda, ker jo dela v obe smeri enako.
-    skupina.updateWorldMatrix(true, false);
-    const obrat = new THREE.Matrix4().extractRotation(skupina.matrixWorld).invert();
-    const gor = new THREE.Vector3(0, 1, 0).applyMatrix4(obrat).normalize();
-
-    const sever = gor.clone().addScaledVector(sredina, -gor.dot(sredina)).normalize();
-    const vzhod = new THREE.Vector3().crossVectors(sever, sredina).normalize();
-
-    const stopinja = Math.PI / 180;
-    const skrcek = Math.cos(SLO_LAT * stopinja); // poldnevniki se proti polu zblizujejo
     const tocke = [];
     for (let i = 0; i < MEJA_SLO.length; i += 2) {
-      const vzhodno = (MEJA_SLO[i] - SLO_LON) * skrcek * stopinja;
-      const severno = (MEJA_SLO[i + 1] - SLO_LAT) * stopinja;
-      tocke.push(
-        sredina
-          .clone()
-          .addScaledVector(vzhod, vzhodno)
-          .addScaledVector(sever, severno)
-          .normalize()
-          .multiplyScalar(polmerLok * DVIG)
-      );
+      tocke.push(naKroglo(MEJA_SLO[i], MEJA_SLO[i + 1], polmerLok * DVIG));
     }
 
     const geo = new THREE.BufferGeometry().setFromPoints([...tocke, tocke[0]]);
@@ -247,8 +234,8 @@ export function installZemlja(gnezdo) {
     meja.frustumCulled = false;
     skupina.add(meja);
 
-    // Tocka, na katero pripnemo napis. Ista kot sredina obrisa.
-    sidro = sredina.clone().multiplyScalar(polmerLok * DVIG);
+    // Tocka, na katero pripnemo napis: sredisce drzave.
+    sidro = naKroglo(SLO_LON, SLO_LAT, polmerLok * DVIG);
   }
 
   /**
@@ -297,8 +284,8 @@ export function installZemlja(gnezdo) {
     skupina.updateWorldMatrix(true, false);
     const vSvet = (v) => v.clone().transformDirection(skupina.matrixWorld).normalize();
 
-    const z = vSvet(naKroglo(CILJ_LON, CILJ_LAT, 1));
-    severOsnovni = vSvet(new THREE.Vector3(0, -1, 0));
+    const z = vSvet(naKroglo(SLO_LON, SLO_LAT, 1));
+    severOsnovni = vSvet(SEVER_MODEL);
     const y = severOsnovni.clone().addScaledVector(z, -severOsnovni.dot(z)).normalize();
     const x = new THREE.Vector3().crossVectors(y, z);
 

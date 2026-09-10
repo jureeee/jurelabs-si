@@ -220,7 +220,8 @@
   position: absolute;
   z-index: 3;
   pointer-events: none;
-  transform: translate(14px, -50%);
+  /* Toliko v desno, da napis ne sede na obris drzave. */
+  transform: translate(24px, -50%);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.06em;
