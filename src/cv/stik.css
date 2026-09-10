@@ -144,9 +144,9 @@
   touch-action: pan-y;
   /* Prihod pise JS iz lege drsnika; prehod tu le zgladi skoke med sporocili. */
   opacity: 0;
-  transform: translateY(13%) scale(0.82);
+  transform: translateY(9%) scale(0.64);
   transform-origin: 50% 50%;
-  transition: opacity 200ms linear, transform 200ms linear;
+  transition: opacity 200ms linear, transform 200ms linear, filter 200ms linear;
 }
 .zemlja-platno.vlecem { cursor: grabbing; }
 
