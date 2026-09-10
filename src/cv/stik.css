@@ -21,31 +21,22 @@
 /* Zatemnitev pod pozdravom.
  *
  * Znaki so svetli in tanki, galaksija pod njimi pa je polna zvezd; kjer se
- * zvezda ujame med potezi crke, se crka razlomi in napis se tezko bere.
- * Zaveso zato podlozimo se z eno plastjo - a ne z enakomerno crnino, ker bi
- * scena postala prazen pravokotnik in bi se izgubilo vse, zaradi cesar je
- * ozadje ziva slika.
+ * zvezda ujame med potezi crke, se crka razlomi in napis se tezko bere. Zaveso
+ * zato podlozimo se z eno plastjo.
  *
- * Zatemnitev je radialna: najgostejsa je na sredini, kjer stoji napis, in
- * proti robovom popusti, tako da galaksija ostane vidna tam, kjer nic ne
- * prekriva. Lezi znotraj ozadja in torej pod frekvencami in pod vso vsebino.
- *
- * Sredina mora biti res gosta. Prav tam lezi jedro galaksije in to ni le
- * svetlejsa ploskev, ampak razlocna elipsa - oko jo bere kot madez na napisu
- * in ne kot globino za njim. Pri polovicni zatemnitvi je se vedno kazala
- * skozi.
+ * ENAKOMERNA JE, IN TO JE BISTVENO. Najprej je bila radialna, najgostejsa na
+ * sredini in prosojna proti robovom - da bi galaksija ostala vidna tam, kjer
+ * nic ne prekriva. To je bila napaka: zatemnitev z obliko se vidi kot oblika.
+ * Nad zvezdnim poljem je tak gradient narisal razlocno elipso, ki je na Stiku
+ * bila, na Delu in O meni pa ne - ker je tam ni bilo. Enakomerna plast oblike
+ * nima in zato ne more nicesar narisati; galaksija za njo le potemni, tako kot
+ * potemni pod vsako zaveso.
  */
 .stik-ozadje::before {
   content: "";
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(
-      ellipse 82% 70% at 50% 45%,
-      rgba(3, 5, 9, 0.88),
-      rgba(3, 5, 9, 0) 76%
-    ),
-    linear-gradient(rgba(3, 5, 9, 0.22), rgba(3, 5, 9, 0.22));
+  background: rgba(3, 5, 9, 0.42);
 }
 
 /* Napis pa je v toku: z drsenjem gre gor kot vsak drug element strani. */
