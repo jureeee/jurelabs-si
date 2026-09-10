@@ -132,8 +132,8 @@
   left: 50%;
   top: 46%;
   transform: translate(-50%, -50%);
-  width: min(96vh, 52vw);
-  height: min(96vh, 52vw);
+  width: min(112vh, 62vw);
+  height: min(112vh, 62vw);
 }
 .zemlja-platno {
   display: block;
@@ -177,7 +177,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  bottom: clamp(56px, 15vh, 165px);
+  bottom: clamp(70px, 21vh, 220px);
   z-index: 2;
   width: min(1180px, 100%);
   margin: 0 auto;
@@ -185,6 +185,21 @@
 }
 
 @media (max-width: 900px) {
-  .stik-zemlja { width: min(70vh, 92vw); height: min(70vh, 92vw); top: 40%; }
+  .stik-zemlja { width: min(74vh, 96vw); height: min(74vh, 96vw); top: 40%; }
   .stik-povezave { flex-direction: column; align-items: flex-start; }
+}
+
+/* Napis ob drzavi. Ni v prizoru, ampak nad njim: v 3D bi bil zabrisan in bi
+   se z globusom nagibal. Lego mu vsako slicico postavi JS. */
+.zemlja-oznaka {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  transform: translate(14px, -50%);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #ffe6a6;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.8);
+  transition: opacity 260ms var(--ease);
 }
