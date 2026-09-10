@@ -253,6 +253,22 @@ const LET_BOB = 0.06;
 
 /** Koliko casa napis miruje, preden se zacne prelivati v naslednji jezik. */
 const MIROVANJE_S = 6.5;
+
+/**
+ * Pisanje s tipkovnico.
+ *
+ * Kar natipkas, se sestavi iz istih znakov kot pozdrav - pozdrav se umakne in
+ * znaki odtecejo v tvoje crke. Po nekaj sekundah brez tipke se vrne k jezikom.
+ *
+ * Val je pri tem kratek. Pozdrav tece z leve proti desni skoraj dve sekundi,
+ * ker je dogodek; crka pod prstom pa mora priti takoj, sicer pisanje zaostaja
+ * za roko in je videti pokvarjeno.
+ */
+const VPIS_NAJVEC = 36;
+const VPIS_MIRUJE_S = 7;
+const VPIS_VAL_S = 0.45;
+/** Do te dolzine je vpis ena vrstica; dalje se prelomi na presledku. */
+const VPIS_VRSTICA = 16;
 /** Koliko traja preliv od zacetka prvega znaka do prihoda zadnjega. */
 const VAL_S = 1.9;
 
@@ -676,7 +692,25 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
 
   // Dve vrstici: pozdrav zgoraj, ime spodaj. V eni vrstici bi bile crke
   // pretesne, da bi se videla pisava.
-  const besedilo = () => [`${DELI[0][jezikA]}, ${DELI[1][jezikB]}`, IME];
+  /** Natipkano besedilo; null pomeni, da tece pozdrav v jezikih. */
+  let vpis = null;
+
+  /** Dolg vpis prelomimo na presledku, ki je sredini najblizji. */
+  function vrsticeVpisa(t) {
+    if (t.length <= VPIS_VRSTICA) return [t];
+    const sredina = t.length / 2;
+    let najbolje = -1;
+    for (let i = 0; i < t.length; i++) {
+      if (t[i] === " " && (najbolje < 0 || Math.abs(i - sredina) < Math.abs(najbolje - sredina))) {
+        najbolje = i;
+      }
+    }
+    const rez = najbolje > 0 ? najbolje : Math.round(sredina);
+    return [t.slice(0, rez).trim(), t.slice(rez).trim()].filter(Boolean);
+  }
+
+  const besedilo = () =>
+    vpis !== null ? vrsticeVpisa(vpis) : [`${DELI[0][jezikA]}, ${DELI[1][jezikB]}`, IME];
 
   function naprejJezik() {
     if (prvikrat) {
@@ -731,7 +765,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
   };
 
   /** Preusmeri znake besedila na novo besedilo. */
-  function preusmeriBesedilo() {
+  function preusmeriBesedilo(val = VAL_S) {
     // Visino delimo med obe vrstici in pustimo rob: pri 0,3 je spodnja vrstica
     // s podaljski crk segala cez spodnji rob platna.
     const velikost = Math.min(mereB.v * 0.24, mereB.s * 0.155);
@@ -756,7 +790,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
       }
       // Val z leve proti desni: zamik raste z lego tarce po vodoravnici.
       const delez = (d.ciljX - sredX) / Math.max(1, mereB.s * NAJVEC_SIRINE * 0.5);
-      d.cakaj = ((delez + 1) / 2) * VAL_S;
+      d.cakaj = ((delez + 1) / 2) * val;
       d.z = znak();
     }
   }
@@ -961,7 +995,10 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
     zadnjiSek = sek;
 
     if (napisTece && sek >= menjavaOb) {
-      naprejJezik();
+      // Ko je vpis potekel, se vrne jezik, ki je bil prej - ne naslednji, sicer
+      // bi bilo videti, kot da je pisanje pojedlo en pozdrav.
+      if (vpis !== null) vpis = null;
+      else naprejJezik();
       preusmeriBesedilo();
       menjavaOb = sek + MIROVANJE_S + VAL_S;
     }
@@ -984,6 +1021,45 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
     }
     risi(sek);
   }
+
+  /**
+   * Tipka na strani.
+   *
+   * Lovimo le, kar je res pisanje: en znak ali brisalko, brez Ctrl, Alt in Cmd,
+   * ne v vnosnih poljih in ne, ko je odprta vizitka. Esc ostane strani - z njim
+   * se zapira. Presledku preprecimo privzeto dejanje, sicer bi stran ob vsakem
+   * presledku skocila za zaslon navzdol.
+   */
+  const naTipko = (e) => {
+    if (!viden || !napisTece || e.isComposing) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const cilj = e.target;
+    if (
+      cilj instanceof HTMLElement &&
+      (cilj.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(cilj.tagName))
+    ) {
+      return;
+    }
+    if (document.documentElement.classList.contains("viz-open")) return;
+
+    let nov = vpis ?? "";
+    if (e.key === "Backspace") {
+      if (vpis === null) return;
+      nov = nov.slice(0, -1);
+    } else if (e.key.length === 1) {
+      if (nov.length >= VPIS_NAJVEC) return;
+      nov += e.key;
+    } else {
+      return;
+    }
+    e.preventDefault();
+
+    const zdaj = performance.now() * 0.001;
+    vpis = nov.trim() ? nov : null;
+    // Prazen vpis vrne pozdrav takoj; sicer pocaka, da nehas tipkati.
+    menjavaOb = zdaj + (vpis === null ? MIROVANJE_S : VPIS_MIRUJE_S);
+    preusmeriBesedilo(VPIS_VAL_S);
+  };
 
   const naMisko = (e) => {
     kazalec.x = e.clientX;
@@ -1083,6 +1159,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
       );
       opazovalec.observe(gnezdoBesedila);
 
+      addEventListener("keydown", naTipko);
       addEventListener("pointermove", naMisko, { passive: true });
       addEventListener("pointerleave", naIzhod, { passive: true });
       addEventListener("resize", naSpremembo);
@@ -1107,7 +1184,9 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
       platnoB.classList.remove("vidno");
       if (zanka) cancelAnimationFrame(zanka);
       zanka = null;
+      removeEventListener("keydown", naTipko);
       removeEventListener("pointermove", naMisko);
+      vpis = null;
       removeEventListener("pointerleave", naIzhod);
       removeEventListener("resize", naSpremembo);
     },
