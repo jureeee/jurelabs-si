@@ -96,6 +96,29 @@ const IZTEK = 0.86;
 /** Zgornja meja hitrosti, da divje vlecenje ne konca v vrtavki. */
 const NAJVEC_HITROSTI = 3.4;
 
+/**
+ * Vrnitev v izhodisce.
+ *
+ * Ko globus spustis, se izteka - in obstane, kjer se ustavi. Po POCITEK_S
+ * sekundah brez dotika se sam vrne v lego, v kateri je Slovenija pred
+ * gledalcem, in v natanko to lego, ne priblizno.
+ *
+ * Vrnitev NI preliv s trajanjem. Ob koncu pocitka se globus najbrz se vedno
+ * vrti in preliv bi mu v hipu spremenil smer - videti bi bilo, kot da ga je
+ * nekaj sunilo. Namesto tega deluje vzmet na isto vrtilno hitrost, na katero
+ * deluje vlecenje: obstojece vrtenje najprej ustavi in ga sele nato povlece
+ * nazaj, zato je vrnitev ena sama zvezna poteza.
+ *
+ * VRNITEV_MOC je kvadrat lastne frekvence; dusenje je dvakratnik njenega
+ * korena, torej mejno. Sibkejse bi cez cilj zanihalo nazaj, mocnejse bi se
+ * vleklo. Ostanek pod pragom poravnamo, sicer se vzmet cilja le priblizuje in
+ * lega ni nikoli natanko ista.
+ */
+const POCITEK_S = 5;
+const VRNITEV_MOC = 3.6;
+const VRNITEV_DUSENJE = 2 * Math.sqrt(VRNITEV_MOC);
+const VRNITEV_PRAG = 0.002;
+
 /** Koliko obratov naredi ob priletu in koliko casa za to porabi. */
 const OBRATOV = 1.7;
 const PRILET_MS = 5200;
@@ -332,9 +355,34 @@ export function installZemlja(gnezdo) {
       if (t >= 1) priletTece = false;
       spremenilo = true;
     } else {
-      if (!vlecem) hitrost.multiplyScalar(Math.pow(IZTEK, dt));
+      const pocivam = !vlecem && sek - zadnjiDotik > POCITEK_S;
+      let doma = false;
+
+      if (pocivam) {
+        // Zasuk, ki manjka do izhodisca. Kvaternion in njegovo nasprotje sta
+        // ista lega; tistega z negativnim w obrnemo, sicer bi se vzmet vlekla
+        // po dolgi poti okoli.
+        const nazaj = zasuk.clone().conjugate();
+        if (nazaj.w < 0) nazaj.set(-nazaj.x, -nazaj.y, -nazaj.z, -nazaj.w);
+        const sinus = Math.sqrt(Math.max(0, 1 - nazaj.w * nazaj.w));
+        const kot = 2 * Math.acos(Math.min(1, Math.max(-1, nazaj.w)));
+        if (sinus > 1e-6) {
+          const os = new THREE.Vector3(nazaj.x, nazaj.y, nazaj.z).divideScalar(sinus);
+          hitrost.addScaledVector(os, kot * VRNITEV_MOC * dt);
+        }
+        hitrost.multiplyScalar(Math.exp(-VRNITEV_DUSENJE * dt));
+        if (kot < VRNITEV_PRAG && hitrost.length() < VRNITEV_PRAG) {
+          zasuk.identity();
+          hitrost.set(0, 0, 0);
+          doma = true;
+          spremenilo = true;
+        }
+      } else if (!vlecem) {
+        hitrost.multiplyScalar(Math.pow(IZTEK, dt));
+      }
+
       const dolzina = hitrost.length();
-      if (dolzina > 1e-4) {
+      if (!doma && dolzina > 1e-4) {
         zasuk.premultiply(
           new THREE.Quaternion().setFromAxisAngle(
             hitrost.clone().divideScalar(dolzina),
@@ -373,12 +421,16 @@ export function installZemlja(gnezdo) {
   let vlecem = false;
   let zadnjiX = 0;
   let zadnjiY = 0;
+  /** Kdaj se je globusa nazadnje kdo dotaknil; od tod se meri pocitek. */
+  let zadnjiDotik = 0;
+  const dotaknil = () => { zadnjiDotik = performance.now() * 0.001; };
 
   platno.addEventListener("pointerdown", (e) => {
     if (!viden) return;
     // Kdor prime globus, prevzame vodenje: prilet se konca tam, kjer je.
     priletTece = false;
     vlecem = true;
+    dotaknil();
     zadnjiX = e.clientX;
     zadnjiY = e.clientY;
     hitrost.set(0, 0, 0);
@@ -402,6 +454,7 @@ export function installZemlja(gnezdo) {
     os.divideScalar(dolzina);
 
     const kot = dolzina * VLEK;
+    dotaknil();
     zasuk.premultiply(new THREE.Quaternion().setFromAxisAngle(os, kot));
     uporabiZasuk();
     osveziNapis();
@@ -414,6 +467,7 @@ export function installZemlja(gnezdo) {
   const nehaj = (e) => {
     if (!vlecem) return;
     vlecem = false;
+    dotaknil();
     platno.releasePointerCapture?.(e.pointerId);
     platno.classList.remove("vlecem");
   };
@@ -458,6 +512,7 @@ export function installZemlja(gnezdo) {
         hitrost.set(0, 0, 0);
         priletTece = true;
         priletOd = performance.now() * 0.001;
+        zadnjiDotik = priletOd;
         zadnjiSek = 0;
         zanka = requestAnimationFrame(slicica);
       });
