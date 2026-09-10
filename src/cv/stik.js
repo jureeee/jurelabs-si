@@ -170,6 +170,14 @@ export function installStik() {
     pozdrav?.sunek(premik);
 
     const okno = tok.clientHeight || 1;
+
+    // Koliko je pozdrav se pred tabo: 1 na vrhu, 0 ko je prvi zaslon odsel.
+    // Po njem se ravna zatemnitev ozadja - velja le, dokler je napis tu, sicer
+    // bi temnila tudi vsebino, ki je ne potrebuje. Konca se malo pred koncem
+    // zaslona, da je drugi zaslon ze v normalni svetlobi, ko pride na sredino.
+    const t = 1 - Math.max(0, Math.min(tok.scrollTop / (okno * 0.85), 1));
+    koren.style.setProperty("--pozdrav", (t * t * (3 - 2 * t)).toFixed(3));
+
     const vrh = zaslonKje.getBoundingClientRect().top - tok.getBoundingClientRect().top;
     const delez = 1 - Math.max(0, Math.min(vrh / okno, 1));
     zemlja?.nastaviPrihod(delez);

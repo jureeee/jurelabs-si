@@ -36,8 +36,16 @@
   content: "";
   position: absolute;
   inset: 0;
-  /* 0,42 je bilo premalo, da bi se napis bral brez napora. */
-  background: rgba(3, 5, 9, 0.6);
+  /* Zatemnitev in zabris veljata le, dokler je pozdrav na zaslonu:
+     --pozdrav nastavlja drsenje (stik.js), 1 na vrhu, 0 ko je napis odsel.
+     Potem je ozadje tako kot pod vsako drugo stranjo.
+
+     Zabris je tu dodaten k tistemu v zavesi in zajame le galaksijo - platno s
+     frekvencami in okrasoma lezi nad to plastjo in ostane ostro. Zvezde, ki se
+     zlijejo, ne morejo vec sesti med poteze crk in jih lomiti. */
+  background: rgba(3, 5, 9, calc(0.6 * var(--pozdrav, 1)));
+  backdrop-filter: blur(calc(5px * var(--pozdrav, 1)));
+  -webkit-backdrop-filter: blur(calc(5px * var(--pozdrav, 1)));
 }
 
 /* Napis pa je v toku: z drsenjem gre gor kot vsak drug element strani. */
