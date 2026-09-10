@@ -93,6 +93,16 @@ const VRSTICA = 1.12;
  */
 const RAZMIK = 0.17;
 
+/**
+ * Raztezek crk po sirini.
+ *
+ * Gotska pisava je ozka in visoka - crke stojijo kot resetke. Raztegnjene po
+ * sirini izgubijo to pokoncnost in se priblizajo predlogi, ki je bila siroka
+ * in polozena. Raztezemo ob izrisu na pomozno platno, zato so tocke ze v
+ * pravih legah in vzmet nima s tem nobenega dela.
+ */
+const SIRJENJE = 1.45;
+
 /** Kako mocno znak vlece proti tarci in koliko ga dusi. */
 const VZMET = 0.055;
 const DUSENJE = 0.86;
@@ -164,12 +174,12 @@ const znak = () => ZNAKI[(Math.random() * ZNAKI.length) | 0];
  * Bralna mreza je v lihih vrsticah zamaknjena za pol koraka, sicer tocke
  * sestavijo ocitno kvadratno resetko in napis je videti kot vezenina.
  */
-/** Sirina besedila, ko so crke razmaknjene. */
+/** Sirina besedila, ko so crke razmaknjene in raztegnjene. */
 function sirinaRazmaknjena(ctx, besedilo, velikost) {
   const razmik = velikost * RAZMIK;
   let sirina = 0;
   for (const c of besedilo) sirina += ctx.measureText(c).width + razmik;
-  return Math.max(0, sirina - razmik);
+  return Math.max(0, sirina - razmik) * SIRJENJE;
 }
 
 /** Izris crko za crko z razmikom. Vrne skupno sirino. */
@@ -212,7 +222,12 @@ function tockeBesedila(vrstice, sirinaNaVoljo, velikostPisave, gostota = GOSTOTA
   ctx.font = pisava(velikost);
   ctx.fillStyle = "#fff";
   ctx.textBaseline = "alphabetic";
-  narisiRazmaknjeno(ctx, besedilo, 4, nad + 4, velikost);
+  // Raztezek dosezemo z merilom platna, ne s prilagojeno pisavo: pisava
+  // razlicnih sirin nima, prilagojena pa bi izgubila obliko potez.
+  ctx.save();
+  ctx.scale(SIRJENJE, 1);
+  narisiRazmaknjeno(ctx, besedilo, 4 / SIRJENJE, nad + 4, velikost);
+  ctx.restore();
 
   const slika = ctx.getImageData(0, 0, sirina, visina).data;
   const tocke = [];
