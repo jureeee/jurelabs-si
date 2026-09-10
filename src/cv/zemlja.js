@@ -150,6 +150,22 @@ const ODRIV_NAJVEC = 0.11;
 const ODRIV_MOC = 26;
 const ODRIV_DUSENJE = 5.2;
 
+/**
+ * Priblizevanje s kolescem.
+ *
+ * Ko je kazalec nad globusom, ga kolesce priblizuje in oddaljuje - a ga ne
+ * pusti tam. Vzmet ga vrne na osnovno velikost, tako kot odriv vrne lego. To
+ * ni nastavitev pogleda, ampak igra: prijeti ga smes in ga potegniti k sebi,
+ * spustis pa ga nazaj.
+ *
+ * Ker se vrne sam, kolesca ni treba jemati strani - poteg z njim naredi oboje,
+ * priblizanje in drsenje, in ker je prvo minljivo, drugo ne trpi.
+ */
+const ZOOM_KORAK = 0.0016;
+const ZOOM_NAJVEC = 0.55;
+const ZOOM_MOC = 21;
+const ZOOM_DUSENJE = 5.4;
+
 /** Koliko nad povrsjem lezi crta, da je krogla ne poje. */
 const DVIG = 1.004;
 /** Koliko prostora okoli globusa pusti kamera. 1 je tesno. */
@@ -218,6 +234,10 @@ export function installZemlja(gnezdo) {
   /** Odriv: koliko je globus premaknjen s svojega mesta in kako hitro se vraca. */
   const odmik = new THREE.Vector3();
   const odmikHitrost = new THREE.Vector3();
+  /** Priblizanje: 0 je osnovna velikost, pozitivno je blizje. */
+  let zoom = 0;
+  let zoomHitrost = 0;
+  let razdaljaOsnovna = 1;
 
   let zanka = null;
   let viden = false;
@@ -324,6 +344,7 @@ export function installZemlja(gnezdo) {
     const r = Math.max(mere.x, mere.y, mere.z) * 0.5;
     polmerSvet = r;
     const d = (r / Math.tan((kamera.fov * Math.PI) / 360)) * ZRAK;
+    razdaljaOsnovna = d;
     kamera.position.set(sredisce.x, sredisce.y, sredisce.z + d);
     kamera.lookAt(sredisce);
   }
@@ -440,6 +461,17 @@ export function installZemlja(gnezdo) {
       spremenilo = true;
     }
 
+    // Priblizanje se vraca na osnovno velikost. Kamero premikamo in ne
+    // globusa: lego nosilca zaseda ze zasuk in odriv, in merilo bi se z njima
+    // prepiralo.
+    if (Math.abs(zoom) > 1e-5 || Math.abs(zoomHitrost) > 1e-5) {
+      zoomHitrost += -zoom * ZOOM_MOC * dt;
+      zoomHitrost *= Math.exp(-ZOOM_DUSENJE * dt);
+      zoom = Math.max(-ZOOM_NAJVEC, Math.min(zoom + zoomHitrost * dt, ZOOM_NAJVEC));
+      kamera.position.z = sredisce.z + razdaljaOsnovna / (1 + zoom);
+      spremenilo = true;
+    }
+
     // Sledenje kazalcu. Eksponentno priblizevanje: hitro na zacetku, brez
     // konca - zato ni praga, na katerem bi se gib ustavil sunkovito.
     const k = 1 - Math.exp(-MISKA_SLEDENJE * dt);
@@ -514,6 +546,16 @@ export function installZemlja(gnezdo) {
     hitrost.copy(os).multiplyScalar(Math.min(kot * 60, NAJVEC_HITROSTI));
   });
 
+  platno.addEventListener(
+    "wheel",
+    (e) => {
+      if (!viden) return;
+      dotaknil();
+      zoom = Math.max(-ZOOM_NAJVEC, Math.min(zoom - e.deltaY * ZOOM_KORAK, ZOOM_NAJVEC));
+    },
+    { passive: true }
+  );
+
   const nehaj = (e) => {
     if (!vlecem) return;
     vlecem = false;
@@ -546,7 +588,9 @@ export function installZemlja(gnezdo) {
     nastaviPrihod(p) {
       const d = Math.max(0, Math.min(p, 1));
       const e = easeOut(d);
-      platno.style.transform = `translateY(${(1 - e) * 9}%) scale(${0.64 + e * 0.36})`;
+      // Iz daljave in ne le od spodaj: pri 0,64 je globus ze ob prihodu skoraj
+      // tak, kot bo, in poti ni videti. Pri 0,2 je najprej drobec.
+      platno.style.transform = `translateY(${(1 - e) * 9}%) scale(${0.2 + e * 0.8})`;
       platno.style.opacity = String(e);
       platno.style.filter = `blur(${(1 - e) * 7}px)`;
     },
