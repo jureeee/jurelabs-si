@@ -193,11 +193,40 @@ const KRONA = (() => {
  * raztresenih znakov brez obrisa.
  */
 const OKRASI = [
-  { svg: METULJ, x: 0.845, y: 0.3, sirina: 0.2, gostota: 5, odtenek: 328, zamah: 26, doba: 47, faza: 0 },
+  { svg: METULJ, x: 0.845, y: 0.3, sirina: 0.2, gostota: 5, odtenek: 328, zamah: 26, doba: 47, faza: 0, leti: true },
   { svg: KRONA, x: 0.185, y: 0.615, sirina: 0.18, gostota: 5, odtenek: 286, zamah: 24, doba: 61, faza: 0.42 },
 ];
 /** Koliko od okrasa ostane v dnu diha; v vrhu je cel. */
 const OKRAS_DNO = 0.18;
+
+/**
+ * Let metulja.
+ *
+ * Krila niso druga risba, ampak ista, ki jo vsako slicico preoblikujemo. Krilo
+ * se pri zamahu zavrti iz ravnine zaslona; oko tega ne vidi kot vrtenje, ampak
+ * kot da se krilo POZI - siroko je manj, konica pa gre navzgor. Natanko to
+ * naredimo: vodoravni odmik od telesa pomnozimo s kosinusom kota, konico pa
+ * dvignemo za sinus. Telo ima odmik nic in zato mirno stoji, ne da bi ga bilo
+ * treba loceno oznacevati.
+ *
+ * Zamah je pocasen in to ni okus, ampak nuja: vsak znak je delec na vzmeti in
+ * mora pot fizicno prepotovati. Pri hitrem zamahu znaki ne bi dohajali tarc in
+ * to ne bi bilo videti kot let, ampak kot migetanje. Pri 2,6 sekunde na zamah
+ * jih vzmet ujame, zaostanek konic pa je celo dobrodosel - krilo je videti
+ * mehko.
+ *
+ * Lebdenje sta dve nihanji z razlicno dobo, zato pot ni krog, ampak vijuga, ki
+ * se ne ponovi na oceh. Manjsi dvig je vezan na zamah: metulj se ob zamahu
+ * navzdol malce dvigne.
+ */
+const ZAMAH_S = 2.6;
+const ZAMAH_KOT = 1.15;
+const ZAMAH_NAGIB = 0.5;
+const LET_X_S = 17;
+const LET_Y_S = 11;
+const LET_X = 0.22;
+const LET_Y = 0.13;
+const LET_BOB = 0.06;
 
 /** Koliko casa napis miruje, preden se zacne prelivati v naslednji jezik. */
 const MIROVANJE_S = 6.5;
@@ -677,7 +706,37 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
       for (const d of k.delci) d.imaCilj = false;
       // Tarce so ze v koordinatah prostora, zato brez zamika sredisca.
       poveziNajblizje(k.delci, k.delci.map((_, i) => i), cilji, 0, 0);
-      for (const d of k.delci) d.cakaj = nakljucno(0, 1.8);
+      // Mirujoca oblika, merjena od sredisca: iz nje se vsako slicico racuna
+      // zamah. Tarce same se namrec sproti spreminjajo.
+      k.sredX = sredX;
+      k.sredY = sredY;
+      for (const d of k.delci) {
+        d.cakaj = nakljucno(0, 1.8);
+        d.doma = { x: d.ciljX - sredX, y: d.ciljY - sredY };
+      }
+    }
+  }
+
+  /**
+   * Prestavi tarce metulja: zamah kril in lebdenje po strani.
+   *
+   * Tece pred korakom delcev, da znaki v isti slicici ze vlecejo proti novi
+   * legi. Kdor je izklopil gibanje, dobi metulja pri miru - takrat tarce
+   * ostanejo tam, kamor jih je postavila oblika.
+   */
+  function zamahni(k, sek) {
+    if (!k.o.leti || mirno.matches) return;
+    const kot = Math.sin((sek / ZAMAH_S) * Math.PI * 2) * ZAMAH_KOT;
+    const stisk = Math.cos(kot);
+    const dvig = Math.sin(kot);
+    const merilo = mereK.s * k.o.sirina;
+    const nesX = Math.sin((sek / LET_X_S) * Math.PI * 2) * merilo * LET_X;
+    const nesY =
+      Math.sin((sek / LET_Y_S) * Math.PI * 2 + 1.1) * merilo * LET_Y - dvig * merilo * LET_BOB;
+    for (const d of k.delci) {
+      if (!d.imaCilj || !d.doma) continue;
+      d.ciljX = k.sredX + d.doma.x * stisk + nesX;
+      d.ciljY = k.sredY + d.doma.y - Math.abs(d.doma.x) * dvig * ZAMAH_NAGIB + nesY;
     }
   }
 
@@ -844,7 +903,10 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
     // je stran zdrsela - sicer bi znaki bezali pred prazno tocko.
     const kazalecK = kazalecZa(gnezdoOzadja);
     if (kazalecK.ziv) kazalecK.y += vrhStrani();
-    for (const k of okrasni) korakPolja(k.delci, mereK, dt, kazalecK, sek);
+    for (const k of okrasni) {
+      zamahni(k, sek);
+      korakPolja(k.delci, mereK, dt, kazalecK, sek);
+    }
     risi(sek);
   }
 
