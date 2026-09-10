@@ -84,35 +84,45 @@ const POTEZA = 'stroke="#fff" fill="none" stroke-linecap="round" stroke-linejoin
 /**
  * Metulj.
  *
- * Ena polovica; druga je njeno zrcalo. Obris peruti, nekaj zilic po njiju in
- * plamenski koncici, ki se odlepijo od zunanjega roba - tako kot na predlogi,
- * kjer krilo ni ploskev, ampak ogrodje.
+ * Razmerja so tu vse. Prva risba je imela krila razprta vodoravno in metulj je
+ * bil videti kot zvezda; na predlogi pa krila STRMO POLETIJO NAVZGOR in je
+ * cela zival visja kot sirsa. Zgornji perut je zato dolg in ozek in se konca
+ * skoraj nad telesom, spodnji pa je majhen in visi pod njim.
+ *
+ * Zilice tecejo po dolzini peruti in ne zvezdasto iz telesa: v predlogi so
+ * vzporedne s krilom, zato ga podpirajo, namesto da bi ga razbijale.
+ *
+ * Plameni so pripeti na zunanji rob in gredo v isto smer kot krilo - navzgor
+ * in navzven. Plamen, ki bi sel prek krila, bi obris zabrisal.
  */
 const METULJ = (() => {
   const polovica = `
-    <path d="M 6 -6 C 22 -60 58 -112 96 -132 C 108 -112 112 -84 114 -58
-             C 124 -42 128 -22 118 -4 C 92 8 46 12 9 5 Z" stroke-width="6" ${POTEZA} />
-    <path d="M 9 12 C 48 16 88 38 98 66 C 87 92 63 110 41 116
-             C 23 107 11 71 7 27 Z" stroke-width="6" ${POTEZA} />
+    <path d="M 6 -6 C 26 -70 46 -132 74 -178 C 92 -160 102 -122 106 -84
+             C 112 -56 104 -34 84 -20 C 56 -8 26 -4 9 3 Z"
+          stroke-width="6" ${POTEZA} />
+    <path d="M 9 10 C 34 16 58 34 66 58 C 70 82 58 100 42 108
+             C 26 100 14 66 8 28 Z"
+          stroke-width="6" ${POTEZA} />
 
-    <path d="M 14 -4 C 40 -40 66 -76 92 -120" stroke-width="4" ${POTEZA} />
-    <path d="M 16 0 C 48 -28 80 -50 111 -60" stroke-width="4" ${POTEZA} />
-    <path d="M 18 3 C 54 -6 88 -8 119 -8" stroke-width="4" ${POTEZA} />
-    <path d="M 14 20 C 44 30 72 44 95 64" stroke-width="4" ${POTEZA} />
-    <path d="M 12 30 C 32 56 44 84 42 112" stroke-width="4" ${POTEZA} />
+    <path d="M 12 -8 C 30 -62 48 -116 70 -166" stroke-width="4" ${POTEZA} />
+    <path d="M 16 -6 C 40 -54 66 -92 96 -122" stroke-width="4" ${POTEZA} />
+    <path d="M 20 -2 C 48 -30 76 -50 104 -66" stroke-width="4" ${POTEZA} />
+    <path d="M 14 20 C 32 36 48 54 60 74" stroke-width="4" ${POTEZA} />
+    <path d="M 12 32 C 24 56 32 80 40 104" stroke-width="4" ${POTEZA} />
 
-    <path d="M 96 -132 C 104 -150 100 -164 88 -172" stroke-width="5" ${POTEZA} />
-    <path d="M 114 -58 C 132 -66 142 -60 146 -46" stroke-width="5" ${POTEZA} />
-    <path d="M 118 -4 C 138 2 146 14 142 30" stroke-width="5" ${POTEZA} />
-    <path d="M 98 66 C 116 74 122 88 116 102" stroke-width="5" ${POTEZA} />
-    <path d="M 41 116 C 44 138 38 152 24 158" stroke-width="5" ${POTEZA} />`;
+    <path d="M 74 -178 C 80 -202 74 -218 58 -226" stroke-width="5" ${POTEZA} />
+    <path d="M 92 -150 C 104 -168 104 -184 94 -196" stroke-width="4" ${POTEZA} />
+    <path d="M 106 -84 C 126 -92 138 -82 140 -64" stroke-width="5" ${POTEZA} />
+    <path d="M 104 -40 C 124 -34 132 -18 124 -2" stroke-width="4" ${POTEZA} />
+    <path d="M 66 58 C 84 66 88 82 78 94" stroke-width="5" ${POTEZA} />
+    <path d="M 42 108 C 46 130 38 144 22 150" stroke-width="4" ${POTEZA} />`;
 
   return (
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-170 -195 340 380">` +
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-150 -240 300 420">` +
     `<g>${polovica}</g><g transform="scale(-1 1)">${polovica}</g>` +
-    `<path d="M 0 -30 C 5 -8 6 48 0 100 C -6 48 -5 -8 0 -30 Z" stroke-width="5" ${POTEZA} />` +
-    `<path d="M -3 -40 C -20 -68 -34 -80 -50 -86" stroke-width="4" ${POTEZA} />` +
-    `<path d="M 3 -40 C 20 -68 34 -80 50 -86" stroke-width="4" ${POTEZA} />` +
+    `<path d="M 0 -34 C 5 -10 6 46 0 104 C -6 46 -5 -10 0 -34 Z" stroke-width="5" ${POTEZA} />` +
+    `<path d="M -3 -44 C -18 -76 -30 -92 -46 -100" stroke-width="4" ${POTEZA} />` +
+    `<path d="M 3 -44 C 18 -76 30 -92 46 -100" stroke-width="4" ${POTEZA} />` +
     `</svg>`
   );
 })();
@@ -172,7 +182,7 @@ const KRONA = (() => {
  * raztresenih znakov brez obrisa.
  */
 const OKRASI = [
-  { svg: METULJ, x: 0.85, y: 0.7, sirina: 0.28, gostota: 5 },
+  { svg: METULJ, x: 0.855, y: 0.62, sirina: 0.19, gostota: 5 },
   { svg: KRONA, x: 0.5, y: 0.145, sirina: 0.17, gostota: 5 },
 ];
 
