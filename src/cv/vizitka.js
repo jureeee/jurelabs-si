@@ -1143,26 +1143,18 @@ export function mountVizitka(host, opts = {}) {
   let odprta = null;
   btn.addEventListener("click", () => (odprta ? zapri() : odpri()));
 
-  /**
-   * Odrezek, iz katerega ploskev zraste in v katerega se vrne.
-   *
-   * V Trace Space je bil to stranski meni: vizitka se je razprla iz njega in
-   * je bila zato videti kot isti meni, le raztegnjen. Tu stranskega menija
-   * ni, zato ploskev raste iz gumba, ki jo je odprl - ista misel, drug izvor.
-   */
-  function robIzvora() {
-    const r = btn.getBoundingClientRect();
-    return `inset(${Math.max(0, r.top)}px ${Math.max(0, innerWidth - r.right)}px ` +
-      `${Math.max(0, innerHeight - r.bottom)}px ${Math.max(0, r.left)}px round 999px)`;
-  }
-
   function odpri() {
     if (odprta) return;
     const sheet = document.createElement("div");
     sheet.className = "viz-sheet";
-    sheet.innerHTML = vizitkaMarkup(opro);
+    sheet.innerHTML =
+      `<div class="viz-zavesa"></div><div class="viz-plosca">${vizitkaMarkup(opro)}</div>`;
     document.body.appendChild(sheet);
     document.documentElement.classList.add("viz-open");
+    // Prisilimo preracun, sicer bi brskalnik obe stanji zdruzil v eno in
+    // prehoda ne bi bilo - ploskev bi se pojavila kar takoj.
+    void sheet.offsetWidth;
+    sheet.classList.add("odprt");
 
     const mir = reduced();
     const stop = [];
@@ -1177,21 +1169,19 @@ export function mountVizitka(host, opts = {}) {
     stop.push(asciiZivi(sheet.querySelector(".viz-ascii canvas"),
       sheet.querySelector(".viz-ascii-oznaka span")));
 
-    // Meni se raztegne cez stran: odrezek raste iz njegovega roba na cel
-    // zaslon. Vsebina je ze na svojem mestu in se samo odkrije - zato ni
-    // videti kot okno, ki bi se odprlo nad stranjo, ampak kot isti meni.
+    // Ploskev pripelje CSS, tako kot pri nastavitvah; tu ostane le vsebina,
+    // ki se za njo odkrije po vrsti. Zamik je za zaveso in za ploskev, sicer
+    // bi besedilo prislo, preden je podlaga, na kateri stoji.
     if (!mir) {
-      sheet.animate([{ clipPath: robIzvora() }, { clipPath: "inset(0px 0px 0px 0px round 0px)" }],
-        { duration: 760, easing: "cubic-bezier(0.16, 1, 0.22, 1)", fill: "backwards" });
       const card = sheet.querySelector(".viz-card");
       [...card.querySelectorAll(".viz-vrh > *, .viz-dno > *")].forEach((el, i) => {
         el.animate([
           { opacity: 0, transform: "translateY(14px) scale(.985)", filter: "blur(9px)" },
           { opacity: 1, transform: "none", filter: "blur(0px)" },
-        ], { duration: 620, delay: 260 + i * 90, easing: "cubic-bezier(0.16, 1, 0.22, 1)", fill: "backwards" });
+        ], { duration: 620, delay: 420 + i * 90, easing: "cubic-bezier(0.16, 1, 0.22, 1)", fill: "backwards" });
       });
     }
-    setTimeout(() => pisi(sheet, mir), mir ? 0 : 620);
+    setTimeout(() => pisi(sheet, mir), mir ? 0 : 780);
 
     const naTipko = (e) => { if (e.key === "Escape") zapri(); };
     addEventListener("keydown", naTipko);
@@ -1217,12 +1207,8 @@ export function mountVizitka(host, opts = {}) {
       document.documentElement.classList.remove("viz-open");
     };
     if (reduced()) return konec();
-    sheet.querySelector(".viz-card").animate(
-      [{ opacity: 1, filter: "blur(0px)" }, { opacity: 0, filter: "blur(10px)" }],
-      { duration: 260, easing: "ease-in", fill: "forwards" });
-    const a = sheet.animate([{ clipPath: "inset(0px 0px 0px 0px round 0px)" }, { clipPath: robIzvora() }],
-      { duration: 480, delay: 90, easing: "cubic-bezier(0.5, 0, 0.9, 0.4)", fill: "forwards" });
-    a.onfinish = konec;
-    setTimeout(() => { if (sheet.isConnected) konec(); }, 700);   // ce slike ne tecejo
+    // Odhod je isti prehod nazaj: ploskev se razblini, zavesa za njo popusti.
+    sheet.classList.remove("odprt");
+    setTimeout(konec, 560);
   }
 }

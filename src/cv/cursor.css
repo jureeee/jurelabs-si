@@ -12,7 +12,9 @@
 .kaz {
   position: fixed;
   top: 0; left: 0;
-  z-index: 200;
+  /* Nad vsem. Kazalec je roka uporabnika na strani; ce ga karkoli pokrije,
+     roke ni vec videti. Vizitka je bila na 240 in ga je pojedla. */
+  z-index: 400;
   pointer-events: none;
   will-change: transform;
   color: #f2f5f9;

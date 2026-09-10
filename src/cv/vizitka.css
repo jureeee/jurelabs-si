@@ -121,10 +121,43 @@
 /* Meni med odprto vizitko utihne: imena izginejo, ostane samo steklo. */
 :root.viz-open, :root.viz-open body { overflow: hidden; }
 
-/* List sam: meni, raztegnjen cez celo stran. Zato ni sence okrog - to ni
-   okno nad stranjo, ampak ista ploskev, ki je zrasla. */
-.viz-sheet {
-  position: fixed; inset: 0; z-index: 240; display: grid; place-items: center;
+/* Vizitka se odpre kot nastavitve.
+   Prej se je razprla iz gumba cez cel zaslon in bila prilepljena na njegove
+   robove: okvir je bil narisan z odmikom, ploskev pod njim pa je segala do
+   roba, zato ni bila videti kot okno, ampak kot druga stran. Zdaj je pravo
+   okno - zavesa umakne svet, ploskev pa stoji v njem z enakim odmikom kot
+   plosca nastavitev.
+
+   Ovoj sam ni videti; nosi le plast in dogodke. */
+.viz-sheet { position: fixed; inset: 0; z-index: 240; }
+
+/* --- 1. korak: svet se umakne -------------------------------------------- */
+.viz-zavesa {
+  position: absolute; inset: 0;
+  background: rgba(8, 10, 14, 0);
+  backdrop-filter: blur(0px) saturate(1);
+  -webkit-backdrop-filter: blur(0px) saturate(1);
+  transition:
+    background 420ms var(--ease),
+    backdrop-filter 420ms var(--ease),
+    -webkit-backdrop-filter 420ms var(--ease);
+}
+.viz-sheet.odprt .viz-zavesa {
+  background: rgba(8, 10, 14, 0.24);
+  backdrop-filter: blur(10px) saturate(1.25);
+  -webkit-backdrop-filter: blur(10px) saturate(1.25);
+}
+
+/* --- 2. korak: ploskev se zgosti iz sija --------------------------------- */
+.viz-plosca {
+  position: absolute;
+  top: max(34px, calc(env(safe-area-inset-top) + 18px));
+  right: max(34px, calc(env(safe-area-inset-right) + 18px));
+  bottom: max(34px, calc(env(safe-area-inset-bottom) + 18px));
+  left: max(34px, calc(env(safe-area-inset-left) + 18px));
+  border-radius: 34px;
+  overflow: hidden;
+  display: grid; place-items: center;
   padding: clamp(20px, 4vw, 54px);
   background:
     radial-gradient(58% 46% at 78% 76%, rgba(196, 216, 255, 0.5), transparent 72%),
@@ -132,6 +165,21 @@
     rgba(255, 255, 255, 0.82);
   backdrop-filter: saturate(1.5) blur(30px);
   -webkit-backdrop-filter: saturate(1.5) blur(30px);
+
+  opacity: 0;
+  transform: scale(0.985);
+  filter: blur(26px);
+  transition:
+    opacity 420ms var(--ease),
+    transform 620ms var(--spring),
+    filter 520ms var(--ease);
+}
+.viz-sheet.odprt .viz-plosca {
+  opacity: 1;
+  transform: scale(1);
+  filter: blur(0);
+  /* Zamik za zaveso - ploskev pride sele, ko je svet ze zabrisan. */
+  transition-delay: 190ms;
 }
 .viz-close {
   position: absolute; top: 18px; right: 20px; z-index: 3;
@@ -194,12 +242,12 @@
    programu, na sredini ilustraciji, spodaj levo pa, kdo je to naredil in kje
    ga najdes -- kot na tiskani vizitki. */
 .viz-vrh-levo { flex-direction: column; align-items: flex-start; gap: 0; }
-/* Edino, kar se je premaknilo: stik gre v levi spodnji kot ZASLONA, ne
-   kartice. Zato je fiksen -- ce bi bil v toku kartice, bi ostal ob njenem
-   levem robu, ta pa je zaradi sredinske postavitve dalec od roba okna. Ker
-   je iz toka, se postavitev ostalih elementov ne premakne niti za piksel. */
+/* Edino, kar se je premaknilo: stik gre v levi spodnji kot PLOSKVE, ne
+   kartice -- ce bi bil v toku kartice, bi ostal ob njenem levem robu, ta pa
+   je zaradi sredinske postavitve dalec od roba. Ker je iz toka, se postavitev
+   ostalih elementov ne premakne niti za piksel. */
 .viz-meta.viz-kot {
-  position: fixed; left: clamp(18px, 2.6vw, 46px); bottom: clamp(18px, 2.6vw, 46px);
+  position: absolute; left: clamp(18px, 2.6vw, 46px); bottom: clamp(18px, 2.6vw, 46px);
   min-width: 0; padding-top: 0; z-index: 2;
 }
 .viz-meta.viz-kot .viz-meta-t { margin-top: 14px; }
@@ -328,7 +376,7 @@
   50% { opacity: 0.9; transform: scale(1.06); }
 }
 
-:root[data-theme="dark"] .viz-sheet {
+:root[data-theme="dark"] .viz-plosca {
   background:
     radial-gradient(58% 46% at 78% 76%, rgba(80, 110, 190, 0.3), transparent 72%),
     radial-gradient(46% 40% at 14% 16%, rgba(150, 100, 170, 0.24), transparent 74%),
@@ -356,7 +404,7 @@
 /* Ploskev vizitke. Ista dva odtenka kot v svetli razlicici, le da zdaj
    svetita iz teme namesto da bi jo barvala; pod njima je steklo, skozi
    katero se galaksija se vidi, a ne moti branja. */
-.viz-sheet {
+.viz-plosca {
   background:
     radial-gradient(58% 46% at 78% 76%, rgba(93, 143, 255, 0.16), transparent 72%),
     radial-gradient(46% 40% at 14% 16%, rgba(255, 150, 214, 0.12), transparent 74%),
@@ -365,12 +413,13 @@
   -webkit-backdrop-filter: saturate(1.4) blur(30px);
 }
 
-/* Stekleni okvir: ploskev ni prilepljena na rob zaslona, ampak stoji v njem
-   kot ostale ploskve na strani - enak odmik kot plosca nastavitev. */
-.viz-sheet::after {
+/* Stekleni okvir. Prej je bil narisan z odmikom od roba zaslona, ker je
+   ploskev segala do njega; zdaj je odmaknjena ploskev sama in okvir je le se
+   njen rob. */
+.viz-plosca::after {
   content: "";
   position: absolute;
-  inset: max(34px, calc(env(safe-area-inset-top) + 18px));
+  inset: 0;
   border-radius: 34px;
   pointer-events: none;
   box-shadow:
