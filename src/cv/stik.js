@@ -160,8 +160,14 @@ export function installStik() {
    */
   const zaslonKje = koren.querySelector(".stik-kje");
   let zavrtelo = false;
+  let zadnjiVrh = 0;
 
   function obDrsenju() {
+    // Znaki pozdrava dobijo sunek v smeri drsenja in se nato po vzmeti vrnejo.
+    const premik = tok.scrollTop - zadnjiVrh;
+    zadnjiVrh = tok.scrollTop;
+    pozdrav?.sunek(premik);
+
     const okno = tok.clientHeight || 1;
     const vrh = zaslonKje.getBoundingClientRect().top - tok.getBoundingClientRect().top;
     const delez = 1 - Math.max(0, Math.min(vrh / okno, 1));
@@ -194,6 +200,7 @@ export function installStik() {
     }
     koren.classList.add("odprt");
     tok.scrollTop = 0;
+    zadnjiVrh = 0;
     zavrtelo = false;
     zemlja?.nastaviPrihod(0);
 

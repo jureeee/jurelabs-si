@@ -85,6 +85,19 @@ const VRSTICA = 1.12;
 const VZMET = 0.055;
 const DUSENJE = 0.86;
 
+/**
+ * Odboj ob drsenju.
+ *
+ * Ob vsakem zasuku kolesca znaki dobijo sunek navzdol - ne premika se platno,
+ * ampak znaki na njem. Vzmet, ki jih drzi na crkah, jih nato potegne nazaj in
+ * pri tem malo prenese cez, zato se napis pozibava kot nekaj obesenega, ne kot
+ * slika, ki bi drsela.
+ *
+ * Sunek je omejen: hitro drsenje sicer razmece napis cez pol zaslona.
+ */
+const ODBOJ = 0.055;
+const ODBOJ_NAJVEC = 13;
+
 /** Kazalec odriva znake. Polmer v pikah in moc odriva. */
 const KAZALEC_R = 150;
 const KAZALEC_MOC = 2.6;
@@ -145,7 +158,7 @@ function tockeBesedila(vrstice, sirinaNaVoljo, velikostPisave, gostota = GOSTOTA
   const besedilo = seznam[0];
   const platno = document.createElement("canvas");
   const ctx = platno.getContext("2d", { willReadFrequently: true });
-  const pisava = (v) => `700 ${v}px ${PISAVA}`;
+  const pisava = (v) => `400 ${v}px ${PISAVA}`;
 
   // Velikost prilagodimo sirini, ki jo imamo: dolg stavek v nemscini ne sme
   // odteci cez rob, kratek v anglescini pa naj ne ostane droben.
@@ -188,7 +201,7 @@ function tockeBesedila(vrstice, sirinaNaVoljo, velikostPisave, gostota = GOSTOTA
  */
 function tockeVecVrstic(vrstice, sirinaNaVoljo, velikostPisave, gostota) {
   const merilno = document.createElement("canvas").getContext("2d");
-  merilno.font = `700 ${velikostPisave}px ${PISAVA}`;
+  merilno.font = `400 ${velikostPisave}px ${PISAVA}`;
   const najsirsa = Math.max(...vrstice.map((v) => merilno.measureText(v).width));
   const merilo = Math.min(1, sirinaNaVoljo / Math.max(1, najsirsa));
   const velikost = Math.max(16, velikostPisave * merilo);
@@ -526,6 +539,18 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
   const naIzhod = () => {
     kazalec.ziv = false;
   };
+  /**
+   * Sunek ob drsenju.
+   *
+   * Dobijo ga samo znaki besedila. Ozadje s frekvencami miruje pod stranjo in
+   * z drsenjem nima opravka; ce bi poskocilo tudi to, bi bilo videti, kot da
+   * se trese cel zaslon.
+   */
+  const sunek = (dy) => {
+    const moc = Math.max(-ODBOJ_NAJVEC, Math.min(dy * ODBOJ, ODBOJ_NAJVEC));
+    for (const d of besedni) d.vy += moc;
+  };
+
   const naSpremembo = () => {
     if (!viden) return;
     meri();
@@ -548,7 +573,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
       // Oblike crk merimo sele, ko je pisava tu. Prej bi jih narisala
       // sistemska in napis bi ob prihodu okrasne poskocil.
       const pripravljena = document.fonts
-        ? document.fonts.load('700 100px "Pozdrav"').catch(() => null)
+        ? document.fonts.load('400 100px "Pozdrav"').catch(() => null)
         : Promise.resolve(null);
 
       pripravljena.then(() => {
@@ -578,6 +603,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
       frekvencaOb = zdaj + FREKVENCA_S;
       zanka = requestAnimationFrame(slicica);
     },
+    sunek,
     skrij() {
       if (!viden) return;
       viden = false;
