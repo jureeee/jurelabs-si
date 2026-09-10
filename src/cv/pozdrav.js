@@ -273,6 +273,16 @@ const GOSTOTA = 9.5;
  * zgodilo - meja 2050 pri gostoti 11,5 je od napisa pustila oblak.
  */
 const NAJVEC_BESEDILA = 3000;
+
+/**
+ * Koliko se tarca odmakne od svojega mesta v mrezi, kot delez koraka.
+ *
+ * Brez tega znaki sedejo natanko na mrezo in crka je videti kot izpis s
+ * pisalnega stroja - oko najprej vidi vrste in stolpce in sele nato crko.
+ * Nakljucni odmik jih razsuje, oblika pa ostane, ker je odmik manjsi od
+ * koraka; obenem rob crke rahlo razcefra, kar je za risbo iz zvezd prav.
+ */
+const RAZSUTOST = 0.36;
 const NAJVEC_OZADJA = 620;
 /** Koliko sirine sme zavzeti napis. */
 const NAJVEC_SIRINE = 0.82;
@@ -453,7 +463,11 @@ function tockeBesedila(vrstice, sirinaNaVoljo, velikostPisave, gostota = GOSTOTA
     const zamik = vrstica % 2 ? gostota / 2 : 0;
     for (let x = zamik; x < sirina; x += gostota) {
       if (slika[((y | 0) * sirina + (x | 0)) * 4 + 3] > 128) {
-        tocke.push({ x: x - sirina / 2, y: y - visina / 2 });
+        const r = gostota * RAZSUTOST;
+        tocke.push({
+          x: x - sirina / 2 + nakljucno(-r, r),
+          y: y - visina / 2 + nakljucno(-r, r),
+        });
       }
     }
   }
@@ -510,7 +524,11 @@ function tockeIzSvg(svg, sirinaCilj, gostota) {
         const zamik = vrstica % 2 ? gostota / 2 : 0;
         for (let x = zamik; x < s; x += gostota) {
           if (piksli[((y | 0) * s + (x | 0)) * 4 + 3] > 110) {
-            tocke.push({ x: x - s / 2, y: y - v / 2 });
+            const r = gostota * RAZSUTOST;
+            tocke.push({
+              x: x - s / 2 + nakljucno(-r, r),
+              y: y - v / 2 + nakljucno(-r, r),
+            });
           }
         }
       }
@@ -533,7 +551,10 @@ function tockeFrekvence(vzorec, sirina, visina, najvec) {
       const f =
         Math.cos(n * Math.PI * x) * Math.cos(m * Math.PI * y) -
         Math.cos(m * Math.PI * x) * Math.cos(n * Math.PI * y);
-      if (Math.abs(f) < meja) tocke.push({ x: px, y: py });
+      if (Math.abs(f) < meja) {
+        const r = korak * RAZSUTOST;
+        tocke.push({ x: px + nakljucno(-r, r), y: py + nakljucno(-r, r) });
+      }
     }
   }
   // Ce jih je prevec, jih prevzorcimo enakomerno - izrez bi pustil prazen kot.
