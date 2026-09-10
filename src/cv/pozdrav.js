@@ -240,9 +240,14 @@ const VAL_S = 1.9;
  * potrebno, da se vidi oblika pisave. Pri redki mrezi ostanejo od okrasnih
  * serifov le posamezne pike in napis je videti kot katerikoli drug.
  */
-const GOSTOTA = 10;
-/** Zgornja meja stevila znakov v besedilu in v ozadju. */
-const NAJVEC_BESEDILA = 2300;
+const GOSTOTA = 9;
+/**
+ * Zgornja meja stevila znakov v besedilu in v ozadju.
+ *
+ * Meja besedila gre z gostoto: drobnejsi znaki pokrijejo manj in ce bi jih
+ * ostalo enako, bi crke postale luknjaste.
+ */
+const NAJVEC_BESEDILA = 2850;
 const NAJVEC_OZADJA = 620;
 /** Koliko sirine sme zavzeti napis. */
 const NAJVEC_SIRINE = 0.82;
@@ -667,7 +672,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
       0,
       NAJVEC_BESEDILA
     );
-    napolni(besedni, Math.min(NAJVEC_BESEDILA, Math.round(tocke.length * 1.08)), mereB, 7, 16);
+    napolni(besedni, Math.min(NAJVEC_BESEDILA, Math.round(tocke.length * 1.08)), mereB, 6, 13);
 
     const sredX = mereB.s / 2;
     const sredY = mereB.v / 2;

@@ -29,6 +29,11 @@
  * Zatemnitev je radialna: najgostejsa je na sredini, kjer stoji napis, in
  * proti robovom popusti, tako da galaksija ostane vidna tam, kjer nic ne
  * prekriva. Lezi znotraj ozadja in torej pod frekvencami in pod vso vsebino.
+ *
+ * Sredina mora biti res gosta. Prav tam lezi jedro galaksije in to ni le
+ * svetlejsa ploskev, ampak razlocna elipsa - oko jo bere kot madez na napisu
+ * in ne kot globino za njim. Pri polovicni zatemnitvi je se vedno kazala
+ * skozi.
  */
 .stik-ozadje::before {
   content: "";
@@ -36,9 +41,9 @@
   inset: 0;
   background:
     radial-gradient(
-      ellipse 76% 64% at 50% 45%,
-      rgba(3, 5, 9, 0.5),
-      rgba(3, 5, 9, 0) 74%
+      ellipse 82% 70% at 50% 45%,
+      rgba(3, 5, 9, 0.88),
+      rgba(3, 5, 9, 0) 76%
     ),
     linear-gradient(rgba(3, 5, 9, 0.22), rgba(3, 5, 9, 0.22));
 }
