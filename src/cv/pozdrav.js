@@ -67,94 +67,113 @@ const ZNAKI = [
  * mrezi in vsaka polna tocka postane tarca za znak - natanko tako kot crke.
  * Zato sta iz istih zvezd in srckov kot napis in ne tujek na strani.
  *
+ * Risana sta s POTEZAMI in ne s ploskvami, in to je bistveno. Prva razlicica
+ * je bila polna: krila kot zapolnjene peruti, krona kot zapolnjen lok s
+ * cepinami. Ko mreza pobere polno ploskev, dobi pravokotnik enakomernih tock -
+ * packo brez oblike. Predlogi sta zracni, sestavljeni iz tankih ukrivljenih
+ * potez z veliko praznine med njimi, in prav praznina je tisto, kar oko bere
+ * kot risbo.
+ *
  * Risba je nasa in ne prevzeta: predloge so tuje avtorsko delo, tu pa je
- * oblika, ki lovi njihovo misel - krila iz plamenskih jezikov in krona iz
- * trnastih konic.
+ * oblika, ki lovi njihovo misel.
  */
+
+/** Poteze so povsod enake: bele, okroglih koncev, brez zapolnitve. */
+const POTEZA = 'stroke="#fff" fill="none" stroke-linecap="round" stroke-linejoin="round"';
 
 /**
- * Plamenski jezik oziroma trn.
+ * Metulj.
  *
- * Od izhodisca gre v dano smer, spotoma se odkloni in se konca v konici.
- * Sirina je pri dnu polna in proti vrhu pade na nic, zato je oblika kaplja in
- * ne trak. Ker jih dela koda, se dajo vsi hkrati upogniti z eno stevilko.
+ * Ena polovica; druga je njeno zrcalo. Obris peruti, nekaj zilic po njiju in
+ * plamenski koncici, ki se odlepijo od zunanjega roba - tako kot na predlogi,
+ * kjer krilo ni ploskev, ampak ogrodje.
  */
-function konica(kot, dolzina, sirina, zavoj) {
-  const r = (kot * Math.PI) / 180;
-  const sx = Math.cos(r);
-  const sy = Math.sin(r);
-  const px = -sy;
-  const py = sx;
-  const kx = sx * dolzina + px * zavoj;
-  const ky = sy * dolzina + py * zavoj;
-  const a = `${(sx * dolzina * 0.45 + px * (zavoj * 0.2 + sirina * 1.9)).toFixed(1)} ${(
-    sy * dolzina * 0.45 + py * (zavoj * 0.2 + sirina * 1.9)
-  ).toFixed(1)}`;
-  const b = `${(sx * dolzina * 0.5 + px * (zavoj * 0.4 - sirina * 2.3)).toFixed(1)} ${(
-    sy * dolzina * 0.5 + py * (zavoj * 0.4 - sirina * 2.3)
-  ).toFixed(1)}`;
-  return (
-    `M ${(px * sirina).toFixed(1)} ${(py * sirina).toFixed(1)} Q ${a} ${kx.toFixed(1)} ${ky.toFixed(
-      1
-    )} Q ${b} ${(-px * sirina).toFixed(1)} ${(-py * sirina).toFixed(1)} Z`
-  );
-}
-
-/** Eno krilo: dolgi jeziki navzgor, krajsi navzdol. */
-function kriloPoti() {
-  const poti = [];
-  for (let i = 0; i < 9; i++) {
-    const d = i / 8;
-    poti.push(konica(-96 + d * 74, 108 - d * 26, 9.5 - d * 5.2, 16 - d * 30));
-  }
-  for (let i = 0; i < 6; i++) {
-    const d = i / 5;
-    poti.push(konica(24 + d * 52, 74 - d * 20, 8 - d * 4, -10 - d * 20));
-  }
-  return poti;
-}
-
 const METULJ = (() => {
-  const k = kriloPoti()
-    .map((d) => `<path d="${d}" />`)
-    .join("");
+  const polovica = `
+    <path d="M 6 -6 C 22 -60 58 -112 96 -132 C 108 -112 112 -84 114 -58
+             C 124 -42 128 -22 118 -4 C 92 8 46 12 9 5 Z" stroke-width="6" ${POTEZA} />
+    <path d="M 9 12 C 48 16 88 38 98 66 C 87 92 63 110 41 116
+             C 23 107 11 71 7 27 Z" stroke-width="6" ${POTEZA} />
+
+    <path d="M 14 -4 C 40 -40 66 -76 92 -120" stroke-width="4" ${POTEZA} />
+    <path d="M 16 0 C 48 -28 80 -50 111 -60" stroke-width="4" ${POTEZA} />
+    <path d="M 18 3 C 54 -6 88 -8 119 -8" stroke-width="4" ${POTEZA} />
+    <path d="M 14 20 C 44 30 72 44 95 64" stroke-width="4" ${POTEZA} />
+    <path d="M 12 30 C 32 56 44 84 42 112" stroke-width="4" ${POTEZA} />
+
+    <path d="M 96 -132 C 104 -150 100 -164 88 -172" stroke-width="5" ${POTEZA} />
+    <path d="M 114 -58 C 132 -66 142 -60 146 -46" stroke-width="5" ${POTEZA} />
+    <path d="M 118 -4 C 138 2 146 14 142 30" stroke-width="5" ${POTEZA} />
+    <path d="M 98 66 C 116 74 122 88 116 102" stroke-width="5" ${POTEZA} />
+    <path d="M 41 116 C 44 138 38 152 24 158" stroke-width="5" ${POTEZA} />`;
+
   return (
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-150 -140 300 260" fill="#fff">` +
-    `<g>${k}</g><g transform="scale(-1 1)">${k}</g>` +
-    `<ellipse cx="0" cy="14" rx="5.5" ry="30" />` +
-    `<ellipse cx="0" cy="-16" rx="4" ry="12" />` +
-    `<path d="M -3 -26 Q -16 -52 -30 -58" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" />` +
-    `<path d="M 3 -26 Q 16 -52 30 -58" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" />` +
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-170 -195 340 380">` +
+    `<g>${polovica}</g><g transform="scale(-1 1)">${polovica}</g>` +
+    `<path d="M 0 -30 C 5 -8 6 48 0 100 C -6 48 -5 -8 0 -30 Z" stroke-width="5" ${POTEZA} />` +
+    `<path d="M -3 -40 C -20 -68 -34 -80 -50 -86" stroke-width="4" ${POTEZA} />` +
+    `<path d="M 3 -40 C 20 -68 34 -80 50 -86" stroke-width="4" ${POTEZA} />` +
     `</svg>`
   );
 })();
 
+/**
+ * Krona.
+ *
+ * Trnaste konice, ki se proti vrhu upognejo navzven, in dvojni lok pod njimi.
+ * Vsaka konica ima ob sebi kratko brado - brez nje bi bila palica, z njo je
+ * trn. Konice so tanke poteze, ne zapolnjeni klini: predloga je kovana in
+ * predrta, ne ulita.
+ */
 const KRONA = (() => {
-  const trni = [];
-  // Sedem konic; srednja najvisja, robni najnizji in bolj nagnjeni navzven.
+  const deli = [];
   for (let i = 0; i < 7; i++) {
-    const d = (i - 3) / 3;                 // -1 na levi, 1 na desni
-    const x = d * 84;
-    const visina = 120 - Math.abs(d) * 52;
-    const nagib = d * 26;
-    trni.push(
-      `<g transform="translate(${x.toFixed(1)} 44)">` +
-        `<path d="${konica(-90 + nagib, visina, 13 - Math.abs(d) * 4, -nagib * 0.6)}" />` +
-        `</g>`
+    const d = (i - 3) / 3;                     // -1 levo, 0 sredina, 1 desno
+    const x = d * 82;
+    const visina = 128 - Math.abs(d) * 54;
+    const upogib = d * 42;                     // konica se odkloni navzven
+    const vrhX = x + upogib;
+    const vrhY = 34 - visina;
+    deli.push(
+      `<path d="M ${x.toFixed(1)} 40 C ${(x + upogib * 0.25).toFixed(1)} ${(
+        34 - visina * 0.5
+      ).toFixed(1)} ${(vrhX - upogib * 0.35).toFixed(1)} ${(vrhY + visina * 0.22).toFixed(
+        1
+      )} ${vrhX.toFixed(1)} ${vrhY.toFixed(1)}" stroke-width="6" ${POTEZA} />`
+    );
+    // Brada: kratka veja, ki se od konice odcepi navzdol in navzven.
+    const bradaY = vrhY + visina * 0.42;
+    deli.push(
+      `<path d="M ${(x + upogib * 0.4).toFixed(1)} ${bradaY.toFixed(1)} C ${(
+        x + upogib * 0.4 + Math.sign(d || 1) * 20
+      ).toFixed(1)} ${(bradaY + 6).toFixed(1)} ${(x + upogib * 0.4 + Math.sign(d || 1) * 30).toFixed(
+        1
+      )} ${(bradaY + 26).toFixed(1)} ${(x + upogib * 0.4 + Math.sign(d || 1) * 26).toFixed(1)} ${(
+        bradaY + 40
+      ).toFixed(1)}" stroke-width="4" ${POTEZA} />`
     );
   }
   return (
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-120 -90 240 170" fill="#fff">` +
-    trni.join("") +
-    `<path d="M -96 44 Q 0 74 96 44 L 96 66 Q 0 96 -96 66 Z" />` +
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-150 -110 300 210">` +
+    deli.join("") +
+    `<path d="M -104 40 C -52 62 52 62 104 40" stroke-width="7" ${POTEZA} />` +
+    `<path d="M -100 66 C -50 88 50 88 100 66" stroke-width="6" ${POTEZA} />` +
+    `<path d="M -104 40 L -100 66" stroke-width="5" ${POTEZA} />` +
+    `<path d="M 104 40 L 100 66" stroke-width="5" ${POTEZA} />` +
     `</svg>`
   );
 })();
 
-/** Kje na prvem zaslonu stojita in kako velika sta, kot delez ploskve. */
+/**
+ * Kje na prvem zaslonu stojita in kako velika sta, kot delez ploskve.
+ *
+ * Mreza je pri okrasih drobnejsa kot pri crkah. Crka je velika in preprosta,
+ * risba pa ima tanke poteze; pri istem koraku bi od nje ostalo nekaj
+ * raztresenih znakov brez obrisa.
+ */
 const OKRASI = [
-  { svg: METULJ, x: 0.845, y: 0.72, sirina: 0.2 },
-  { svg: KRONA, x: 0.5, y: 0.145, sirina: 0.135 },
+  { svg: METULJ, x: 0.85, y: 0.7, sirina: 0.28, gostota: 5 },
+  { svg: KRONA, x: 0.5, y: 0.145, sirina: 0.17, gostota: 5 },
 ];
 
 /** Koliko casa napis miruje, preden se zacne prelivati v naslednji jezik. */
@@ -181,23 +200,24 @@ const VRSTICA = 1.12;
 /**
  * Razmik med crkami, kot delez velikosti pisave.
  *
- * Gotska pisava je sama po sebi zbita - crke se skoraj dotikajo. Ko je vsaka
- * sestavljena iz posameznih znakov, se sosednje zlijejo in napisa ni mogoce
- * brati. Zato jih razmaknemo.
+ * Majhen, ker so crke raztegnjene po sirini in zato ze same po sebi lovijo
+ * prostor. Razmik je tu le se toliko, da se sosednji znaki ne dotikajo.
  *
  * Razmik risemo sami, crko za crko, in ne prek ctx.letterSpacing: tega starejsi
  * brskalniki ne poznajo in bi ga tiho prezrli, napis pa bi ostal zbit.
  */
-const RAZMIK = 0.17;
+const RAZMIK = 0.06;
 
 /**
  * Raztezek crk po sirini.
  *
- * Metamorphous je ze sama po sebi polozena, zato je raztezek majhen - le
- * toliko, da crke niso pokoncne. Pri prejsnji, ozki gotici je bil 1,45. Raztezemo ob izrisu na pomozno platno, zato so tocke ze v
+ * Crke so raztegnjene po sirini in stisnjene skupaj. To dvoje gre z roko v
+ * roki: sirsa crka sama po sebi lovi vec prostora, zato je med njimi lahko
+ * manj zraka, ne da bi se zlile. Obratno bi bilo najslabse - ozke crke z
+ * majhnim razmikom se zlepijo v vrsto. Raztezemo ob izrisu na pomozno platno, zato so tocke ze v
  * pravih legah in vzmet nima s tem nobenega dela.
  */
-const SIRJENJE = 1.12;
+const SIRJENJE = 1.42;
 
 /** Kako mocno znak vlece proti tarci in koliko ga dusi. */
 const VZMET = 0.055;
@@ -230,10 +250,10 @@ const KAZALEC_MOC = 2.6;
  * se iskri - kot zvezde, ki jih napis prekriva.
  */
 const OSNOVNA_ALFA = 0.4;
-const BLESK_NAJKRAJ_S = 2.2;
-const BLESK_NAJDLJE_S = 11;
-/** Kolikokrat na sekundo sij upade na desetino. Visje = kratek blisk. */
-const BLESK_UPAD = 0.055;
+const BLESK_NAJKRAJ_S = 1.1;
+const BLESK_NAJDLJE_S = 5.5;
+/** Koliksen del sija ostane po sekundi. Visje = daljsi, bolj opazen blisk. */
+const BLESK_UPAD = 0.16;
 
 /**
  * Frekvence v ozadju.
@@ -594,12 +614,12 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
   async function postaviOkrase() {
     const vsi = [];
     for (const o of OKRASI) {
-      const tocke = await tockeIzSvg(o.svg, mereB.s * o.sirina, GOSTOTA);
+      const tocke = await tockeIzSvg(o.svg, mereB.s * o.sirina, o.gostota ?? GOSTOTA);
       const sredX = mereB.s * o.x;
       const sredY = mereB.v * o.y;
       for (const t of tocke) vsi.push({ x: sredX + t.x, y: sredY + t.y });
     }
-    napolni(okrasni, vsi.length, mereB, 7, 15);
+    napolni(okrasni, vsi.length, mereB, 5, 11);
     for (const d of okrasni) d.imaCilj = false;
     // Tocke so ze v koordinatah ploskve, zato brez zamika sredisca.
     poveziNajblizje(okrasni, okrasni.map((_, i) => i), vsi, 0, 0);
