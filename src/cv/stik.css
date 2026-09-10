@@ -8,13 +8,20 @@
    lezi pod njim in ne drsi z njim.
 --------------------------------------------------------------------------- */
 
-/* Platno pozdrava ni v drsnem toku, ampak pod njim: ostane pri miru, medtem
+/* Frekvencno ozadje ni v drsnem toku, ampak pod njim: ostane pri miru, medtem
    ko vsebina drsi cezenj. Brez zaznavanja miske, sicer bi lovilo klike,
    namenjene povezavam. */
-.stik-pozdrav {
+.stik-ozadje {
   position: absolute;
   inset: 0;
   z-index: 0;
+  pointer-events: none;
+}
+
+/* Napis pa je v toku: z drsenjem gre gor kot vsak drug element strani. */
+.stik-napis {
+  position: absolute;
+  inset: 0;
   pointer-events: none;
 }
 
@@ -112,32 +119,63 @@
 .stik-vizitka-host { display: flex; }
 
 /* --- tretji zaslon: kje sem -----------------------------------------------
-   Besedilo levo, globus desno in velik. Globus je tu glavna stvar in ne
-   okras, zato dobi vec prostora kot besedilo ob njem. */
+   Globus zavzame skoraj pol zaslona in stoji na sredini; besedilo lezi cez
+   njega. Zato ni razdelek s sliko ob strani, ampak prizor z napisom - kar je
+   tudi misljeno, saj je Zemlja tu glavna stvar in ne okras. */
 .stik-kje {
-  gap: clamp(20px, 4vw, 70px);
-  padding: clamp(24px, 6vw, 90px);
-  width: min(1180px, 100%);
-  margin: 0 auto;
+  justify-content: center;
+  overflow: hidden;
 }
 
-.stik-kje-besedilo { flex: 1 1 34%; min-width: 0; }
-
 .stik-zemlja {
-  flex: 0 0 auto;
-  width: min(62vh, 46vw);
-  height: min(62vh, 46vw);
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, -50%);
+  width: min(96vh, 52vw);
+  height: min(96vh, 52vw);
   pointer-events: none;
 }
 .zemlja-platno {
   display: block;
+  /* Prihod pise JS iz lege drsnika; prehod tu le zgladi skoke med sporocili. */
   opacity: 0;
-  transition: opacity 700ms var(--ease);
+  transform: translateY(13%) scale(0.82);
+  transform-origin: 50% 50%;
+  transition: opacity 200ms linear, transform 200ms linear;
 }
-.zemlja-platno.vidno { opacity: 1; }
+
+/* Meglica cez spodnji del globusa.
+   backdrop-filter zamegli to, kar je za njo, maska pa moc zameglitve stopnjuje
+   navzdol - zato se globus proti dnu izgubi namesto da bi bil odrezan. Enak
+   ucinek s filtrom na platnu ni mogoc: ta velja za celo sliko enako. */
+.stik-megla {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 42%;
+  z-index: 1;
+  pointer-events: none;
+  backdrop-filter: blur(11px);
+  -webkit-backdrop-filter: blur(11px);
+  background: linear-gradient(to bottom, transparent, rgba(6, 8, 12, 0.72));
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 62%);
+  mask-image: linear-gradient(to bottom, transparent, #000 62%);
+}
+
+/* Besedilo stoji cez globus, v spodnji tretjini, kjer je slika ze zamegljena
+   in ga zato nic ne moti pri branju. */
+.stik-kje-besedilo {
+  position: relative;
+  z-index: 2;
+  align-self: flex-end;
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: 0 clamp(24px, 6vw, 90px) clamp(40px, 9vh, 110px);
+}
 
 @media (max-width: 900px) {
-  .stik-kje { flex-direction: column; align-items: flex-start; }
-  .stik-zemlja { width: min(52vh, 86vw); height: min(52vh, 86vw); align-self: center; }
+  .stik-zemlja { width: min(70vh, 92vw); height: min(70vh, 92vw); top: 40%; }
   .stik-povezave { flex-direction: column; align-items: flex-start; }
 }

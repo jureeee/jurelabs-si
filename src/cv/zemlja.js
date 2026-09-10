@@ -29,9 +29,20 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import modelUrl from "../assets/3d models/zemlja.glb?url";
 import { MEJA_SLO } from "./meja-slo.js";
 
-/** Kam gleda globus, ko obmiruje. Ljubljana. */
+/**
+ * Kam gleda globus, ko obmiruje.
+ *
+ * To NISTA koordinati Ljubljane, ceprav bi po imenu morali biti. Med tem
+ * sistemom in tistim, po katerem so na modelu polozene teksture, je se ena
+ * zasukanost, ki je nisem izmeril; vrednosti sta zato nastavljeni na roko,
+ * dokler globus ne gleda na Sredozemlje.
+ *
+ * Prava resitev je iz stirih cetrtin modela sestaviti eno samo enakokotno
+ * teksturo in jo poloziti na svojo kroglo. Takrat je preslikava nasa in
+ * tocna, meja Slovenije pa pade tja, kamor sodi.
+ */
 const CILJ_LON = 14.5058;
-const CILJ_LAT = 46.0569;
+const CILJ_LAT = 68;
 
 /** Smer dolzine na modelu in zamik izhodisca; izmerjeno z mrezo. */
 const SMER = -1;
@@ -232,6 +243,22 @@ export function installZemlja(gnezdo) {
   }
 
   return {
+    /**
+     * Prihod, vezan na lego drsnika.
+     *
+     * Pisemo v slog platna in ne v prizor: ko se globus neha vrteti, zanka
+     * ugasne in prizora nihce ne izrisuje vec. Merilo in prosojnost v slogu
+     * delujeta tudi takrat - in gib gre ob vracanju sam po sebi nazaj.
+     *
+     * @param {number} p 0 = se pod robom, 1 = na svojem mestu
+     */
+    nastaviPrihod(p) {
+      const d = Math.max(0, Math.min(p, 1));
+      const e = easeOut(d);
+      izrisovalnik.domElement.style.transform =
+        `translateY(${(1 - e) * 13}%) scale(${0.82 + e * 0.18})`;
+      izrisovalnik.domElement.style.opacity = String(e);
+    },
     pokazi() {
       if (viden) return;
       viden = true;
@@ -240,7 +267,7 @@ export function installZemlja(gnezdo) {
         meri();
         skupniKot = Math.PI * 2 * OBRATOV;
         meja.geometry.setDrawRange(0, 0);
-        izrisovalnik.domElement.classList.add("vidno");
+
         zacetek = performance.now();
         zanka = requestAnimationFrame(slicica);
       });

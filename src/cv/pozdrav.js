@@ -11,10 +11,11 @@
  * se premaknejo za nekaj crk - in menjava se bere kot preliv, ne kot skok.
  * Zamik potovanja raste z lego po vodoravnici, zato tece kot val z leve.
  *
- * Znaki so dveh vrst. Prvi sestavljajo besedilo. Drugi lezijo v ozadju na
- * Chladnijevih figurah - vzorcih, ki jih na plosci nariše stojece valovanje
- * pri dani frekvenci. Ti ostanejo tudi, ko besedilo odide: ob drsenju po
- * strani se besedilo umakne, ozadje pa gre naprej pod vsebino.
+ * Znaki so dveh vrst in zato na dveh platnih. Prvi sestavljajo besedilo in
+ * lezijo na platnu, ki je navaden element v toku - z drsenjem gre gor kot vse
+ * drugo. Drugi lezijo na Chladnijevih figurah, vzorcih, ki jih na plosci
+ * nariše stojece valovanje pri dani frekvenci; njihovo platno miruje pod celo
+ * stranjo, zato ozadje ostane, ko besedilo odide.
  */
 
 import "./pozdrav.css";
@@ -34,6 +35,15 @@ const JEZIKOV = DELI[0].length;
 
 /** Napis v kotu. Ne sodeluje v menjavi jezikov - je podpis, ne pozdrav. */
 const KOT_NAPIS = "jure labs";
+
+/**
+ * Pisava pozdrava.
+ *
+ * Okrasna, ne sistemska: pozdrav je edino mesto na strani, kjer crke niso
+ * obvestilo, ampak podoba. Rezervna je sistemska, ce se datoteka ne nalozi -
+ * takrat je napis manj lep, a se vedno tam.
+ */
+const PISAVA = '"Pozdrav", "Segoe UI Variable Display", "Segoe UI", system-ui, serif';
 
 /**
  * Znaki, iz katerih so delci.
@@ -106,7 +116,7 @@ const znak = () => ZNAKI[(Math.random() * ZNAKI.length) | 0];
 function tockeBesedila(besedilo, sirinaNaVoljo, velikostPisave, gostota = GOSTOTA) {
   const platno = document.createElement("canvas");
   const ctx = platno.getContext("2d", { willReadFrequently: true });
-  const pisava = (v) => `700 ${v}px "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif`;
+  const pisava = (v) => `700 ${v}px ${PISAVA}`;
 
   // Velikost prilagodimo sirini, ki jo imamo: dolg stavek v nemscini ne sme
   // odteci cez rob, kratek v anglescini pa naj ne ostane droben.
@@ -201,18 +211,29 @@ function poveziNajblizje(delci, kandidati, tocke, sredX, sredY) {
   return zaseden;
 }
 
-/** @param {HTMLElement} gnezdo ploskev, na katero se pozdrav narise */
-export function installPozdrav(gnezdo) {
-  const platno = document.createElement("canvas");
-  platno.className = "pozdrav-platno";
-  platno.setAttribute("aria-hidden", "true");
-  gnezdo.appendChild(platno);
-  const ctx = platno.getContext("2d");
+/**
+ * @param {HTMLElement} gnezdoOzadja platno pod celo stranjo, ki miruje
+ * @param {HTMLElement} gnezdoBesedila platno prvega zaslona, ki drsi z njim
+ */
+export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
+  const platnoO = document.createElement("canvas");
+  platnoO.className = "pozdrav-ozadje";
+  platnoO.setAttribute("aria-hidden", "true");
+  gnezdoOzadja.appendChild(platnoO);
+  const ctxO = platnoO.getContext("2d");
+
+  const platnoB = document.createElement("canvas");
+  platnoB.className = "pozdrav-besedilo";
+  platnoB.setAttribute("aria-hidden", "true");
+  gnezdoBesedila.appendChild(platnoB);
+  const ctxB = platnoB.getContext("2d");
 
   const mirno = matchMedia("(prefers-reduced-motion: reduce)");
 
-  let sirina = 1;
-  let visina = 1;
+  // Vsako platno ima svoje mere: ozadje pokriva celo stran, besedilo en zaslon.
+  const mereO = { s: 1, v: 1 };
+  const mereB = { s: 1, v: 1 };
+
   const besedni = [];   // znaki, ki sestavljajo napis
   const ozadje = [];    // znaki na Chladnijevi figuri
   const kotni = [];     // podpis v kotu
@@ -226,8 +247,6 @@ export function installPozdrav(gnezdo) {
   let zanka = null;
   let viden = false;
   let zadnjiSek = 0;
-  /** 0 = na vrhu strani, 1 = napis je odsel. Ozadje ostane. */
-  let umik = 0;
   const kazalec = { x: -1e4, y: -1e4, ziv: false };
 
   const besedilo = () => `${DELI[0][jezikA]}, ${DELI[1][jezikB]} ${IME}`;
@@ -243,22 +262,25 @@ export function installPozdrav(gnezdo) {
     jezikB = (jezikB + 3) % JEZIKOV;
   }
 
-  function meri() {
+  function meriPlatno(platno, ctx, gnezdo, mere) {
     const r = gnezdo.getBoundingClientRect();
     const dpr = Math.min(devicePixelRatio || 1, 2);
-    sirina = Math.max(1, Math.round(r.width));
-    visina = Math.max(1, Math.round(r.height));
-    platno.width = Math.round(sirina * dpr);
-    platno.height = Math.round(visina * dpr);
-    platno.style.width = `${sirina}px`;
-    platno.style.height = `${visina}px`;
+    mere.s = Math.max(1, Math.round(r.width));
+    mere.v = Math.max(1, Math.round(r.height));
+    platno.width = Math.round(mere.s * dpr);
+    platno.height = Math.round(mere.v * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  function noviDelec(velikostA, velikostB) {
+  const meri = () => {
+    meriPlatno(platnoO, ctxO, gnezdoOzadja, mereO);
+    meriPlatno(platnoB, ctxB, gnezdoBesedila, mereB);
+  };
+
+  function noviDelec(mere, najmanj, najvec) {
     return {
-      x: nakljucno(0, sirina),
-      y: nakljucno(0, visina),
+      x: nakljucno(0, mere.s),
+      y: nakljucno(0, mere.v),
       vx: 0,
       vy: 0,
       ciljX: 0,
@@ -266,26 +288,26 @@ export function installPozdrav(gnezdo) {
       imaCilj: false,
       cakaj: 0,
       z: znak(),
-      velikost: nakljucno(velikostA, velikostB),
+      velikost: nakljucno(najmanj, najvec),
       alfa: nakljucno(0.45, 1),
     };
   }
 
-  function napolni(polje, koliko, a, b) {
-    while (polje.length < koliko) polje.push(noviDelec(a, b));
-  }
+  const napolni = (polje, koliko, mere, najmanj, najvec) => {
+    while (polje.length < koliko) polje.push(noviDelec(mere, najmanj, najvec));
+  };
 
   /** Preusmeri znake besedila na novo besedilo. */
   function preusmeriBesedilo() {
-    const velikost = Math.min(visina * 0.16, sirina * 0.082);
-    const tocke = tockeBesedila(besedilo(), sirina * NAJVEC_SIRINE, velikost).slice(
+    const velikost = Math.min(mereB.v * 0.19, mereB.s * 0.1);
+    const tocke = tockeBesedila(besedilo(), mereB.s * NAJVEC_SIRINE, velikost).slice(
       0,
       NAJVEC_BESEDILA
     );
-    napolni(besedni, Math.min(NAJVEC_BESEDILA, Math.round(tocke.length * 1.1)), 9, 21);
+    napolni(besedni, Math.min(NAJVEC_BESEDILA, Math.round(tocke.length * 1.1)), mereB, 9, 21);
 
-    const sredX = sirina / 2;
-    const sredY = visina / 2;
+    const sredX = mereB.s / 2;
+    const sredY = mereB.v / 2;
     for (const d of besedni) d.imaCilj = false;
     const kandidati = besedni.map((_, i) => i);
     const zaseden = poveziNajblizje(besedni, kandidati, tocke, sredX, sredY);
@@ -298,7 +320,7 @@ export function installPozdrav(gnezdo) {
         continue;
       }
       // Val z leve proti desni: zamik raste z lego tarce po vodoravnici.
-      const delez = (d.ciljX - sredX) / Math.max(1, sirina * NAJVEC_SIRINE * 0.5);
+      const delez = (d.ciljX - sredX) / Math.max(1, mereB.s * NAJVEC_SIRINE * 0.5);
       d.cakaj = ((delez + 1) / 2) * VAL_S;
       d.z = znak();
     }
@@ -307,19 +329,18 @@ export function installPozdrav(gnezdo) {
   /** Preusmeri znake ozadja na naslednjo figuro. */
   function preusmeriOzadje() {
     const vzorec = FREKVENCE[frekvencaKje % FREKVENCE.length];
-    const tocke = tockeFrekvence(vzorec, sirina, visina, NAJVEC_OZADJA);
-    napolni(ozadje, tocke.length, 6, 13);
+    const tocke = tockeFrekvence(vzorec, mereO.s, mereO.v, NAJVEC_OZADJA);
+    napolni(ozadje, tocke.length, mereO, 6, 13);
     for (const d of ozadje) d.imaCilj = false;
-    const kandidati = ozadje.map((_, i) => i);
     // Tocke figure so ze v koordinatah ploskve, zato brez zamika sredisca.
-    poveziNajblizje(ozadje, kandidati, tocke, 0, 0);
+    poveziNajblizje(ozadje, ozadje.map((_, i) => i), tocke, 0, 0);
     for (const d of ozadje) d.cakaj = nakljucno(0, 1.4);
   }
 
-  /** Podpis v kotu. Stoji pri miru, zato se izracuna ob vsaki meritvi. */
+  /** Podpis v kotu prvega zaslona. Stoji pri miru, zato le ob meritvi. */
   function sestaviKot() {
     kotni.length = 0;
-    const tocke = tockeBesedila(KOT_NAPIS, sirina * 0.2, Math.min(40, sirina * 0.024), 6);
+    const tocke = tockeBesedila(KOT_NAPIS, mereB.s * 0.2, Math.min(40, mereB.s * 0.024), 6);
     let najX = 0;
     let najY = 0;
     for (const t of tocke) {
@@ -327,78 +348,84 @@ export function installPozdrav(gnezdo) {
       najY = Math.max(najY, Math.abs(t.y));
     }
     const x0 = 46 + najX;
-    const y0 = visina - 44 - najY;
+    const y0 = mereB.v - 44 - najY;
     for (const t of tocke) {
       kotni.push({ x: x0 + t.x, y: y0 + t.y, z: znak(), velikost: nakljucno(5, 9) });
     }
   }
 
-  function korak(dt) {
-    for (const polje of [besedni, ozadje]) {
-      for (const d of polje) {
-        if (d.cakaj > 0) {
-          d.cakaj -= dt;
-        } else if (d.imaCilj) {
-          d.vx += (d.ciljX - d.x) * VZMET;
-          d.vy += (d.ciljY - d.y) * VZMET;
-        } else {
-          d.vx += nakljucno(-0.05, 0.05);
-          d.vy += nakljucno(-0.07, 0.03);
-        }
+  function korakPolja(polje, mere, dt, lok) {
+    for (const d of polje) {
+      if (d.cakaj > 0) {
+        d.cakaj -= dt;
+      } else if (d.imaCilj) {
+        d.vx += (d.ciljX - d.x) * VZMET;
+        d.vy += (d.ciljY - d.y) * VZMET;
+      } else {
+        d.vx += nakljucno(-0.05, 0.05);
+        d.vy += nakljucno(-0.07, 0.03);
+      }
 
-        if (kazalec.ziv) {
-          const dx = d.x - kazalec.x;
-          const dy = d.y - kazalec.y;
-          const r = Math.hypot(dx, dy);
-          if (r < KAZALEC_R && r > 0.01) {
-            const moc = (1 - r / KAZALEC_R) * KAZALEC_MOC;
-            d.vx += (dx / r) * moc;
-            d.vy += (dy / r) * moc;
-          }
+      if (lok.ziv) {
+        const dx = d.x - lok.x;
+        const dy = d.y - lok.y;
+        const r = Math.hypot(dx, dy);
+        if (r < KAZALEC_R && r > 0.01) {
+          const moc = (1 - r / KAZALEC_R) * KAZALEC_MOC;
+          d.vx += (dx / r) * moc;
+          d.vy += (dy / r) * moc;
         }
+      }
 
-        d.vx *= DUSENJE;
-        d.vy *= DUSENJE;
-        d.x += d.vx;
-        d.y += d.vy;
+      d.vx *= DUSENJE;
+      d.vy *= DUSENJE;
+      d.x += d.vx;
+      d.y += d.vy;
 
-        if (!d.imaCilj) {
-          if (d.x < -40) d.x = sirina + 40;
-          if (d.x > sirina + 40) d.x = -40;
-          if (d.y < -40) d.y = visina + 40;
-          if (d.y > visina + 40) d.y = -40;
-        }
+      if (!d.imaCilj) {
+        if (d.x < -40) d.x = mere.s + 40;
+        if (d.x > mere.s + 40) d.x = -40;
+        if (d.y < -40) d.y = mere.v + 40;
+        if (d.y > mere.v + 40) d.y = -40;
       }
     }
   }
 
-  function risiPolje(polje, mnozitelj, barva) {
-    if (mnozitelj <= 0.01) return;
+  function risiPolje(ctx, polje, mnozitelj, barva) {
     ctx.fillStyle = barva;
     for (const d of polje) {
       ctx.globalAlpha = (d.imaCilj ? d.alfa : d.alfa * 0.16) * mnozitelj;
       ctx.font = `${d.velikost}px "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols 2", sans-serif`;
       ctx.fillText(d.z, d.x, d.y);
     }
+    ctx.globalAlpha = 1;
   }
 
   function risi() {
-    ctx.clearRect(0, 0, sirina, visina);
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    // Ozadje ostane tudi ob drsenju; besedilo in podpis se umakneta.
-    risiPolje(ozadje, 0.34, "#9fb6d8");
-    risiPolje(besedni, 1 - umik, "#e9edf3");
-    if (umik < 0.99) {
-      ctx.fillStyle = "#c8d4e8";
-      for (const k of kotni) {
-        ctx.globalAlpha = 0.5 * (1 - umik);
-        ctx.font = `${k.velikost}px "Segoe UI Symbol", "Apple Symbols", sans-serif`;
-        ctx.fillText(k.z, k.x, k.y);
-      }
+    ctxO.clearRect(0, 0, mereO.s, mereO.v);
+    ctxO.textAlign = "center";
+    ctxO.textBaseline = "middle";
+    risiPolje(ctxO, ozadje, 0.34, "#9fb6d8");
+
+    ctxB.clearRect(0, 0, mereB.s, mereB.v);
+    ctxB.textAlign = "center";
+    ctxB.textBaseline = "middle";
+    risiPolje(ctxB, besedni, 1, "#e9edf3");
+    ctxB.fillStyle = "#c8d4e8";
+    for (const k of kotni) {
+      ctxB.globalAlpha = 0.5;
+      ctxB.font = `${k.velikost}px "Segoe UI Symbol", "Apple Symbols", sans-serif`;
+      ctxB.fillText(k.z, k.x, k.y);
     }
-    ctx.globalAlpha = 1;
+    ctxB.globalAlpha = 1;
   }
+
+  /** Kazalec je za vsako platno svoj, ker platni ne lezita na istem mestu. */
+  const kazalecZa = (gnezdo) => {
+    if (!kazalec.ziv) return { ziv: false, x: 0, y: 0 };
+    const r = gnezdo.getBoundingClientRect();
+    return { ziv: true, x: kazalec.x - r.left, y: kazalec.y - r.top };
+  };
 
   function slicica(ms) {
     zanka = requestAnimationFrame(slicica);
@@ -416,14 +443,14 @@ export function installPozdrav(gnezdo) {
       preusmeriOzadje();
       frekvencaOb = sek + FREKVENCA_S;
     }
-    korak(dt);
+    korakPolja(besedni, mereB, dt, kazalecZa(gnezdoBesedila));
+    korakPolja(ozadje, mereO, dt, kazalecZa(gnezdoOzadja));
     risi();
   }
 
   const naMisko = (e) => {
-    const r = gnezdo.getBoundingClientRect();
-    kazalec.x = e.clientX - r.left;
-    kazalec.y = e.clientY - r.top;
+    kazalec.x = e.clientX;
+    kazalec.y = e.clientY;
     kazalec.ziv = true;
   };
   const naIzhod = () => {
@@ -442,41 +469,50 @@ export function installPozdrav(gnezdo) {
       if (viden) return;
       viden = true;
       meri();
-      sestaviKot();
       // Prvi napis je slovenski; ta pozdrav bere vecina, ki pride sem.
       jezikA = 0;
       jezikB = 0;
       prvikrat = true;
-      preusmeriBesedilo();
       preusmeriOzadje();
-      platno.classList.add("vidno");
-      addEventListener("pointermove", naMisko, { passive: true });
-      addEventListener("pointerleave", naIzhod, { passive: true });
-      addEventListener("resize", naSpremembo);
-      if (mirno.matches) {
-        for (const d of [...besedni, ...ozadje]) {
+
+      // Oblike crk merimo sele, ko je pisava tu. Prej bi jih narisala
+      // sistemska in napis bi ob prihodu okrasne poskocil.
+      const pripravljena = document.fonts
+        ? document.fonts.load('700 100px "Pozdrav"').catch(() => null)
+        : Promise.resolve(null);
+
+      pripravljena.then(() => {
+        if (!viden) return;
+        sestaviKot();
+        preusmeriBesedilo();
+        platnoO.classList.add("vidno");
+        platnoB.classList.add("vidno");
+        if (!mirno.matches) return;
+        for (const d of besedni.concat(ozadje)) {
           if (!d.imaCilj) continue;
           d.x = d.ciljX;
           d.y = d.ciljY;
           d.cakaj = 0;
         }
         risi();
-        return;
-      }
+      });
+
+      addEventListener("pointermove", naMisko, { passive: true });
+      addEventListener("pointerleave", naIzhod, { passive: true });
+      addEventListener("resize", naSpremembo);
+      if (mirno.matches) return;
+
       zadnjiSek = 0;
       const zdaj = performance.now() * 0.001;
       menjavaOb = zdaj + MIROVANJE_S + VAL_S;
       frekvencaOb = zdaj + FREKVENCA_S;
       zanka = requestAnimationFrame(slicica);
     },
-    /** @param {number} p 0 na vrhu strani, 1 ko je napis odsel */
-    nastaviUmik(p) {
-      umik = Math.max(0, Math.min(p, 1));
-    },
     skrij() {
       if (!viden) return;
       viden = false;
-      platno.classList.remove("vidno");
+      platnoO.classList.remove("vidno");
+      platnoB.classList.remove("vidno");
       if (zanka) cancelAnimationFrame(zanka);
       zanka = null;
       removeEventListener("pointermove", naMisko);

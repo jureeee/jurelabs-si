@@ -7,12 +7,14 @@
  *   2. naslov, poved in povezave - torej to, po kar je kdo prisel,
  *   3. Zemlja, ki se zavrti in ustavi pri Sloveniji.
  *
- * Ob drsenju se pozdrav umakne, frekvencno ozadje pa ostane in tece naprej
- * pod vsebino. Zato prvi zaslon ni predsoba, ki bi jo bilo treba prehoditi -
- * isto ozadje drzi vse tri skupaj.
+ * Pozdrav ima dve platni. Besedilo lezi v prvem zaslonu in z drsenjem odide
+ * gor kot vsak drug element; frekvencno ozadje pa je sestra drsnega toka in
+ * zato miruje - ostane in tece naprej pod vsebino. Prvi zaslon torej ni
+ * predsoba, ki bi jo bilo treba prehoditi, ampak isto ozadje drzi vse tri
+ * skupaj.
  *
- * Platno pozdrava je sestra drsnega toka in ne njegov otrok: tako miruje,
- * medtem ko vsebina drsi cezenj.
+ * Prihod Zemlje je vezan na lego drsnika in ne na prag: globus pripotuje,
+ * medtem ko drsis proti njemu, in se ob vracanju enako umakne.
  *
  * Zemlja in pozdrav se nalozita sele ob prvem odprtju - model je tri megabajte
  * in nima kaj lezati v glavnem svezniku.
@@ -66,10 +68,12 @@ export function installStik() {
     <div class="zapis-zavesa"></div>
     <button class="zapis-zapri dg" type="button" aria-label="Zapri">${ZAPRI}</button>
 
-    <div class="stik-pozdrav" aria-hidden="true"></div>
+    <div class="stik-ozadje" aria-hidden="true"></div>
 
     <div class="zapis-tok stik-tok">
-      <section class="stik-zaslon stik-uvod"></section>
+      <section class="stik-zaslon stik-uvod">
+        <div class="stik-napis" aria-hidden="true"></div>
+      </section>
 
       <section class="stik-zaslon stik-info">
         <div class="stik-vsebina">
@@ -95,6 +99,8 @@ export function installStik() {
       </section>
 
       <section class="stik-zaslon stik-kje">
+        <div class="stik-zemlja" aria-hidden="true"></div>
+        <div class="stik-megla" aria-hidden="true"></div>
         <div class="stik-kje-besedilo">
           <div class="zapis-oznaka">Kje sem</div>
           <h2 class="stik-naslov2">Ljubljana, Slovenija.</h2>
@@ -103,7 +109,6 @@ export function installStik() {
             dobro vedeti, da je do mene bliže, kot je videti od zgoraj.
           </p>
         </div>
-        <div class="stik-zemlja" aria-hidden="true"></div>
       </section>
     </div>`;
   document.body.appendChild(koren);
@@ -127,14 +132,15 @@ export function installStik() {
     };
   };
 
-  const gnezdoPozdrava = koren.querySelector(".stik-pozdrav");
+  const gnezdoOzadja = koren.querySelector(".stik-ozadje");
+  const gnezdoNapisa = koren.querySelector(".stik-napis");
   const gnezdoZemlje = koren.querySelector(".stik-zemlja");
   let pozdrav = null;
   let zemlja = null;
 
   const pripraviPozdrav = naloziEnkrat(
     () => import("./pozdrav.js"),
-    (m) => (pozdrav = m.installPozdrav(gnezdoPozdrava))
+    (m) => (pozdrav = m.installPozdrav(gnezdoOzadja, gnezdoNapisa))
   );
   const pripraviZemljo = naloziEnkrat(
     () => import("./zemlja.js"),
@@ -143,29 +149,35 @@ export function installStik() {
 
   // --- drsenje -------------------------------------------------------------
   /**
-   * Umik pozdrava je vezan na lego drsnika in ne na prag: napis se umika
-   * postopno, ze med prvim zasukom kolesca, in ne izgine naenkrat.
+   * Prihod Zemlje.
    *
-   * Zemlja se zavrti, ko pride tretji zaslon v pogled. Zacela bi se vrteti ze
-   * ob odprtju, a bi se do tja ze ustavila in obiskovalec bi videl le mirno
-   * kroglo.
+   * Delez povemo iz lege tretjega zaslona glede na okno: 0, ko je se cel pod
+   * robom, 1, ko stoji na svojem mestu. Ker je to funkcija lege in ne dogodek,
+   * gre gib ob vracanju sam po sebi nazaj.
+   *
+   * Vrtenje je druga stvar: odigra se enkrat, ko globus prvic pripotuje.
+   * Vrtenje nazaj ob drsenju navzgor bi bilo videti kot previjanje.
    */
-  tok.addEventListener(
-    "scroll",
-    () => {
-      const visina = tok.clientHeight || 1;
-      pozdrav?.nastaviUmik(tok.scrollTop / (visina * 0.7));
-    },
-    { passive: true }
-  );
+  const zaslonKje = koren.querySelector(".stik-kje");
+  let zavrtelo = false;
 
-  const opazovalec = new IntersectionObserver(
-    (vnosi) => {
-      if (vnosi.some((v) => v.isIntersecting)) pripraviZemljo().then((z) => z?.pokazi());
-    },
-    { root: tok, threshold: 0.25 }
-  );
-  opazovalec.observe(koren.querySelector(".stik-kje"));
+  function obDrsenju() {
+    const okno = tok.clientHeight || 1;
+    const vrh = zaslonKje.getBoundingClientRect().top - tok.getBoundingClientRect().top;
+    const delez = 1 - Math.max(0, Math.min(vrh / okno, 1));
+    zemlja?.nastaviPrihod(delez);
+    if (delez > 0.12) {
+      pripraviZemljo().then((z) => {
+        z?.nastaviPrihod(delez);
+        if (!zavrtelo) {
+          zavrtelo = true;
+          z?.pokazi();
+        }
+      });
+    }
+  }
+
+  tok.addEventListener("scroll", obDrsenju, { passive: true });
 
   // --- odpiranje in zapiranje ---------------------------------------------
   let zapiranje = null;
@@ -182,7 +194,8 @@ export function installStik() {
     }
     koren.classList.add("odprt");
     tok.scrollTop = 0;
-    pozdrav?.nastaviUmik(0);
+    zavrtelo = false;
+    zemlja?.nastaviPrihod(0);
 
     tok.classList.add("prihaja");
     tok.addEventListener(
