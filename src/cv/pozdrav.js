@@ -72,7 +72,7 @@ const VAL_S = 1.9;
  * potrebno, da se vidi oblika pisave. Pri redki mrezi ostanejo od okrasnih
  * serifov le posamezne pike in napis je videti kot katerikoli drug.
  */
-const GOSTOTA = 8;
+const GOSTOTA = 10;
 /** Zgornja meja stevila znakov v besedilu in v ozadju. */
 const NAJVEC_BESEDILA = 2300;
 const NAJVEC_OZADJA = 620;
@@ -88,6 +88,20 @@ const DUSENJE = 0.86;
 /** Kazalec odriva znake. Polmer v pikah in moc odriva. */
 const KAZALEC_R = 150;
 const KAZALEC_MOC = 2.6;
+
+/**
+ * Blescanje.
+ *
+ * Znaki v mirovanju ne gorijo s polno mocjo, ampak pri OSNOVNA_ALFA; vsak
+ * zase pa vsake toliko casa za hip zasveti in ugasne. Ker so casi nakljucni in
+ * za vsak znak svoji, napis ni videti kot utripajoca luc, ampak kot nekaj, kar
+ * se iskri - kot zvezde, ki jih napis prekriva.
+ */
+const OSNOVNA_ALFA = 0.6;
+const BLESK_NAJKRAJ_S = 2.2;
+const BLESK_NAJDLJE_S = 11;
+/** Kolikokrat na sekundo sij upade na desetino. Visje = kratek blisk. */
+const BLESK_UPAD = 0.055;
 
 /**
  * Frekvence v ozadju.
@@ -331,6 +345,10 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
       z: znak(),
       velikost: nakljucno(najmanj, najvec),
       alfa: nakljucno(0.45, 1),
+      sij: 0,
+      // Cas je absoluten, zato ga postavimo od zdaj naprej - sicer bi bili vsi
+      // znaki ze "zapadli" in bi ob prvi slicici zasvetili hkrati.
+      sijOb: performance.now() * 0.001 + nakljucno(0, BLESK_NAJDLJE_S),
     };
   }
 
@@ -340,7 +358,9 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
 
   /** Preusmeri znake besedila na novo besedilo. */
   function preusmeriBesedilo() {
-    const velikost = Math.min(mereB.v * 0.3, mereB.s * 0.155);
+    // Visino delimo med obe vrstici in pustimo rob: pri 0,3 je spodnja vrstica
+    // s podaljski crk segala cez spodnji rob platna.
+    const velikost = Math.min(mereB.v * 0.24, mereB.s * 0.155);
     const tocke = tockeBesedila(besedilo(), mereB.s * NAJVEC_SIRINE, velikost).slice(
       0,
       NAJVEC_BESEDILA
@@ -395,8 +415,15 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
     }
   }
 
-  function korakPolja(polje, mere, dt, lok) {
+  function korakPolja(polje, mere, dt, lok, sek) {
     for (const d of polje) {
+      // Blescanje. Sij pade proti nic; ko pride cas, spet skoci na polno.
+      d.sij *= Math.pow(BLESK_UPAD, dt);
+      if (sek >= d.sijOb) {
+        d.sij = 1;
+        d.sijOb = sek + nakljucno(BLESK_NAJKRAJ_S, BLESK_NAJDLJE_S);
+      }
+
       if (d.cakaj > 0) {
         d.cakaj -= dt;
       } else if (d.imaCilj) {
@@ -435,7 +462,9 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
   function risiPolje(ctx, polje, mnozitelj, barva) {
     ctx.fillStyle = barva;
     for (const d of polje) {
-      ctx.globalAlpha = (d.imaCilj ? d.alfa : d.alfa * 0.16) * mnozitelj;
+      // Osnovna moc plus tisto, kar prispeva blisk: 0,6 v mirovanju, 1 na vrhu.
+      const moc = OSNOVNA_ALFA + (1 - OSNOVNA_ALFA) * d.sij;
+      ctx.globalAlpha = (d.imaCilj ? d.alfa * moc : d.alfa * 0.16) * mnozitelj;
       ctx.font = `${d.velikost}px "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols 2", sans-serif`;
       ctx.fillText(d.z, d.x, d.y);
     }
@@ -484,8 +513,8 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
       preusmeriOzadje();
       frekvencaOb = sek + FREKVENCA_S;
     }
-    korakPolja(besedni, mereB, dt, kazalecZa(gnezdoBesedila));
-    korakPolja(ozadje, mereO, dt, kazalecZa(gnezdoOzadja));
+    korakPolja(besedni, mereB, dt, kazalecZa(gnezdoBesedila), sek);
+    korakPolja(ozadje, mereO, dt, kazalecZa(gnezdoOzadja), sek);
     risi();
   }
 
