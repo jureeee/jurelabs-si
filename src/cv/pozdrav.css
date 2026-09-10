@@ -14,23 +14,28 @@
 
 /* Okrasna pisava za pozdrav.
  *
- * Metamorphous (SIL Open Font License). Pot do nje je bila dolga: Cinzel
- * Decorative je VERZALNA in malih crk sploh nima, Pirata One pa je bila prava
- * gotica - ozka, zbita in previsoka, kot resetka.
+ * Eczar v debelini 800 (SIL Open Font License). Pot do nje je bila dolga:
+ * Cinzel Decorative je VERZALNA in malih crk sploh nima, Pirata One je bila
+ * prava gotica - ozka, zbita in previsoka, kot resetka - Metamorphous pa
+ * prelahka.
  *
- * Metamorphous je temno-fantazijska: ostri, koniceni serifi in mocna razlika
- * med debelimi in tankimi potezami, a s sirokimi, polozenimi crkami in pravimi
- * malimi. To je najblizje predlogi z napisom CIDARI. Predloga sama je risan
- * crkopis in ne pisava, zato je ni mogoce prevzeti.
+ * Eczar je tezka in siroka, z veliko razliko med debelimi in tankimi potezami
+ * in z ostrimi klinastimi serifi, ki se koncajo v konico. To je najblizje
+ * predlogi, ki jo je prinesel lastnik strani: tista je slovanska okrasna
+ * pisava in je tuje avtorsko delo, zato je ni mogoce prevzeti - prevzeti pa je
+ * mogoce njen znacaj.
+ *
+ * Ker je crkopis ze sam po sebi tezek, ga ni treba vec obrobljati tako mocno
+ * kot prejsnjega; glej DEBELINA v pozdrav.js.
  *
  * Dve podmnozici: prva nosi sumnike, druga vse ostalo.
  */
 @font-face {
   font-family: "Pozdrav";
   font-style: normal;
-  font-weight: 400;
+  font-weight: 800;
   font-display: swap;
-  src: url("../assets/pisave/metamorphous-latin-ext.woff2") format("woff2");
+  src: url("../assets/pisave/eczar-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
     U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
     U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
@@ -38,9 +43,9 @@
 @font-face {
   font-family: "Pozdrav";
   font-style: normal;
-  font-weight: 400;
+  font-weight: 800;
   font-display: swap;
-  src: url("../assets/pisave/metamorphous-latin.woff2") format("woff2");
+  src: url("../assets/pisave/eczar-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
     U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
     U+2212, U+2215, U+FEFF, U+FFFD;

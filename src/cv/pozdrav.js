@@ -193,11 +193,34 @@ const KRONA = (() => {
  * raztresenih znakov brez obrisa.
  */
 const OKRASI = [
-  { svg: METULJ, x: 0.845, y: 0.3, sirina: 0.2, gostota: 5, odtenek: 328, zamah: 26, doba: 47, faza: 0, leti: true },
-  { svg: KRONA, x: 0.185, y: 0.615, sirina: 0.18, gostota: 5, odtenek: 286, zamah: 24, doba: 61, faza: 0.42 },
+  { svg: METULJ, sirina: 0.2, gostota: 5, odtenek: 328, zamah: 26, doba: 47, faza: 0,
+    leti: true, pas: [0.24, 0.36] },
+  { svg: KRONA, sirina: 0.18, gostota: 5, odtenek: 286, zamah: 24, doba: 61, faza: 0.42,
+    pas: [0.58, 0.7] },
 ];
+
+/**
+ * Kje ob straneh smeta stati.
+ *
+ * Sredina pripada napisu in vsebini; okras gre zato v levi ali desni pas.
+ * Katera stran komu pripade, se zmenita ob vsakem odprtju - a nikoli isto,
+ * sicer bi se znasla eden pod drugim v istem stolpcu.
+ */
+const PAS_LEVO = [0.12, 0.25];
+const PAS_DESNO = [0.75, 0.88];
+
 /** Koliko od okrasa ostane v dnu diha; v vrhu je cel. */
 const OKRAS_DNO = 0.18;
+
+/**
+ * Koliko po odhodu z zaslona napis se tece, preden obmiruje.
+ *
+ * Znakov je dva tisoc in vsak je telo na vzmeti; racunati jih, ko jih nihce
+ * ne gleda, je zastonj delo. Dve sekundi sta zato, da kratek pogled navzdol
+ * in nazaj ne ustavi ravno tekocega preliva - sicer bi se ta ob vrnitvi
+ * nadaljeval s sunkom.
+ */
+const UGASNI_PO_S = 2;
 
 /**
  * Let metulja.
@@ -236,18 +259,20 @@ const VAL_S = 1.9;
 /**
  * Razmik med tarcami.
  *
- * Drobnejsi od velikosti znakov, zato se ti rahlo prekrivajo - in prav to je
- * potrebno, da se vidi oblika pisave. Pri redki mrezi ostanejo od okrasnih
- * serifov le posamezne pike in napis je videti kot katerikoli drug.
+ * Znaki se ob njem rahlo dotikajo, ne prekrivajo. Gosteje zapolnjena crka je
+ * bila kompaktna in tezka; pri tem koraku so med znaki reze, skozi katere se
+ * vidi ozadje, in oko ima kje pocivati. Prevec redko pa bi pojedlo okrasne
+ * serife in napis bi bil videti kot katerikoli drug.
  */
-const GOSTOTA = 9;
+const GOSTOTA = 9.5;
 /**
  * Zgornja meja stevila znakov v besedilu in v ozadju.
  *
- * Meja besedila gre z gostoto: drobnejsi znaki pokrijejo manj in ce bi jih
- * ostalo enako, bi crke postale luknjaste.
+ * Meja gre z gostoto in je bistvena: ce je nizja od stevila tarc, jih ostane
+ * vec praznih in crke razpadejo v raztresene pike. Enkrat se je to ze
+ * zgodilo - meja 2050 pri gostoti 11,5 je od napisa pustila oblak.
  */
-const NAJVEC_BESEDILA = 2850;
+const NAJVEC_BESEDILA = 3000;
 const NAJVEC_OZADJA = 620;
 /** Koliko sirine sme zavzeti napis. */
 const NAJVEC_SIRINE = 0.82;
@@ -284,7 +309,7 @@ const SIRJENJE = 1.42;
  * gostejso packo, debelejsa poteza pa siri samo crko, tako da gre po njeni
  * sirini vec znakov in stebla postanejo trdna.
  */
-const DEBELINA = 0.055;
+const DEBELINA = 0.022;
 
 /** Kako mocno znak vlece proti tarci in koliko ga dusi. */
 const VZMET = 0.055;
@@ -392,7 +417,7 @@ function tockeBesedila(vrstice, sirinaNaVoljo, velikostPisave, gostota = GOSTOTA
   const besedilo = seznam[0];
   const platno = document.createElement("canvas");
   const ctx = platno.getContext("2d", { willReadFrequently: true });
-  const pisava = (v) => `400 ${v}px ${PISAVA}`;
+  const pisava = (v) => `800 ${v}px ${PISAVA}`;
 
   // Velikost prilagodimo sirini, ki jo imamo: dolg stavek v nemscini ne sme
   // odteci cez rob, kratek v anglescini pa naj ne ostane droben.
@@ -443,7 +468,7 @@ function tockeBesedila(vrstice, sirinaNaVoljo, velikostPisave, gostota = GOSTOTA
  */
 function tockeVecVrstic(vrstice, sirinaNaVoljo, velikostPisave, gostota) {
   const merilno = document.createElement("canvas").getContext("2d");
-  merilno.font = `400 ${velikostPisave}px ${PISAVA}`;
+  merilno.font = `800 ${velikostPisave}px ${PISAVA}`;
   const najsirsa = Math.max(
     ...vrstice.map((v) => sirinaRazmaknjena(merilno, v, velikostPisave))
   );
@@ -594,7 +619,24 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
   const ozadje = [];    // znaki na Chladnijevi figuri
   const kotni = [];     // podpis v kotu
   /** Vsak okras ima svoje znake, da lahko diha in menja odtenek po svoje. */
-  const okrasni = OKRASI.map((o) => ({ o, delci: [] }));
+  const okrasni = OKRASI.map((o) => ({ o, delci: [], x: 0, y: 0 }));
+
+  /**
+   * Zmeni, kje bosta okrasa tokrat.
+   *
+   * Tece ob vsakem odprtju in ne ob vsaki meritvi: ob spremembi velikosti okna
+   * naj metulj ostane, kjer je bil, sicer bi ob vsakem premiku roba poskocil
+   * drugam.
+   */
+  function izberiLege() {
+    const prviLevo = Math.random() < 0.5;
+    okrasni.forEach((k, i) => {
+      const pas = (i === 0) === prviLevo ? PAS_LEVO : PAS_DESNO;
+      k.x = nakljucno(pas[0], pas[1]);
+      k.y = nakljucno(k.o.pas[0], k.o.pas[1]);
+    });
+  }
+  izberiLege();
 
   let jezikA = 0;
   let jezikB = 0;
@@ -604,6 +646,10 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
   let frekvencaKje = 0;
   let zanka = null;
   let viden = false;
+  /** Ali napis tece; ozadje in okrasa tecejo naprej, ker sta drugod. */
+  let napisTece = true;
+  let ugasniOb = null;
+  let opazovalec = null;
   let zadnjiSek = 0;
   const kazalec = { x: -1e4, y: -1e4, ziv: false };
 
@@ -672,7 +718,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
       0,
       NAJVEC_BESEDILA
     );
-    napolni(besedni, Math.min(NAJVEC_BESEDILA, Math.round(tocke.length * 1.08)), mereB, 6, 13);
+    napolni(besedni, Math.min(NAJVEC_BESEDILA, Math.round(tocke.length * 1.08)), mereB, 5.5, 11.5);
 
     const sredX = mereB.s / 2;
     const sredY = mereB.v / 2;
@@ -704,8 +750,8 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
   async function postaviOkrase() {
     for (const k of okrasni) {
       const tocke = await tockeIzSvg(k.o.svg, mereK.s * k.o.sirina, k.o.gostota ?? GOSTOTA);
-      const sredX = mereK.s * k.o.x;
-      const sredY = mereK.v * k.o.y;
+      const sredX = mereK.s * k.x;
+      const sredY = mereK.v * k.y;
       const cilji = tocke.map((t) => ({ x: sredX + t.x, y: sredY + t.y }));
       napolni(k.delci, cilji.length, mereK, 5, 11);
       for (const d of k.delci) d.imaCilj = false;
@@ -864,6 +910,9 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
     }
     ctxO.restore();
 
+    // Ko napis miruje, platna niti ne cistimo: zadnja slika ostane na njem in
+    // je ob vrnitvi ze tu, mi pa med tem ne risemo nicesar.
+    if (!napisTece) return;
     ctxB.clearRect(0, 0, mereB.s, mereB.v);
     ctxB.textAlign = "center";
     ctxB.textBaseline = "middle";
@@ -890,7 +939,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
     const dt = zadnjiSek ? Math.min(sek - zadnjiSek, 0.05) : 1 / 60;
     zadnjiSek = sek;
 
-    if (sek >= menjavaOb) {
+    if (napisTece && sek >= menjavaOb) {
       naprejJezik();
       preusmeriBesedilo();
       menjavaOb = sek + MIROVANJE_S + VAL_S;
@@ -901,7 +950,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
       frekvencaOb = sek + FREKVENCA_S;
     }
     const kazalecB = kazalecZa(gnezdoBesedila);
-    korakPolja(besedni, mereB, dt, kazalecB, sek);
+    if (napisTece) korakPolja(besedni, mereB, dt, kazalecB, sek);
     korakPolja(ozadje, mereO, dt, kazalecZa(gnezdoOzadja), sek);
 
     // Kazalec je za okrase v prostoru strani, torej nizje za toliko, kolikor
@@ -950,6 +999,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
     pokazi() {
       if (viden) return;
       viden = true;
+      izberiLege();
       meri();
       // Prvi napis je slovenski; ta pozdrav bere vecina, ki pride sem.
       jezikA = 0;
@@ -960,7 +1010,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
       // Oblike crk merimo sele, ko je pisava tu. Prej bi jih narisala
       // sistemska in napis bi ob prihodu okrasne poskocil.
       const pripravljena = document.fonts
-        ? document.fonts.load('400 100px "Pozdrav"').catch(() => null)
+        ? document.fonts.load('800 100px "Pozdrav"').catch(() => null)
         : Promise.resolve(null);
 
       postaviOkrase();
@@ -981,6 +1031,37 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
         risi(performance.now() * 0.001);
       });
 
+      /**
+       * Napis zaspi, ko odide z zaslona.
+       *
+       * Frekvence in okrasa tecejo naprej - prve so pod celo stranjo, druga
+       * sta nizje na njej in ju gledas prav takrat, ko napisa ni. Ustavi se
+       * le tisto, cesar nihce ne gleda.
+       */
+      opazovalec = new IntersectionObserver(
+        (vnosi) => {
+          const naZaslonu = vnosi.some((v) => v.isIntersecting);
+          if (naZaslonu) {
+            clearTimeout(ugasniOb);
+            ugasniOb = null;
+            if (!napisTece) {
+              napisTece = true;
+              // Ob vrnitvi naj preliv ne skoci takoj: ura je med spanjem tekla
+              // naprej in bi bil ze zapadel.
+              menjavaOb = performance.now() * 0.001 + MIROVANJE_S;
+            }
+            return;
+          }
+          if (ugasniOb) return;
+          ugasniOb = setTimeout(() => {
+            napisTece = false;
+            ugasniOb = null;
+          }, UGASNI_PO_S * 1000);
+        },
+        { root: drsnik ?? null, threshold: 0 }
+      );
+      opazovalec.observe(gnezdoBesedila);
+
       addEventListener("pointermove", naMisko, { passive: true });
       addEventListener("pointerleave", naIzhod, { passive: true });
       addEventListener("resize", naSpremembo);
@@ -996,6 +1077,11 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
     skrij() {
       if (!viden) return;
       viden = false;
+      opazovalec?.disconnect();
+      opazovalec = null;
+      clearTimeout(ugasniOb);
+      ugasniOb = null;
+      napisTece = true;
       platnoO.classList.remove("vidno");
       platnoB.classList.remove("vidno");
       if (zanka) cancelAnimationFrame(zanka);
