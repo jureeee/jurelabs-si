@@ -733,7 +733,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
   function risiPolje(ctx, polje, mnozitelj, barva) {
     ctx.fillStyle = barva;
     for (const d of polje) {
-      // Osnovna moc plus tisto, kar prispeva blisk: 0,6 v mirovanju, 1 na vrhu.
+      // Osnovna moc plus tisto, kar prispeva blisk: 0,4 v mirovanju, 1 na vrhu.
       const moc = OSNOVNA_ALFA + (1 - OSNOVNA_ALFA) * d.sij;
       ctx.globalAlpha = (d.imaCilj ? d.alfa * moc : d.alfa * 0.16) * mnozitelj;
       ctx.font = `${d.velikost}px "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols 2", sans-serif`;
@@ -746,7 +746,9 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila) {
     ctxO.clearRect(0, 0, mereO.s, mereO.v);
     ctxO.textAlign = "center";
     ctxO.textBaseline = "middle";
-    risiPolje(ctxO, ozadje, 0.34, "#9fb6d8");
+    // Frekvence so ozadje in ne sobesedilo: kadar so premocne, tekmujejo z
+    // napisom, ki lezi cez nje, in oko ne ve, kam naj gleda.
+    risiPolje(ctxO, ozadje, 0.26, "#9fb6d8");
 
     ctxB.clearRect(0, 0, mereB.s, mereB.v);
     ctxB.textAlign = "center";

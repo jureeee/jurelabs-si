@@ -18,6 +18,31 @@
   pointer-events: none;
 }
 
+/* Zatemnitev pod pozdravom.
+ *
+ * Znaki so svetli in tanki, galaksija pod njimi pa je polna zvezd; kjer se
+ * zvezda ujame med potezi crke, se crka razlomi in napis se tezko bere.
+ * Zaveso zato podlozimo se z eno plastjo - a ne z enakomerno crnino, ker bi
+ * scena postala prazen pravokotnik in bi se izgubilo vse, zaradi cesar je
+ * ozadje ziva slika.
+ *
+ * Zatemnitev je radialna: najgostejsa je na sredini, kjer stoji napis, in
+ * proti robovom popusti, tako da galaksija ostane vidna tam, kjer nic ne
+ * prekriva. Lezi znotraj ozadja in torej pod frekvencami in pod vso vsebino.
+ */
+.stik-ozadje::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse 76% 64% at 50% 45%,
+      rgba(3, 5, 9, 0.5),
+      rgba(3, 5, 9, 0) 74%
+    ),
+    linear-gradient(rgba(3, 5, 9, 0.22), rgba(3, 5, 9, 0.22));
+}
+
 /* Napis pa je v toku: z drsenjem gre gor kot vsak drug element strani. */
 .stik-napis {
   position: absolute;
