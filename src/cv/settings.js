@@ -189,6 +189,10 @@ function spust(kljuc, moznosti) {
   // nobenega filtra.
   const seznam = document.createElement("div");
   seznam.className = "spust-seznam dg";
+  // Drsi plast v ploskvi in ne ploskev sama - glej .spust-drsnik v settings.css.
+  const drsnik = document.createElement("div");
+  drsnik.className = "spust-drsnik";
+  seznam.appendChild(drsnik);
   document.body.appendChild(seznam);
 
   const osvezi = () => {
@@ -214,7 +218,7 @@ function spust(kljuc, moznosti) {
       seznam.classList.remove("odprt");
       b.dispatchEvent(new CustomEvent("nast-sprememba", { bubbles: true, detail: { kljuc } }));
     });
-    seznam.appendChild(b);
+    drsnik.appendChild(b);
   });
 
   gumb.addEventListener("click", (e) => {
@@ -232,7 +236,7 @@ function spust(kljuc, moznosti) {
     seznam.style.visibility = "hidden";
     seznam.style.top = "0px";
     // Najprej sprostimo omejitev, da izmerimo pravo visino vsebine.
-    seznam.style.maxHeight = "";
+    drsnik.style.maxHeight = "";
     const v = seznam.offsetHeight;
     const podSpodaj = window.innerHeight - r.bottom - 16;
     const navzgor = podSpodaj < v && r.top > v + 16;
@@ -240,7 +244,7 @@ function spust(kljuc, moznosti) {
     seznam.style.left = `${Math.max(12, r.right - seznam.offsetWidth)}px`;
     // Seznam ne sme cez rob zaslona: omejimo ga na prostor, ki ga dejansko ima.
     const prostor = navzgor ? r.top - 20 : window.innerHeight - r.bottom - 20;
-    seznam.style.maxHeight = `${Math.max(160, Math.min(v, prostor))}px`;
+    drsnik.style.maxHeight = `${Math.max(160, Math.min(v, prostor)) - 12}px`;
     seznam.style.transformOrigin = navzgor ? "bottom right" : "top right";
     seznam.style.visibility = "";
   });

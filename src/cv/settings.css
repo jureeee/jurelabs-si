@@ -368,18 +368,10 @@
 .spust-seznam {
   position: fixed;
   min-width: 172px;
-  /* Seznam je zrasel cez zaslon, zato drsi sam.
-     Maska ob robovih pove, da je se kaj naprej - brez nje se odrezana vrstica
-     bere kot konec seznama. */
-  max-height: min(58vh, 460px);
-  overflow-y: auto;
-  /* Drsnik naj tece znotraj ploskve, ne cez njen zaobljeni rob: prostor zanj
-     rezerviramo z desnim robom in ga s stabilnim zlebom obdrzimo tudi takrat,
-     ko drsenja ni - sicer bi se vsebina ob odprtju premaknila. */
-  padding-right: 4px;
-  overscroll-behavior: contain;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 16px), transparent 100%);
-  mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 16px), transparent 100%);
+  /* Ploskev sama NE drsi. Sij ob robovih je v .dg::before z inset: 0, in ce
+     drsi ploskev, potuje z vsebino - spodnji rob obroca obvisi sredi seznama.
+     Zato drsi plast v njej, obroc pa ostane pri njenem robu. */
+  overflow: hidden;
 
   /* Seznam ima svoje steklo, sibkejse od ostalega UI.
      Nasicenost 2.05 mu je iz galaksije potegnila modrino in seznam je bil
@@ -408,6 +400,18 @@
   transform: translateY(0) scale(1);
   filter: blur(0);
   pointer-events: auto;
+}
+
+/* Plast, ki drsi. Maska ob robovih pove, da je se kaj naprej - brez nje se
+   odrezana vrstica bere kot konec seznama. Prostor za drsnik rezerviramo z
+   desnim robom, da vsebina ob odprtju ne poskoci. */
+.spust-drsnik {
+  max-height: min(58vh, 460px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 4px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 16px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 16px), transparent 100%);
 }
 .spust-izbira {
   display: flex;

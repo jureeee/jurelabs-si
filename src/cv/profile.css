@@ -290,8 +290,8 @@
 }
 
 /* Drsnik v seznamu je ozji od strani. */
-.spust-seznam::-webkit-scrollbar { width: 8px; }
-.spust-seznam::-webkit-scrollbar-thumb {
+.spust-drsnik::-webkit-scrollbar { width: 8px; }
+.spust-drsnik::-webkit-scrollbar-thumb {
   border-width: 2px;
   background-color: rgba(255, 255, 255, 0.22);
 }

@@ -34,6 +34,10 @@ export function installIzbirnikJezika() {
   const seznam = document.createElement("div");
   seznam.className = "spust-seznam jez-seznam dg";
   seznam.setAttribute("role", "listbox");
+  // Drsi plast v ploskvi in ne ploskev sama - glej .spust-drsnik v settings.css.
+  const drsnik = document.createElement("div");
+  drsnik.className = "spust-drsnik";
+  seznam.appendChild(drsnik);
   for (const j of JEZIKI) {
     const b = document.createElement("button");
     b.type = "button";
@@ -49,7 +53,7 @@ export function installIzbirnikJezika() {
       zapri();
       await nastaviJezik(j.koda);
     });
-    seznam.appendChild(b);
+    drsnik.appendChild(b);
   }
   document.body.appendChild(seznam);
 
@@ -71,7 +75,7 @@ export function installIzbirnikJezika() {
     seznam.style.top = `${r.bottom + 10}px`;
     seznam.style.left = "auto";
     seznam.style.right = `${Math.max(12, innerWidth - r.right)}px`;
-    seznam.style.maxHeight = `${Math.max(180, innerHeight - r.bottom - 34)}px`;
+    drsnik.style.maxHeight = `${Math.max(180, innerHeight - r.bottom - 34) - 12}px`;
     seznam.style.transformOrigin = "top right";
     seznam.classList.add("odprt");
     gumb.setAttribute("aria-expanded", "true");

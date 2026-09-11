@@ -48,8 +48,6 @@
 /* Seznam: iste vrstice kot v spustnih menijih, le daljsi, zato se drsi. */
 .jez-seznam {
   min-width: 210px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
 }
 
 /* Na telefonu gre nad dno zaslona, da je pod palcem. */

@@ -528,6 +528,10 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
   // nastavitvah.
   const seznam = document.createElement("div");
   seznam.className = "spust-seznam dg";
+  // Drsi plast v ploskvi in ne ploskev sama - glej .spust-drsnik v settings.css.
+  const drsnik = document.createElement("div");
+  drsnik.className = "spust-drsnik";
+  seznam.appendChild(drsnik);
   document.body.appendChild(seznam);
 
   const vrsticaIzbire = (r, izbrana, vrsta) =>
@@ -536,7 +540,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     `<span>${t(`gal.${vrsta}.${r.kljuc}`, r.ime)}</span><span class="spust-kljukica">${IKONA_KLJUKICA}</span></button>`;
 
   function osveziSeznam() {
-    seznam.innerHTML =
+    drsnik.innerHTML =
       RAZPOREDI.map((r) => vrsticaIzbire(r, r.kljuc === razpored, "razpored")).join("") +
       '<span class="spust-locnica"></span>' +
       RAZMIKI.map((r) => vrsticaIzbire(r, r.kljuc === razmik, "razmik")).join("") +
@@ -595,14 +599,14 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     seznam.style.visibility = "hidden";
     seznam.style.top = "0px";
     // Najprej sprostimo omejitev, da izmerimo pravo visino vsebine.
-    seznam.style.maxHeight = "";
+    drsnik.style.maxHeight = "";
     const v = seznam.offsetHeight;
     const navzgor = window.innerHeight - r.bottom - 16 < v && r.top > v + 16;
     seznam.style.top = `${navzgor ? r.top - v - 8 : r.bottom + 8}px`;
     seznam.style.left = `${Math.max(12, r.right - seznam.offsetWidth)}px`;
     // Seznam ne sme cez rob zaslona: omejimo ga na prostor, ki ga dejansko ima.
     const prostor = navzgor ? r.top - 20 : window.innerHeight - r.bottom - 20;
-    seznam.style.maxHeight = `${Math.max(160, Math.min(v, prostor))}px`;
+    drsnik.style.maxHeight = `${Math.max(160, Math.min(v, prostor)) - 12}px`;
     seznam.style.transformOrigin = navzgor ? "bottom right" : "top right";
     seznam.style.visibility = "";
     seznam.classList.add("odprt");
