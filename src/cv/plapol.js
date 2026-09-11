@@ -56,6 +56,17 @@ const NAJVEC = 1600;
  */
 const VAL = 0.42;
 
+/**
+ * Odprta slika je kartica v prostoru, enako kot dvignjena v mrezi: kazalec jo
+ * rahlo nagne, rob pod njim se odmakne, cez njo drsi mehek odsev. Tu ploskev
+ * zares zavrtimo v prizoru, zato perspektivo da kamera sama.
+ */
+const NAGIB_NAJVEC = 6;
+const NAGIB_TOG = 120;
+const NAGIB_DUS = 16;
+/** Kdor je gibanje izklopil, dobi ravno sliko. */
+const mirno = matchMedia("(prefers-reduced-motion: reduce)");
+
 const VERTEX = /* glsl */ `
   uniform float uProgress;
   uniform float uVal;
@@ -159,6 +170,8 @@ const FRAGMENT = /* glsl */ `
   uniform float uProgress;
   uniform vec2 uPolje;
   uniform vec2 uMere;
+  uniform vec2 uOdsev;
+  uniform float uOdsevMoc;
 
   varying vec2 vUv;
 
@@ -195,6 +208,11 @@ const FRAGMENT = /* glsl */ `
     // (Temna in kontrastna slika je bila druga napaka, barvni prostor.)
 
     vec3 barva = texture2D(uSlika, uv).rgb;
+
+    // Odsev kot pri mesanju "screen": svetli, a nikoli ne preide v belo liso.
+    float sij = uOdsevMoc * (1.0 - smoothstep(0.0, 0.6, distance(vUv, uOdsev)));
+    barva = 1.0 - (1.0 - barva) * (1.0 - sij);
+
     float vidnost = smoothstep(0.0, 0.7, uProgress);
 
     gl_FragColor = vec4(barva, moc * vidnost);
@@ -234,6 +252,8 @@ function pripraviPogon() {
         uPolje: { value: new THREE.Vector2(1, 1) },
         uMere: { value: new THREE.Vector2(1, 1) },
         uVal: { value: VAL },
+        uOdsev: { value: new THREE.Vector2(0.5, 0.5) },
+        uOdsevMoc: { value: 0 },
       },
     });
 
@@ -307,6 +327,20 @@ function slicica(ms) {
   p.gradivo.uniforms.uProgress.value = napredek;
   p.gradivo.uniforms.uPolje.value.set(ogled.razmerje, 1);
   p.gradivo.uniforms.uMere.value.set(ogled.razmerje, 1);
+
+  // Nagib po vzmeti; ob prihodu in odhodu raste in pojema z napredkom, da se
+  // ne prepira z valom.
+  const n = ogled.nagib;
+  const dt = Math.min(0.05, Math.max(0, (ms - n.prej) / 1000));
+  n.prej = ms;
+  n.vx += ((n.cx * napredek - n.x) * NAGIB_TOG - n.vx * NAGIB_DUS) * dt;
+  n.vy += ((n.cy * napredek - n.y) * NAGIB_TOG - n.vy * NAGIB_DUS) * dt;
+  n.x += n.vx * dt;
+  n.y += n.vy * dt;
+  p.ploskev.rotation.set(THREE.MathUtils.degToRad(n.x), THREE.MathUtils.degToRad(n.y), 0);
+  p.gradivo.uniforms.uOdsev.value.set(0.5 + (n.y / NAGIB_NAJVEC) * 0.5, 0.5 - (n.x / NAGIB_NAJVEC) * 0.5);
+  p.gradivo.uniforms.uOdsevMoc.value = (0.05 + 0.11 * Math.min(1, Math.hypot(n.x, n.y) / NAGIB_NAJVEC)) * napredek;
+
   p.izris.render(p.prizor, p.kamera);
 
   if (t >= 1 && ogled.zapira) pospravi();
@@ -376,8 +410,26 @@ export function odpri(url, opis = "", { video = false, cas = 0 } = {}) {
   const naMero = () => { if (ogled) nastaviMere(p, ogled.razmerje); };
   addEventListener("resize", naMero);
 
-  ogled = { ovoj, naTipko, naMero, tekstura: null, posnetek: null, razmerje: 1, zapira: false,
-            zacetek: performance.now(), zanka: null };
+  // Kam naj se kartica nagne: rob pod kazalcem se odmakne. Mere so mere slike,
+  // ne platna - platno ima okoli slike se zrak za val.
+  const naMisko = (e) => {
+    if (!ogled || mirno.matches) return;
+    const r = p.izris.domElement.getBoundingClientRect();
+    const sw = r.width / ZRAK;
+    const sv = r.height / ZRAK;
+    const nx = Math.min(1, Math.max(-1, ((e.clientX - (r.left + r.width / 2)) / sw) * 2));
+    const ny = Math.min(1, Math.max(-1, ((e.clientY - (r.top + r.height / 2)) / sv) * 2));
+    ogled.nagib.cy = nx * NAGIB_NAJVEC;
+    ogled.nagib.cx = ny * NAGIB_NAJVEC;
+  };
+  // Kazalec je zapustil okno - kartica se zravna.
+  const naIzhod = () => { if (ogled) ogled.nagib.cx = ogled.nagib.cy = 0; };
+  addEventListener("pointermove", naMisko, { passive: true });
+  document.documentElement.addEventListener("pointerleave", naIzhod);
+
+  ogled = { ovoj, naTipko, naMero, naMisko, naIzhod, tekstura: null, posnetek: null, razmerje: 1, zapira: false,
+            zacetek: performance.now(), zanka: null,
+            nagib: { x: 0, y: 0, vx: 0, vy: 0, cx: 0, cy: 0, prej: performance.now() } };
 
   (video ? naloziPosnetek(url, cas) : naloziSliko(url))
     .then(({ vir, w, h, tekstura }) => {
@@ -431,6 +483,9 @@ function pospravi() {
   if (o.zanka) cancelAnimationFrame(o.zanka);
   removeEventListener("keydown", o.naTipko);
   removeEventListener("resize", o.naMero);
+  removeEventListener("pointermove", o.naMisko);
+  document.documentElement.removeEventListener("pointerleave", o.naIzhod);
+  if (pogon) pogon.ploskev.rotation.set(0, 0, 0);
   o.tekstura?.dispose();
   if (o.posnetek) ustaviPosnetek(o.posnetek);
   if (pogon && pogon.izris.domElement.parentElement === o.ovoj) {
