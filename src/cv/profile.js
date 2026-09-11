@@ -97,6 +97,24 @@ function ozivi(koren) {
   });
 }
 
+/**
+ * Mirujoca slicica videa za sij pod njim.
+ *
+ * Majhna, ker je sij tako ali tako zabrisan za 26 pik - vec pik bi pomenilo
+ * le vec dela za isto meglo.
+ */
+function narisiSij(platno, video) {
+  const w = 48;
+  const h = Math.max(1, Math.round((w * video.videoHeight) / Math.max(1, video.videoWidth)));
+  platno.width = w;
+  platno.height = h;
+  try {
+    platno.getContext("2d").drawImage(video, 0, 0, w, h);
+  } catch {
+    // Ce slicice ni mogoce narisati, sij ostane prazen; polje samo ni prizadeto.
+  }
+}
+
 export function installProfile({ onOdprt, onZaprt } = {}) {
   const koren = document.createElement("div");
   koren.className = "prof";
@@ -293,30 +311,52 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     polje.dataset.polno = "1";
     const url = polje.dataset.url;
 
+    const jeVideo = polje.dataset.video === "true";
+
     // Sij: ista slika se enkrat, zabrisana in povecana, pod pravo. Barva
     // torej pride iz same vsebine in ne iz izmisljene svetlobe.
-    const sij = document.createElement(polje.dataset.video === "true" ? "video" : "img");
+    //
+    // Pri videu je sij MIRUJOCA SLICICA in ne drugi video. Drugi <video> je
+    // pomenil dva predvajalnika in dva prenosa na posnetek - pri 64 videih 128
+    // hkrati. Brskalnik ima predvajalnikov omejeno in ob hitrem drsenju je
+    // del prenosov propadel; polje je ostalo prazno. Zabris 26 pik gib tako
+    // ali tako pogoltne, zato sij na mestu ne izgubi nicesar.
+    const sij = document.createElement(jeVideo ? "canvas" : "img");
     sij.className = "prof-sij";
-    sij.src = url;
-    if (polje.dataset.video === "true") {
-      sij.muted = true; sij.loop = true; sij.playsInline = true; sij.preload = "metadata";
-    }
+    if (!jeVideo) sij.src = url;
     polje.prepend(sij);
 
-    if (polje.dataset.video === "true") {
+    if (jeVideo) {
       const v = document.createElement("video");
-      v.src = url;
       v.muted = true;
       v.loop = true;
       v.playsInline = true;
-      // metadata in ne auto: prvo slicico dobimo takoj, celega posnetka pa ne
-      // vlecemo, dokler se ne zacne predvajati.
+      // metadata in ne auto: celega posnetka ne vlecemo, dokler se ne zacne
+      // predvajati.
       v.preload = "metadata";
       v.addEventListener("loadedmetadata", () => {
         if (v.videoWidth) {
           polje.style.setProperty("--razmerje", `${v.videoWidth} / ${v.videoHeight}`);
         }
-      }, { once: true });
+        // Metadata se ni slika. Chrome pri preload=metadata prve slicice
+        // pogosto ne dekodira in polje ostane prazno do prvega predvajanja;
+        // drobcen premik jo izsili.
+        if (v.currentTime === 0) v.currentTime = 0.001;
+      });
+      v.addEventListener("loadeddata", () => narisiSij(sij, v), { once: true });
+      // Ponovni poskus. Prvi prenos ob hitrem drsenju vcasih propade in
+      // brskalnik javi "ni vira", posnetek pa je v redu - drugic pride.
+      // Tri poskusi z vse daljsim premorom, da ne tolcemo po strezniku.
+      let poskus = 0;
+      v.addEventListener("error", () => {
+        if (poskus >= 3) return;
+        poskus += 1;
+        setTimeout(() => {
+          v.src = url;
+          v.load();
+        }, 500 * poskus * poskus);
+      });
+      v.src = url;
       polje.append(v);
     } else {
       const i = document.createElement("img");
