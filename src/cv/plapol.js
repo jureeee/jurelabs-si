@@ -417,10 +417,12 @@ export function odpri(url, opis = "", { video = false, cas = 0 } = {}) {
     const r = p.izris.domElement.getBoundingClientRect();
     const sw = r.width / ZRAK;
     const sv = r.height / ZRAK;
-    const nx = Math.min(1, Math.max(-1, ((e.clientX - (r.left + r.width / 2)) / sw) * 2));
-    const ny = Math.min(1, Math.max(-1, ((e.clientY - (r.top + r.height / 2)) / sv) * 2));
-    ogled.nagib.cy = nx * NAGIB_NAJVEC;
-    ogled.nagib.cx = ny * NAGIB_NAJVEC;
+    const nx = ((e.clientX - (r.left + r.width / 2)) / sw) * 2;
+    const ny = ((e.clientY - (r.top + r.height / 2)) / sv) * 2;
+    // Nagiba se le, dokler je kazalec na sliki; ko gre z nje, se zravna.
+    const naSliki = Math.abs(nx) <= 1 && Math.abs(ny) <= 1;
+    ogled.nagib.cy = naSliki ? nx * NAGIB_NAJVEC : 0;
+    ogled.nagib.cx = naSliki ? ny * NAGIB_NAJVEC : 0;
   };
   // Kazalec je zapustil okno - kartica se zravna.
   const naIzhod = () => { if (ogled) ogled.nagib.cx = ogled.nagib.cy = 0; };
