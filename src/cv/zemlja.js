@@ -29,6 +29,7 @@
  * ostane cela.
  */
 
+import { obJeziku, t } from "./jezik.js";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import modelUrl from "../assets/3d models/zemlja.glb?url";
@@ -204,7 +205,8 @@ export function installZemlja(gnezdo) {
 
   const napis = document.createElement("span");
   napis.className = "zemlja-oznaka";
-  napis.textContent = "Slovenija";
+  napis.textContent = t("zemlja.slovenija", "Slovenija");
+  obJeziku(() => { napis.textContent = t("zemlja.slovenija", "Slovenija"); });
   napis.style.opacity = "0";
   gnezdo.appendChild(napis);
 

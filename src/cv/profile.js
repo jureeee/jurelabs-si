@@ -15,6 +15,8 @@
 import "./profile.css";
 import avatarUrl from "../assets/media/profile picture.webp";
 import { mediji } from "./mediji.js";
+import { obJeziku, t } from "./jezik.js";
+import { namestiLebdenje } from "./lebdenje.js";
 
 const IKONA_ZAPRI =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
@@ -298,12 +300,21 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
    * brez posledic, tako kot je bil prej.
    */
   const mirnoGibanje = matchMedia("(prefers-reduced-motion: reduce)");
-  mreza.addEventListener("click", (e) => {
-    const polje = e.target instanceof Element ? e.target.closest(".prof-polje") : null;
+  // Najprej izpuhti dvignjena slika, sele nato pride ogled - dva ucinka drug
+  // za drugim in ne hkrati.
+  function odpriSliko(polje) {
     if (!polje || polje.dataset.video === "true" || mirnoGibanje.matches) return;
     const url = polje.dataset.url;
     if (!url) return;
-    import("./plapol.js").then((m) => m.odpri(url)).catch(() => null);
+    lebdenje
+      .pokni(polje)
+      .then(() => import("./plapol.js"))
+      .then((m) => m.odpri(url))
+      .catch(() => null);
+  }
+  const lebdenje = namestiLebdenje(mreza, { klik: odpriSliko });
+  mreza.addEventListener("click", (e) => {
+    odpriSliko(e.target instanceof Element ? e.target.closest(".prof-polje") : null);
   });
 
   function napolni(polje) {
@@ -520,7 +531,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
   const vrsticaIzbire = (r, izbrana, vrsta) =>
     `<button type="button" class="spust-izbira" data-vrsta="${vrsta}" data-kljuc="${r.kljuc}"` +
     ` aria-selected="${izbrana}">` +
-    `<span>${r.ime}</span><span class="spust-kljukica">${IKONA_KLJUKICA}</span></button>`;
+    `<span>${t(`gal.${vrsta}.${r.kljuc}`, r.ime)}</span><span class="spust-kljukica">${IKONA_KLJUKICA}</span></button>`;
 
   function osveziSeznam() {
     seznam.innerHTML =
@@ -531,6 +542,41 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
       SIRINE.map((r) => vrsticaIzbire(r, r.kljuc === sirina, "sirina")).join("");
   }
   osveziSeznam();
+
+  /**
+   * Napisi profila v izbranem jeziku.
+   *
+   * Oznake so ze postavljene; zamenja se le besedilo. Pri stevcih je stevilo
+   * v <b> in beseda za njim, zato menjamo le zadnje besedilo - postavitev
+   * stevca ostane nedotaknjena.
+   */
+  function prevediProfil() {
+    const besede = [
+      ["prof.objav", "objav"],
+      ["prof.sledilcev", "sledilcev"],
+      ["prof.sledi", "sledi"],
+    ];
+    koren.querySelectorAll(".prof-stevci span").forEach((el, i) => {
+      if (besede[i] && el.lastChild) el.lastChild.nodeValue = t(...besede[i]);
+    });
+    const bio = koren.querySelector(".prof-bio");
+    if (bio) bio.textContent = t("prof.bio", PODATKI.bio);
+    const [uredi, arhiv] = koren.querySelectorAll(".prof-gumb");
+    if (uredi) uredi.textContent = t("prof.uredi", "Uredi profil");
+    if (arhiv) arhiv.textContent = t("prof.arhiv", "Arhiv");
+    const zavihki = [
+      ["prof.objave", "Objave"],
+      ["prof.shranjeno", "Shranjeno"],
+      ["prof.oznaceno", "Označeno"],
+    ];
+    koren.querySelectorAll(".prof-zavihek").forEach((el, i) => {
+      if (zavihki[i]) el.textContent = t(...zavihki[i]);
+    });
+    koren.querySelector(".prof-zapri")?.setAttribute("aria-label", t("prof.zapri", "Zapri"));
+    koren.querySelector(".prof-razpored")?.setAttribute("aria-label", t("prof.razporeditev", "Razporeditev"));
+    osveziSeznam();
+  }
+  obJeziku(prevediProfil);
 
   function zapriSeznam() {
     seznam.classList.remove("odprt");
@@ -609,6 +655,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     zapiranje = setTimeout(() => {
       koren.classList.remove("odprt", "zapira");
       koren.querySelectorAll("video").forEach((v) => v.pause());
+      lebdenje.spusti(true);
       onZaprt?.();
       zapiranje = null;
     }, 460);

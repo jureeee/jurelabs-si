@@ -1,0 +1,82 @@
+/* ---------------------------------------------------------------------------
+   LEBDENJE NAD SLIKO
+
+   Zavesa zabrise vse pod dvignjeno sliko - rahlo, le toliko, da je jasno, kaj
+   je spredaj. Slika lebdi nad profilom (55) in pod nastavitvami (60) in
+   ogledom (80).
+--------------------------------------------------------------------------- */
+
+.lebdi-zavesa {
+  position: fixed;
+  inset: 0;
+  z-index: 57;
+  pointer-events: none;
+  background: rgba(6, 8, 12, 0);
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  transition:
+    background 320ms var(--ease),
+    backdrop-filter 320ms var(--ease),
+    -webkit-backdrop-filter 320ms var(--ease);
+}
+.lebdi-zavesa.vidno {
+  background: rgba(6, 8, 12, 0.18);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+/* Iz izreza polja v pravo razmerje: okvir se razpre, cover v njem pokaze
+   vedno vec slike, dokler ni cela. */
+.lebdi {
+  position: fixed;
+  z-index: 58;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  transition:
+    left 460ms var(--spring),
+    top 460ms var(--spring),
+    width 460ms var(--spring),
+    height 460ms var(--spring),
+    opacity 260ms var(--ease);
+}
+.lebdi img,
+.lebdi canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+/* Platno stekla pride cez sliko sele, ko je v njem prva slicica. */
+.lebdi canvas { opacity: 0; transition: opacity 200ms var(--ease); }
+.lebdi.steklo canvas { opacity: 1; }
+
+.lebdi.odhaja { opacity: 0; pointer-events: none; }
+
+/* Pok: najprej se stisne, kot da zajame sapo, nato poci navzven v sij. */
+.lebdi.poka {
+  pointer-events: none;
+  animation: lebdiPok 380ms cubic-bezier(0.3, 0, 0.2, 1) forwards;
+}
+@keyframes lebdiPok {
+  0% {
+    transform: scale(1);
+    filter: blur(0) brightness(1);
+    opacity: 1;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45), 0 0 0 0 rgba(255, 255, 255, 0.5);
+  }
+  28% {
+    transform: scale(0.955);
+    filter: blur(0) brightness(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.22);
+    filter: blur(16px) brightness(1.7);
+    opacity: 0;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0), 0 0 0 34px rgba(255, 255, 255, 0);
+  }
+}

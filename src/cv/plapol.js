@@ -25,6 +25,7 @@
  * je.
  */
 
+import { t } from "./jezik.js";
 import * as THREE from "three";
 import "./plapol.css";
 
@@ -190,10 +191,9 @@ const FRAGMENT = /* glsl */ `
     moc += distance(vUv, vec2(0.5)) * 12.5 - 7.0 * uProgress;
     moc = 1.0 - clamp(moc, 0.0, 1.0);
 
-    // Krog iz sredisca do vogalov ne seze: pri polnem napredku bi robovi
-    // ostali razjedeni in skoznje bi se videla temna zavesa. Zadnji del
-    // prihoda zato sliko dopolni do cele - ko obmiruje, je enaka izvirniku.
-    moc = max(moc, smoothstep(0.82, 1.0, uProgress));
+    // Vogali ostanejo razjedeni tudi ob koncu - krog iz sredisca do njih ne
+    // seze. To je namerno: valujoci robovi v vseh stirih kotih so del ucinka.
+    // (Temna in kontrastna slika je bila druga napaka, barvni prostor.)
 
     vec3 barva = texture2D(uSlika, uv).rgb;
     float vidnost = smoothstep(0.0, 0.7, uProgress);
@@ -332,7 +332,7 @@ export function odpri(url, opis = "") {
   ovoj.className = "ogled";
   ovoj.innerHTML =
     `<div class="ogled-zavesa"></div>` +
-    `<button class="ogled-zapri" type="button" aria-label="Zapri sliko">` +
+    `<button class="ogled-zapri" type="button" aria-label="${t("ogled.zapri", "Zapri sliko")}">` +
     `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ` +
     `stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
   if (opis) ovoj.setAttribute("aria-label", opis);

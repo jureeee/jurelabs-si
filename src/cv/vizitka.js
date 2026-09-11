@@ -13,6 +13,7 @@
 // ob prvem odprtju. Nic od tega ne gre v omrezje: slike so lokalne, pisave
 // sistemske.
 
+import { t } from "./jezik.js";
 import "./vizitka.css";
 import duhecBody from "../assets/vizitka/duhec-body.png";
 import duhecIdle from "../assets/vizitka/duhec-idle.png";
@@ -199,7 +200,7 @@ function duhecPoleti(izhod) {
 
 // ---------- epruveta ----------
 function epruvetaMarkup() {
-  return `<svg class="epr" viewBox="0 0 420 470" role="img" aria-label="Maskota Jure Labs">
+  return `<svg class="epr" viewBox="0 0 420 470" role="img" aria-label="${t("viz.maskota", "Maskota Jure Labs")}">
   <defs>
     <linearGradient id="eprRob" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#a9c7ff"/><stop offset=".5" stop-color="#6d9aff"/>
@@ -987,7 +988,7 @@ function vizitkaMarkup(opro) {
     `<a class="viz-link" href="${href}" target="_blank" rel="noopener noreferrer">
        <span class="viz-ico">${ikona(ik)}</span><span>${txt}</span></a>`;
   return `
-    <button class="viz-close" type="button" aria-label="Zapri vizitko">
+    <button class="viz-close" type="button" aria-label="${t("viz.zapri", "Zapri vizitko")}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
         stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
@@ -1014,7 +1015,7 @@ function vizitkaMarkup(opro) {
 
       <div class="viz-dno">
         <div class="viz-ascii">
-          <canvas width="800" height="640" aria-label="ASCII animacija Jure Labs"></canvas>
+          <canvas width="800" height="640" aria-label="${t("viz.ascii", "ASCII animacija Jure Labs")}"></canvas>
           <div class="viz-ascii-oznaka"><i></i><span>01 / POUR</span></div>
         </div>
         <div class="viz-epruveta">
@@ -1029,8 +1030,8 @@ function vizitkaMarkup(opro) {
           ${vrstica("globe", "www.jurelabs.si", "https://www.jurelabs.si")}
           ${vrstica("git", "github.com/jureeee", "https://github.com/jureeee")}
         </div>
-        <div class="viz-meta-t">Spletne aplikacije po meri</div>
-        <div class="viz-meta-s">Hitre. Zanesljive. Učinkovite.</div>
+        <div class="viz-meta-t">${t("viz.metaT", "Spletne aplikacije po meri")}</div>
+        <div class="viz-meta-s">${t("viz.metaS", "Hitre. Zanesljive. Učinkovite.")}</div>
         <div class="viz-pika meta" aria-hidden="true"></div>
         </div>
     </div>`;

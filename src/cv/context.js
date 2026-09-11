@@ -13,6 +13,7 @@
  * zaslona, zato se ob robu prezrcali in po potrebi skrajsa.
  */
 
+import { t } from "./jezik.js";
 import { nastavitve } from "./settings.js";
 
 const IKONA_ZUNAJ =
@@ -41,19 +42,19 @@ export function installContextMenu(profil, plosca) {
     if (polje) {
       const url = polje.dataset.url;
       return [
-        vrstica("Odpri v novem zavihku", IKONA_ZUNAJ, () => window.open(url, "_blank", "noopener")),
-        vrstica("Kopiraj naslov", IKONA_KOPIRAJ, () =>
+        vrstica(t("kmeni.novZavihek", "Odpri v novem zavihku"), IKONA_ZUNAJ, () => window.open(url, "_blank", "noopener")),
+        vrstica(t("kmeni.kopiraj", "Kopiraj naslov"), IKONA_KOPIRAJ, () =>
           navigator.clipboard?.writeText(new URL(url, location.href).href)
         ),
         locnica,
-        vrstica("Nastavitve", IKONA_ZOBNIK, () => plosca.odpri()),
+        vrstica(t("kmeni.nastavitve", "Nastavitve"), IKONA_ZOBNIK, () => plosca.odpri()),
       ];
     }
     return [
-      vrstica("Profil", IKONA_OSEBA, () => profil.odpri()),
-      vrstica("Nastavitve", IKONA_ZOBNIK, () => plosca.odpri()),
+      vrstica(t("kmeni.profil", "Profil"), IKONA_OSEBA, () => profil.odpri()),
+      vrstica(t("kmeni.nastavitve", "Nastavitve"), IKONA_ZOBNIK, () => plosca.odpri()),
       locnica,
-      vrstica("Ponastavi pogled", IKONA_MREZA, () => {
+      vrstica(t("kmeni.ponastavi", "Ponastavi pogled"), IKONA_MREZA, () => {
         nastavitve.ozadje = "galaksija";
         document.dispatchEvent(new CustomEvent("nast-sprememba", { bubbles: true }));
       }),

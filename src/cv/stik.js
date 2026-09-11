@@ -20,6 +20,7 @@
  * in nima kaj lezati v glavnem svezniku.
  */
 
+import { obJeziku, t } from "./jezik.js";
 import "./stik.css";
 import { prevzemiOdprto, sprostiOdprto } from "./zapis.js";
 import { mountVizitka } from "./vizitka.js";
@@ -51,12 +52,34 @@ const POVEZAVE = [
  * gledas - vizitka naj pove nekaj o tem, kje stoji, sicer je le nalepka.
  */
 const OPRO = () => [
-  ["STRAN", "blatnikjuree"],
-  ["PRIZOR", "galaksija, 50 000 tock"],
-  ["IZRIS", "WebGL, lasten sencilnik"],
-  ["OGRODJE", "Vite, brez okvirja"],
-  ["GALERIJA", `${mediji.length} objav`],
+  [t("viz.stran", "STRAN"), "blatnikjuree"],
+  [t("viz.prizor", "PRIZOR"), t("viz.prizorV", "galaksija, 50 000 točk")],
+  [t("viz.izris", "IZRIS"), t("viz.izrisV", "WebGL, lasten senčilnik")],
+  [t("viz.ogrodje", "OGRODJE"), t("viz.ogrodjeV", "Vite, brez okvirja")],
+  [t("viz.galerija", "GALERIJA"), `${mediji.length} ${t("viz.objav", "objav")}`],
 ];
+
+/**
+ * Besedila strani, ki se ob menjavi jezika zamenjajo.
+ *
+ * Postavitev je ze v oznakah; tu je le, KAJ v katerem elementu pise. Izvor je
+ * zapisan tudi tu, ne le v oznakah, da se je ob vrnitvi v slovenscino kam
+ * vrniti.
+ */
+const BESEDILA = {
+  ".stik-info .zapis-oznaka": ["stik.oznaka", "Stik"],
+  ".stik-glavni": ["stik.glavni", "Najlažje po e-pošti."],
+  ".stik-info .stik-vodilo": [
+    "stik.vodilo",
+    "Odgovorim v dnevu ali dveh. Če gre za delo, napiši, kaj potrebuješ in do kdaj – ostalo se zmeniva sproti.",
+  ],
+  ".stik-kje-besedilo .zapis-oznaka": ["stik.kjeOznaka", "Kje sem"],
+  ".stik-naslov2": ["stik.kjeNaslov", "Ljubljana, Slovenija."],
+  ".stik-kje-besedilo .stik-vodilo": [
+    "stik.kjeVodilo",
+    "Delam od tod. Za delo na daljavo razdalja ni ovira – za kavo pa je dobro vedeti, da je do mene bliže, kot je videti od zgoraj.",
+  ],
+};
 
 /** Koliko po odprtju pride pozdrav. */
 const POZDRAV_ZAMIK_MS = 1000;
@@ -114,6 +137,15 @@ export function installStik() {
   document.body.appendChild(koren);
 
   const tok = koren.querySelector(".zapis-tok");
+
+  function prevediStik() {
+    for (const [izbor, [kljuc, izvor]] of Object.entries(BESEDILA)) {
+      const el = koren.querySelector(izbor);
+      if (el) el.textContent = t(kljuc, izvor);
+    }
+    koren.querySelector(".zapis-zapri")?.setAttribute("aria-label", t("zapis.zapri", "Zapri"));
+  }
+  obJeziku(prevediStik);
 
   mountVizitka(koren.querySelector(".stik-vizitka-host"), { opro: OPRO });
 
