@@ -20,9 +20,8 @@
  * segalo natanko do slike, bi se gube ob robu odrezale - prav one pa so tisto,
  * po cemer se prihod bere kot plapolanje in ne kot bledenje.
  *
- * Video ne plapola. Ucinek je preslikava mirujoce slike; na sliki, ki se ze
- * sama premika, bi bil samo hrup - zato se video v ogledu odpre kar tak, kot
- * je.
+ * Video priplapola enako. Tekstura je posnetek, ki tece naprej od trenutka, v
+ * katerem je bil v mrezi, zato val gubanja nosi zivo sliko.
  */
 
 import { t } from "./jezik.js";
@@ -313,20 +312,48 @@ function slicica(ms) {
   if (t >= 1 && ogled.zapira) pospravi();
 }
 
-/**
- * Odpre sliko cez stran.
- *
- * Vrne true, ce je ogled prevzel prikaz. Pri video posnetku in kadar WebGL ni
- * na voljo vrne false in klicatelj naj stori, kar bi sicer.
- */
-export function odpri(url, opis = "") {
-  if (ogled) zapri();
-  const p = pripraviPogon();
-  if (!p) return false;
-
+/** Slika, dekodirana; obljuba vrne njo in njene mere. */
+function naloziSliko(url) {
   const slika = new Image();
   slika.decoding = "async";
   slika.src = url;
+  return slika.decode().then(() => ({
+    vir: slika, w: slika.naturalWidth, h: slika.naturalHeight, tekstura: new THREE.Texture(slika),
+  }));
+}
+
+/** Posnetek od casa cas naprej, z ze dekodirano prvo slicico. */
+function naloziPosnetek(url, cas) {
+  return new Promise((res, rej) => {
+    const v = document.createElement("video");
+    v.muted = true;
+    v.loop = true;
+    v.playsInline = true;
+    v.preload = "auto";
+    v.addEventListener("loadedmetadata", () => { if (cas) v.currentTime = cas; }, { once: true });
+    v.addEventListener(
+      "loadeddata",
+      () => {
+        v.play().catch(() => {});
+        res({ vir: v, w: v.videoWidth, h: v.videoHeight, tekstura: new THREE.VideoTexture(v) });
+      },
+      { once: true }
+    );
+    v.addEventListener("error", () => rej(new Error("posnetek")), { once: true });
+    v.src = url;
+  });
+}
+
+/**
+ * Odpre sliko ali posnetek cez stran.
+ *
+ * Vrne true, ce je ogled prevzel prikaz. Kadar WebGL ni na voljo vrne false in
+ * klicatelj naj stori, kar bi sicer.
+ */
+export function odpri(url, opis = "", { video = false, cas = 0 } = {}) {
+  if (ogled) zapri();
+  const p = pripraviPogon();
+  if (!p) return false;
 
   const ovoj = document.createElement("div");
   ovoj.className = "ogled";
@@ -349,15 +376,19 @@ export function odpri(url, opis = "") {
   const naMero = () => { if (ogled) nastaviMere(p, ogled.razmerje); };
   addEventListener("resize", naMero);
 
-  ogled = { ovoj, naTipko, naMero, tekstura: null, razmerje: 1, zapira: false,
+  ogled = { ovoj, naTipko, naMero, tekstura: null, posnetek: null, razmerje: 1, zapira: false,
             zacetek: performance.now(), zanka: null };
 
-  slika
-    .decode()
-    .then(() => {
-      if (!ogled || ogled.ovoj !== ovoj) return;
-      ogled.razmerje = slika.naturalWidth / Math.max(1, slika.naturalHeight);
-      ogled.tekstura = new THREE.Texture(slika);
+  (video ? naloziPosnetek(url, cas) : naloziSliko(url))
+    .then(({ vir, w, h, tekstura }) => {
+      if (!ogled || ogled.ovoj !== ovoj) {
+        tekstura.dispose();
+        if (video) ustaviPosnetek(vir);
+        return;
+      }
+      if (video) ogled.posnetek = vir;
+      ogled.razmerje = w / Math.max(1, h);
+      ogled.tekstura = tekstura;
       // Brez barvnega prostora, namenoma. Oznaka sRGB bi teksturo ob branju
       // pretvorila v linearne vrednosti, ta sencilnik pa jih ne pretvori nazaj -
       // gama bi se uporabila dvakrat in slika bi bila temnejsa in bolj
@@ -385,6 +416,13 @@ export function zapri() {
   ogled.ovoj.classList.remove("odprt");
 }
 
+/** Posnetek se ustavi in sprosti dekoder - src brez vira ga izprazni. */
+function ustaviPosnetek(v) {
+  v.pause();
+  v.removeAttribute("src");
+  v.load();
+}
+
 /** Vse dol: izris se ustavi, platno gre iz strani, tekstura se sprosti. */
 function pospravi() {
   if (!ogled) return;
@@ -394,6 +432,7 @@ function pospravi() {
   removeEventListener("keydown", o.naTipko);
   removeEventListener("resize", o.naMero);
   o.tekstura?.dispose();
+  if (o.posnetek) ustaviPosnetek(o.posnetek);
   if (pogon && pogon.izris.domElement.parentElement === o.ovoj) {
     o.ovoj.removeChild(pogon.izris.domElement);
   }

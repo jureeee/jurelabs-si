@@ -295,21 +295,22 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
    * Ogled je tezek - nosi sencilnika in svoj izris - zato pride sele ob prvem
    * kliku. Do takrat ni v svezenju in mreza se nalozi brez njega.
    *
-   * Video ne gre skozenj: ucinek je preslikava mirujoce slike in na gibljivi
-   * bi bil samo hrup. Enako, kdor je gibanje izklopil - takrat ostane klik
-   * brez posledic, tako kot je bil prej.
+   * Video gre skozi isto pot; v ogledu tece naprej od tam, kjer je bil v
+   * mrezi. Kdor je gibanje izklopil, ostane klik brez posledic, tako kot je
+   * bil prej.
    */
   const mirnoGibanje = matchMedia("(prefers-reduced-motion: reduce)");
   // Najprej izpuhti dvignjena slika, sele nato pride ogled - dva ucinka drug
   // za drugim in ne hkrati.
   function odpriSliko(polje) {
-    if (!polje || polje.dataset.video === "true" || mirnoGibanje.matches) return;
+    if (!polje || mirnoGibanje.matches) return;
     const url = polje.dataset.url;
     if (!url) return;
+    const video = polje.dataset.video === "true";
     lebdenje
       .pokni(polje)
       .then(() => import("./plapol.js"))
-      .then((m) => m.odpri(url))
+      .then((m) => m.odpri(url, "", video ? { video, cas: polje.querySelector("video")?.currentTime || 0 } : {}))
       .catch(() => null);
   }
   const lebdenje = namestiLebdenje(mreza, { klik: odpriSliko });

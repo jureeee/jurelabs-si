@@ -19,7 +19,11 @@
  * Klik slike ne odpre takoj. Najprej se malo stisne in nato poci navzven v sij
  * - izpuhti - in sele za tem se odpre ogled s svojim valom.
  *
- * Video tega ne dobi: steklo je preslikava mirujoce slike.
+ * Video dobi vse isto. Dvigne se ISTI predvajalnik, ki je bil v polju - preseli
+ * se v dvignjeni okvir in tece naprej, brez drugega prenosa in brez zacetka od
+ * nule. Steklo pa v vsaki slicici znova vzame trenutno slicico posnetka. Ko se
+ * okvir spusti, gre predvajalnik nazaj v polje, v okvirju pa ostane njegova
+ * zadnja slicica, da je odhod poln.
  */
 
 import "./lebdenje.css";
@@ -164,6 +168,12 @@ function pripraviPogon() {
 
 const gladko = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 
+const jeVideo = (m) => m instanceof HTMLVideoElement;
+/** Prave mere vsebine polja - slike ali posnetka. */
+const mereOd = (m) => (jeVideo(m) ? { w: m.videoWidth, h: m.videoHeight } : { w: m.naturalWidth, h: m.naturalHeight });
+/** Ali je v vsebini ze kaj za pokazati. */
+const pripravljeno = (m) => (jeVideo(m) ? m.readyState >= 2 && m.videoWidth > 0 : m.complete && m.naturalWidth > 0);
+
 /**
  * @param {HTMLElement} mreza galerija
  * @param {{ klik: (polje: HTMLElement) => void }} moznosti klik na dvignjeno sliko
@@ -177,11 +187,20 @@ export function namestiLebdenje(mreza, { klik }) {
 
   let aktivno = null;
   let cakamo = null;
+  /** Polje pod kazalcem - posnetek, ki se se nalaga, se dvigne le, ce je kazalec se tam. */
+  let nad = null;
+  /**
+   * Polje, ki je pravkar poknilo. Kazalec je po kliku se nad njim in brez tega
+   * bi se med pokom dvignilo znova - pod ogledom. Zaklep pade, ko kazalec polje
+   * zapusti.
+   */
+  let zaklenjeno = null;
   const miska = { x: 0, y: 0, u: 0.5, cilj: 0.5 };
 
   /** Kam se dvigne: sredisce polja, pravo razmerje slike, malo vecja, v zaslonu. */
   function cilj(r, slika) {
-    const razmerje = slika.naturalWidth / Math.max(1, slika.naturalHeight);
+    const m = mereOd(slika);
+    const razmerje = m.w / Math.max(1, m.h);
     const ploscina = r.width * r.height * POVECAVA * POVECAVA;
     let w = Math.sqrt(ploscina * razmerje);
     let h = w / razmerje;
@@ -203,16 +222,34 @@ export function namestiLebdenje(mreza, { klik }) {
   };
 
   function dvigni(polje) {
-    const slika = polje.querySelector("img:not(.prof-sij)");
-    if (!slika || !slika.complete || !slika.naturalWidth) return;
+    const video = polje.querySelector("video");
+    const slika = video || polje.querySelector("img:not(.prof-sij)");
+    if (!slika) return;
+    if (!pripravljeno(slika)) {
+      // Posnetek se se nalaga: dvigne se, ko pride prva slicica, ce je kazalec se nad njim.
+      if (video) {
+        video.addEventListener(
+          "loadeddata",
+          () => { if (nad === polje && aktivno?.polje !== polje && zaklenjeno !== polje) dvigni(polje); },
+          { once: true }
+        );
+      }
+      return;
+    }
     spusti(true);
 
     const r = polje.getBoundingClientRect();
     const ovoj = document.createElement("div");
     ovoj.className = "lebdi";
-    ovoj.innerHTML = `<img alt="" src="${slika.currentSrc || slika.src}" />`;
+    if (!video) ovoj.innerHTML = `<img alt="" src="${slika.currentSrc || slika.src}" />`;
     postavi(ovoj, r);
     document.body.appendChild(ovoj);
+    if (video) {
+      // Selitev v istem opravilu - brskalnik predvajalnika ne ustavi, ker ni
+      // nikoli zares zunaj strani.
+      ovoj.appendChild(video);
+      video.play().catch(() => {});
+    }
     void ovoj.offsetWidth;
     postavi(ovoj, cilj(r, slika));
     zavesa.classList.add("vidno");
@@ -223,7 +260,7 @@ export function namestiLebdenje(mreza, { klik }) {
     });
 
     aktivno = {
-      polje, ovoj, slika,
+      polje, ovoj, slika, video,
       steklo: 0, stekloOd: 0, zanka: null,
       casovnik: mirno.matches ? null : setTimeout(() => prizgiSteklo(), STEKLO_PO_MS),
     };
@@ -242,7 +279,8 @@ export function namestiLebdenje(mreza, { klik }) {
     p.gl.bindTexture(p.gl.TEXTURE_2D, p.tekstura);
     p.gl.texImage2D(p.gl.TEXTURE_2D, 0, p.gl.RGBA, p.gl.RGBA, p.gl.UNSIGNED_BYTE, a.slika);
     p.gl.uniform2f(p.enote.loc, p.platno.width, p.platno.height);
-    p.gl.uniform2f(p.enote.mere, a.slika.naturalWidth, a.slika.naturalHeight);
+    const m = mereOd(a.slika);
+    p.gl.uniform2f(p.enote.mere, m.w, m.h);
     a.ovoj.appendChild(p.platno);
     a.stekloOd = performance.now();
     miska.u = miska.cilj;
@@ -252,6 +290,11 @@ export function namestiLebdenje(mreza, { klik }) {
       a.zanka = requestAnimationFrame(slicica);
       a.steklo = gladko(Math.min((ms - a.stekloOd) / STEKLO_TRAJA_MS, 1));
       miska.u += (miska.cilj - miska.u) * 0.06;
+      // Posnetek tece naprej tudi pod steklom: vsaka slicica gre znova v teksturo.
+      if (a.video && a.video.readyState >= 2) {
+        p.gl.bindTexture(p.gl.TEXTURE_2D, p.tekstura);
+        p.gl.texImage2D(p.gl.TEXTURE_2D, 0, p.gl.RGBA, p.gl.RGBA, p.gl.UNSIGNED_BYTE, a.video);
+      }
       p.gl.uniform1f(p.enote.steklo, a.steklo);
       p.gl.uniform2f(p.enote.miska, miska.u, 0.5);
       p.gl.drawArrays(p.gl.TRIANGLE_STRIP, 0, 4);
@@ -261,6 +304,31 @@ export function namestiLebdenje(mreza, { klik }) {
       // Platno pokazemo sele, ko je v njem prva slicica - prej je prazno.
       a.ovoj.classList.add("steklo");
     });
+  }
+
+  /**
+   * Predvajalnik gre nazaj v svoje polje. Ce okvir se odhaja, v njem ostane
+   * zadnja slicica - sicer bi odhajal prazen.
+   */
+  function vrniVideo(a, posnetek) {
+    const v = a.video;
+    if (!v || v.parentElement === a.polje) return;
+    if (posnetek && v.videoWidth) {
+      const c = document.createElement("canvas");
+      const s = Math.min(1, 900 / v.videoWidth);
+      c.width = Math.max(1, Math.round(v.videoWidth * s));
+      c.height = Math.max(1, Math.round(v.videoHeight * s));
+      c.className = "lebdi-posnetek";
+      try {
+        c.getContext("2d").drawImage(v, 0, 0, c.width, c.height);
+      } catch {
+        // brez slicice okvir le izgine
+      }
+      a.ovoj.insertBefore(c, a.ovoj.firstChild);
+    }
+    a.polje.appendChild(v);
+    if (a.polje.classList.contains("igra")) v.play().catch(() => {});
+    else v.pause();
   }
 
   /** Slika se spusti nazaj v polje; takoj = brez gibanja (drsenje, zaprt profil). */
@@ -273,6 +341,7 @@ export function namestiLebdenje(mreza, { klik }) {
     clearTimeout(a.casovnik);
     if (a.zanka) cancelAnimationFrame(a.zanka);
     if (pogon && pogon.platno.parentElement === a.ovoj) a.ovoj.removeChild(pogon.platno);
+    vrniVideo(a, !takoj && a.polje.isConnected);
     zavesa.classList.remove("vidno");
     if (takoj || !a.polje.isConnected) {
       a.ovoj.remove();
@@ -285,6 +354,7 @@ export function namestiLebdenje(mreza, { klik }) {
 
   /** Pok ob kliku. Vrne obljubo, ki se izpolni, ko je slika izpuhtela. */
   function pokni(polje) {
+    zaklenjeno = polje;
     const a = aktivno;
     if (!a || a.polje !== polje || mirno.matches) {
       spusti(true);
@@ -293,6 +363,7 @@ export function namestiLebdenje(mreza, { klik }) {
     aktivno = null;
     clearTimeout(a.casovnik);
     if (a.zanka) cancelAnimationFrame(a.zanka);
+    vrniVideo(a, true);
     a.ovoj.classList.add("poka");
     return new Promise((res) => {
       setTimeout(() => {
@@ -310,13 +381,18 @@ export function namestiLebdenje(mreza, { klik }) {
   mreza.addEventListener("pointerover", (e) => {
     if (e.pointerType === "touch" || mirno.matches) return;
     const polje = e.target instanceof Element ? e.target.closest(".prof-polje") : null;
-    if (!polje || polje.dataset.video === "true" || aktivno?.polje === polje) return;
+    nad = polje;
+    if (!polje || aktivno?.polje === polje || polje === zaklenjeno) return;
     clearTimeout(cakamo);
     cakamo = setTimeout(() => dvigni(polje), ZAMIK_MS);
   });
   mreza.addEventListener("pointerout", (e) => {
     const iz = e.target instanceof Element ? e.target.closest(".prof-polje") : null;
     const v = e.relatedTarget instanceof Element ? e.relatedTarget.closest(".prof-polje") : null;
+    if (iz && iz !== v) {
+      nad = v;
+      if (iz === zaklenjeno) zaklenjeno = null;
+    }
     if (iz && iz !== v && !aktivno) {
       clearTimeout(cakamo);
       cakamo = null;

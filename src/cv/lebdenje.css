@@ -42,6 +42,7 @@
     opacity 260ms var(--ease);
 }
 .lebdi img,
+.lebdi video,
 .lebdi canvas {
   position: absolute;
   inset: 0;
@@ -49,10 +50,13 @@
   height: 100%;
   display: block;
   object-fit: cover;
+  dynamic-range-limit: standard;
 }
 /* Platno stekla pride cez sliko sele, ko je v njem prva slicica. */
 .lebdi canvas { opacity: 0; transition: opacity 200ms var(--ease); }
 .lebdi.steklo canvas { opacity: 1; }
+/* Zadnja slicica posnetka, ko je predvajalnik ze nazaj v polju. */
+.lebdi canvas.lebdi-posnetek { opacity: 1; }
 
 .lebdi.odhaja { opacity: 0; pointer-events: none; }
 
