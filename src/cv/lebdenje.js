@@ -1,15 +1,19 @@
 /**
  * Lebdenje nad sliko v galeriji.
  *
- * Ko je kazalec nad sliko, se ta dvigne iz mreze: nad poljem se pojavi njena
- * kopija, ki se iz izreza polja razpre v PRAVO razmerje slike in je malo vecja
- * - vidis celo sliko, ne le tisto, kar je polje odrezalo. Za njo se svet
- * rahlo zabrise, da je jasno, kaj je spredaj.
+ * Ko kazalec dve sekundi obstane nad sliko, se ta dvigne iz mreze: nad poljem
+ * se pojavi njena kopija, ki se iz izreza polja razpre v PRAVO razmerje slike
+ * in je malo vecja - vidis celo sliko, ne le tisto, kar je polje odrezalo. Za
+ * njo se svet rahlo zabrise, da je jasno, kaj je spredaj.
  *
  * Kopija je zunaj mreze in lebdi nad njo. Ce bi se raztegnilo polje samo, bi
  * se premaknila cela mreza pod njim.
  *
- * Po petih sekundah pod kazalcem se slika prelije v rebrasto steklo: navpicna
+ * Dvignjena slika je kartica v prostoru: kazalec jo rahlo nagne, kot bi jo
+ * pritisnil s prstom, cez njo pa drsi mehek odsev. Nagib tece po vzmeti z
+ * malenkostnim prenihajem, zato se kartica ne premakne togo, ampak se usede.
+ *
+ * Tri sekunde po dvigu se slika prelije v rebrasto steklo: navpicna
  * rebra, vsako lomi sliko s svojim zamikom, rahlo se nagnejo za kazalcem.
  * Sencilnik je iz demonstracije "Glassform" (Codegrid), ki jo je prinesel
  * lastnik strani; tu je na golem WebGL in brez knjiznice. Na zacetku je steklo
@@ -29,11 +33,16 @@
 import "./lebdenje.css";
 
 /** Toliko mora kazalec obstati nad poljem, da se dvigne - prehod cez mrezo ne sme prizgati vsakega. */
-const ZAMIK_MS = 110;
+const ZAMIK_MS = 2000;
 /** Za koliko je dvignjena slika vecja od polja, po dolzini. */
 const POVECAVA = 1.12;
-/** Kdaj se slika prelije v steklo in koliko casa se preliva. */
-const STEKLO_PO_MS = 5000;
+/** Kdaj po dvigu se slika prelije v steklo in koliko casa se preliva. */
+const STEKLO_PO_MS = 3000;
+/** Najvecji nagib kartice v stopinjah - komaj opazen, a cutiti ga je. */
+const NAGIB_NAJVEC = 6;
+/** Vzmet nagiba: togost in dusenje. Dusenje je malo pod kriticnim - rahel prenihaj. */
+const NAGIB_TOG = 120;
+const NAGIB_DUS = 16;
 const STEKLO_TRAJA_MS = 1400;
 /** Koliko sme kazalec zaiti cez rob, preden se slika spusti. */
 const TOLERANCA = 8;
@@ -241,13 +250,20 @@ export function namestiLebdenje(mreza, { klik }) {
     const r = polje.getBoundingClientRect();
     const ovoj = document.createElement("div");
     ovoj.className = "lebdi";
-    if (!video) ovoj.innerHTML = `<img alt="" src="${slika.currentSrc || slika.src}" />`;
+    // Okvir nosi lego in mere, kartica v njem nagib - pok okvirja ima svoj
+    // transform in bi se z nagibom sicer prepiral.
+    ovoj.innerHTML =
+      `<div class="lebdi-karta">` +
+      (video ? "" : `<img alt="" src="${slika.currentSrc || slika.src}" />`) +
+      `<div class="lebdi-odsev"></div></div>`;
+    const karta = ovoj.firstChild;
+    const odsev = karta.lastChild;
     postavi(ovoj, r);
     document.body.appendChild(ovoj);
     if (video) {
       // Selitev v istem opravilu - brskalnik predvajalnika ne ustavi, ker ni
       // nikoli zares zunaj strani.
-      ovoj.appendChild(video);
+      karta.insertBefore(video, odsev);
       video.play().catch(() => {});
     }
     void ovoj.offsetWidth;
@@ -260,10 +276,47 @@ export function namestiLebdenje(mreza, { klik }) {
     });
 
     aktivno = {
-      polje, ovoj, slika, video,
+      polje, ovoj, karta, odsev, slika, video,
       steklo: 0, stekloOd: 0, zanka: null,
+      nagib: { x: 0, y: 0, vx: 0, vy: 0, cx: 0, cy: 0 }, nagibZanka: null,
       casovnik: mirno.matches ? null : setTimeout(() => prizgiSteklo(), STEKLO_PO_MS),
     };
+    nameriNagib(aktivno);
+    nagibaj(aktivno);
+  }
+
+  /** Kam naj se kartica nagne: rob pod kazalcem se odmakne, kot bi ga pritisnil. */
+  function nameriNagib(a) {
+    const r = a.ovoj.getBoundingClientRect();
+    const nx = Math.min(1, Math.max(-1, ((miska.x - r.left) / Math.max(1, r.width)) * 2 - 1));
+    const ny = Math.min(1, Math.max(-1, ((miska.y - r.top) / Math.max(1, r.height)) * 2 - 1));
+    a.nagib.cy = nx * NAGIB_NAJVEC;
+    a.nagib.cx = -ny * NAGIB_NAJVEC;
+  }
+
+  /** Nagib po vzmeti, dokler je kartica dvignjena. */
+  function nagibaj(a) {
+    const n = a.nagib;
+    let prej = performance.now();
+    const korak = (ms) => {
+      if (aktivno !== a) return;
+      a.nagibZanka = requestAnimationFrame(korak);
+      const dt = Math.min(0.05, Math.max(0, (ms - prej) / 1000));
+      prej = ms;
+      n.vx += ((n.cx - n.x) * NAGIB_TOG - n.vx * NAGIB_DUS) * dt;
+      n.vy += ((n.cy - n.y) * NAGIB_TOG - n.vy * NAGIB_DUS) * dt;
+      n.x += n.vx * dt;
+      n.y += n.vy * dt;
+      a.karta.style.transform = `rotateX(${n.x.toFixed(3)}deg) rotateY(${n.y.toFixed(3)}deg)`;
+      // Odsev sledi nagibu: svetloba je tam, kjer je kazalec.
+      const sx = 50 + (n.y / NAGIB_NAJVEC) * 50;
+      const sy = 50 - (n.x / NAGIB_NAJVEC) * 50;
+      const moc = Math.min(1, Math.hypot(n.x, n.y) / NAGIB_NAJVEC);
+      a.odsev.style.background =
+        `radial-gradient(circle at ${sx.toFixed(1)}% ${sy.toFixed(1)}%, ` +
+        `rgba(255,255,255,${(0.05 + 0.11 * moc).toFixed(3)}), rgba(255,255,255,0) 60%)`;
+    };
+    if (!mirno.matches) a.nagibZanka = requestAnimationFrame(korak);
   }
 
   function prizgiSteklo() {
@@ -281,7 +334,7 @@ export function namestiLebdenje(mreza, { klik }) {
     p.gl.uniform2f(p.enote.loc, p.platno.width, p.platno.height);
     const m = mereOd(a.slika);
     p.gl.uniform2f(p.enote.mere, m.w, m.h);
-    a.ovoj.appendChild(p.platno);
+    a.karta.insertBefore(p.platno, a.odsev);
     a.stekloOd = performance.now();
     miska.u = miska.cilj;
 
@@ -324,7 +377,7 @@ export function namestiLebdenje(mreza, { klik }) {
       } catch {
         // brez slicice okvir le izgine
       }
-      a.ovoj.insertBefore(c, a.ovoj.firstChild);
+      a.karta.insertBefore(c, a.karta.firstChild);
     }
     a.polje.appendChild(v);
     if (a.polje.classList.contains("igra")) v.play().catch(() => {});
@@ -333,14 +386,19 @@ export function namestiLebdenje(mreza, { klik }) {
 
   /** Slika se spusti nazaj v polje; takoj = brez gibanja (drsenje, zaprt profil). */
   function spusti(takoj = false) {
-    clearTimeout(cakamo);
-    cakamo = null;
+    // Navaden spust cakanja NE prekine: kazalec je morda ze nad sosednjim
+    // poljem, ki se je zacelo steti. Drsenje in zaprt profil ga prekineta.
+    if (takoj) {
+      clearTimeout(cakamo);
+      cakamo = null;
+    }
     const a = aktivno;
     if (!a) return;
     aktivno = null;
     clearTimeout(a.casovnik);
     if (a.zanka) cancelAnimationFrame(a.zanka);
-    if (pogon && pogon.platno.parentElement === a.ovoj) a.ovoj.removeChild(pogon.platno);
+    if (a.nagibZanka) cancelAnimationFrame(a.nagibZanka);
+    if (pogon && pogon.platno.parentElement === a.karta) a.karta.removeChild(pogon.platno);
     vrniVideo(a, !takoj && a.polje.isConnected);
     zavesa.classList.remove("vidno");
     if (takoj || !a.polje.isConnected) {
@@ -363,11 +421,12 @@ export function namestiLebdenje(mreza, { klik }) {
     aktivno = null;
     clearTimeout(a.casovnik);
     if (a.zanka) cancelAnimationFrame(a.zanka);
+    if (a.nagibZanka) cancelAnimationFrame(a.nagibZanka);
     vrniVideo(a, true);
     a.ovoj.classList.add("poka");
     return new Promise((res) => {
       setTimeout(() => {
-        if (pogon && pogon.platno.parentElement === a.ovoj) a.ovoj.removeChild(pogon.platno);
+        if (pogon && pogon.platno.parentElement === a.karta) a.karta.removeChild(pogon.platno);
         a.ovoj.remove();
         zavesa.classList.remove("vidno");
         res();
@@ -384,7 +443,8 @@ export function namestiLebdenje(mreza, { klik }) {
     nad = polje;
     if (!polje || aktivno?.polje === polje || polje === zaklenjeno) return;
     clearTimeout(cakamo);
-    cakamo = setTimeout(() => dvigni(polje), ZAMIK_MS);
+    // Po dveh sekundah se dvigne le, ce je kazalec se vedno nad njim.
+    cakamo = setTimeout(() => { if (nad === polje) dvigni(polje); }, ZAMIK_MS);
   });
   mreza.addEventListener("pointerout", (e) => {
     const iz = e.target instanceof Element ? e.target.closest(".prof-polje") : null;
@@ -408,6 +468,7 @@ export function namestiLebdenje(mreza, { klik }) {
       if (!a) return;
       const ro = a.ovoj.getBoundingClientRect();
       miska.cilj = Math.min(1, Math.max(0, (e.clientX - ro.left) / Math.max(1, ro.width)));
+      nameriNagib(a);
       if (!znotraj(ro, e.clientX, e.clientY) && !znotraj(a.polje.getBoundingClientRect(), e.clientX, e.clientY)) {
         spusti();
       }

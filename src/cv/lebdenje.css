@@ -31,9 +31,8 @@
   position: fixed;
   z-index: 58;
   border-radius: 12px;
-  overflow: hidden;
   cursor: pointer;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  perspective: 1100px;
   transition:
     left 460ms var(--spring),
     top 460ms var(--spring),
@@ -41,6 +40,32 @@
     height 460ms var(--spring),
     opacity 260ms var(--ease);
 }
+/* Kartica: nagib pride iz lebdenje.js, rob in senca potujeta z njo. */
+.lebdi-karta {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  transform-origin: 50% 50%;
+  will-change: transform;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.45),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+}
+/* Mehka svetloba cez kartico, vedno nad sliko in steklom. */
+.lebdi-odsev {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+/* Ob spustu se kartica zravna skupaj z odhodom. */
+.lebdi.odhaja .lebdi-karta {
+  transform: none !important;
+  transition: transform 380ms var(--ease);
+}
+
 .lebdi img,
 .lebdi video,
 .lebdi canvas {
@@ -70,7 +95,7 @@
     transform: scale(1);
     filter: blur(0) brightness(1);
     opacity: 1;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45), 0 0 0 0 rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5);
   }
   28% {
     transform: scale(0.955);
@@ -81,6 +106,6 @@
     transform: scale(1.22);
     filter: blur(16px) brightness(1.7);
     opacity: 0;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0), 0 0 0 34px rgba(255, 255, 255, 0);
+    box-shadow: 0 0 0 34px rgba(255, 255, 255, 0);
   }
 }
