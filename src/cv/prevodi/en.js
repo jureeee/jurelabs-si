@@ -1,0 +1,251 @@
+/** English. Kljuci so isti kot v slovenskem izvoru; kar manjka, ostane slovensko. */
+export default {
+  "jezik.naslov": "Language",
+
+  "profil.aria": "Profile",
+  "meni.aria": "Main menu",
+  "meni.arhiv": "Archive",
+  "meni.delo": "Work",
+  "meni.omeni": "About",
+  "meni.stik": "Contact",
+  "orodja.aria": "Tools",
+  "orodja.iskanje": "Search",
+  "orodja.nastavitve": "Settings",
+
+  "nast.naslov": "Settings",
+  "nast.nazaj": "Back",
+  "nast.zapri": "Close",
+  "nast.videz": "Appearance",
+  "nast.jezik": "Language",
+  "nast.prosojnost": "Transparency",
+  "nast.tema": "Theme",
+  "nast.temna": "Dark",
+  "nast.svetla": "Light",
+  "nast.sistem": "System",
+  "nast.ozadje": "Background",
+  "nast.prizor": "Scene",
+  "nast.galaksija": "Galaxy",
+  "nast.zvezde": "Stars only",
+  "nast.izklop": "Off",
+  "nast.daljna": "Distant galaxy",
+  "nast.daljnaOpis": "A second galaxy in the background",
+  "nast.galaksijaOpis": "Glow, star size, speed",
+  "nast.gibanje": "Motion",
+  "nast.odziv": "Mouse response",
+  "nast.odzivOpis": "The view follows the cursor",
+  "nast.kazalec": "Cursor",
+  "nast.kazalecMeri": "Custom cursor",
+  "nast.kazalecMeriOpis": "A spark instead of the system cursor",
+  "nast.magnet": "Magnetic buttons",
+  "nast.magnetOpis": "Buttons lean towards the cursor",
+  "nast.izris": "Rendering",
+  "nast.sij": "Glow",
+  "nast.velikost": "Star size",
+  "nast.kamera": "Camera",
+  "nast.hitrost": "Orbit speed",
+
+  "zapis.zapri": "Close",
+  "zapis.prejsnja": "Previous",
+  "zapis.naslednja": "Next",
+
+  "vsebina.delo": {
+    uvod: {
+      oznaka: "Work",
+      naslov: "I build software\nand look after the systems beneath it.",
+      vodilo: "Most of what I've built came from a real need at work – not as an exercise.",
+    },
+    odseki: [
+      {
+        oznaka: "What I do",
+        naslov: "Hardware and software,\nnot one or the other.",
+        telo:
+          "Server environments, networks and technical systems on one side, full application " +
+          "development on the other. I don't separate the two – most problems sit right on the " +
+          "line between them.",
+      },
+      {
+        oznaka: "Project",
+        naslov: "Trace Space",
+        telo:
+          "A dashboard for air-quality and safety sensors. It collects measurements, recognises " +
+          "patterns and warns before something becomes a problem.",
+        znacke: ["Python", "Flask", "SQLite", "Dashboards"],
+      },
+      {
+        oznaka: "Project",
+        naslov: "Vantage",
+        telo:
+          "An app for discovering, configuring and controlling network cameras. It stores preset " +
+          "positions for PTZ cameras, so a single click sends them back exactly where they need to " +
+          "look. Instead of ten separate interfaces, one surface that handles them all.",
+      },
+      {
+        oznaka: "Personal projects",
+        naslov: "Real-time computer vision",
+        telo:
+          "Detecting, recognising and tracking objects with YOLO models, written in C and shipped " +
+          "as a standalone application. Built outside of work.",
+      },
+      {
+        oznaka: "What I work with",
+        skupine: {
+          Languages: ["Python", "C", "JavaScript", "TypeScript", "HTML", "CSS", "SQL", "Bash"],
+          "Frameworks and tools": ["React", "Vite", "Flask", "Three.js", "Node", "Git", "Docker"],
+          Systems: ["Linux", "Windows Server", "Active Directory", "Networking", "Virtualisation"],
+          Fields: ["Computer vision", "Automation", "Monitoring systems", "Embedded systems"],
+        },
+      },
+    ],
+    kartice: {
+      oznaka: "How I work",
+      seznam: [
+        {
+          oznaka: "Approach",
+          naslov: "Understand,\nnot just use.",
+          telo:
+            "A system I don't understand below the surface is one I can only operate. " +
+            "I want to know why it works.",
+        },
+        {
+          oznaka: "Method",
+          naslov: "I learn by building.",
+          telo:
+            "A new technology only becomes mine once something exists because of it. " +
+            "Documentation is the start, not the end.",
+        },
+        {
+          oznaka: "Measure",
+          naslov: "It works or it doesn't.",
+          telo:
+            "The goal isn't complexity but a solution that works and can still be understood " +
+            "six months later.",
+        },
+        {
+          oznaka: "Next",
+          naslov: "Hard enough\nto be interesting.",
+          telo: "I'm interested in work where software, systems and new technologies meet.",
+        },
+      ],
+    },
+    konec: "Still building.",
+  },
+
+  "vsebina.omeni": {
+    uvod: {
+      oznaka: "About",
+      naslov: "Before it was a job,\nit was curiosity.",
+      vodilo:
+        "What I like doing, what pulls me in, and why I take most things apart before I start " +
+        "using them.",
+    },
+    odseki: [
+      {
+        oznaka: "What I like doing",
+        naslov: "Things you can\nlook at and turn around.",
+        telo:
+          "I like working where code ends in something visible – an image, motion, a device that " +
+          "responds. A screen that shows something says more than terminal output.",
+      },
+      {
+        oznaka: "Outside work",
+        naslov: "This site is\none of those projects too.",
+        telo:
+          "The galaxy in the background isn't an image. It's points the graphics card draws again " +
+          "every frame, with its own shader and its own glow. It started with the question of " +
+          "whether I could.",
+        znacke: ["Three.js", "WebGL", "Shaders", "Blender"],
+      },
+      {
+        oznaka: "How I learn",
+        naslov: "Until it works,\nI haven't understood.",
+        telo:
+          "I read the documentation, then close it and try from memory. An explanation I can't " +
+          "put together myself isn't understanding – it's a quote.",
+      },
+      {
+        oznaka: "Where I'm drawn",
+        naslov: "To where computing touches physics",
+        telo:
+          "Light, optics, motion, sensors. Fields where the result isn't measured in lines of " +
+          "code, but in whether something moves or appears exactly the way you imagined.",
+      },
+      {
+        oznaka: "What interests me",
+        skupine: {
+          "In this project": ["Three.js", "WebGL", "Shaders", "Blender", "Vite", "Vanilla JS"],
+          "I'd like to give more time to": [
+            "Real-time graphics",
+            "Computer vision",
+            "Embedded systems",
+            "Optics",
+          ],
+        },
+      },
+    ],
+    kartice: {
+      oznaka: "What I'm like at work",
+      seznam: [
+        {
+          oznaka: "Curiosity",
+          naslov: "The question is\nalways why.",
+          telo:
+            "Anyone can learn how. Why this way and not another is the only thing still useful " +
+            "a year later.",
+        },
+        {
+          oznaka: "Patience",
+          naslov: "The eighth version.",
+          telo:
+            "The first version only proves it can be done. It gets interesting once I start " +
+            "taking things away.",
+        },
+        {
+          oznaka: "Taste",
+          naslov: "The detail\nnobody notices.",
+          telo:
+            "An animation delay, the width of a border, how something behaves at the edge of the " +
+            "screen. Together you can tell; one by one you can't.",
+        },
+        {
+          oznaka: "Measure",
+          naslov: "Done isn't\nperfect.",
+          telo:
+            "At some point you have to stop and show it. Otherwise you never find out whether " +
+            "it's good.",
+        },
+      ],
+    },
+    konec: "If any of this interests you, write to me.",
+  },
+
+  "vsebina.arhiv": {
+    uvod: {
+      oznaka: "Archive",
+      naslov: "Welcome to the archive.",
+      vodilo:
+        "Things that are finished and no longer in development. They're here because I learned " +
+        "something from them, and because it's only fair to show where I started.",
+    },
+    odseki: [
+      {
+        oznaka: "2024",
+        naslov: "Real-time detection\nand tracking",
+        telo:
+          "YOLO models, written in C and shipped as a standalone application. It recognises " +
+          "objects in the image, follows them between frames and keeps their identity even when " +
+          "they briefly disappear behind something else.",
+        znacke: ["C", "YOLO", "Computer vision", "Real time"],
+      },
+      {
+        oznaka: "Older",
+        naslov: "Roulette simulation",
+        telo:
+          "A simulator that plays millions of spins and tests strategies that sound logical on " +
+          "paper. The result is the same every time: the house has its edge, and no system wears " +
+          "it down.",
+        znacke: ["Probability", "Simulation"],
+      },
+    ],
+    konec: "What's here is finished. What's in progress is under Work.",
+  },
+};

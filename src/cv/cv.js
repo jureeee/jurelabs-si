@@ -28,6 +28,8 @@ import { DELO, OMENI, ARHIV } from "./vsebina.js";
 import { installStik } from "./stik.js";
 import { installCursor, installMagnetic } from "./cursor.js";
 import { installSelectionGlow } from "./selection.js";
+import { zacniJezik, obJeziku, t as tr } from "./jezik.js";
+import { installIzbirnikJezika } from "./izbirnik-jezika.js";
 
 // --- nastavitve --------------------------------------------------------------
 /**
@@ -593,6 +595,26 @@ nav?.addEventListener("pointerover", (e) => {
 installSelectionGlow();
 
 const kazalec = installCursor();
+
+// --- jezik ---------------------------------------------------------------------
+/**
+ * Stalni napisi v index.html: data-t za besedilo, data-t-aria za oznako.
+ * Slovenski izvor si ob prvem prevodu zapomnimo na elementu - brez njega se ob
+ * vrnitvi v slovenscino ne bi imeli kam vrniti.
+ */
+function prevediStatiko() {
+  document.querySelectorAll("[data-t]").forEach((el) => {
+    el.dataset.izvor ??= el.textContent.trim();
+    el.textContent = tr(el.dataset.t, el.dataset.izvor);
+  });
+  document.querySelectorAll("[data-t-aria]").forEach((el) => {
+    el.dataset.izvorAria ??= el.getAttribute("aria-label") ?? "";
+    el.setAttribute("aria-label", tr(el.dataset.tAria, el.dataset.izvorAria));
+  });
+}
+installIzbirnikJezika();
+obJeziku(prevediStatiko);
+zacniJezik();
 // Gumbi se nagnejo mocneje, kapsule okoli njih sibkeje - ucinek se sesteje.
 const magnetGumbi = installMagnetic(
   ".nav button, .dock-icon, .prof-gumb, .prof-zavihek, .prof-zapri, .nast-zapri, .nast-nazaj, .spust-gumb",
@@ -625,21 +647,25 @@ profilGumb?.addEventListener(
 );
 
 const plosca = installSettings();
+// Po stalnem kljucu, ne po napisu: napis se ob menjavi jezika spremeni.
 document
-  .querySelector('.dock-icon[aria-label="Nastavitve"]')
+  .querySelector('.dock-icon[data-orodje="nastavitve"]')
   ?.addEventListener("click", () => plosca.odpri());
 
 // Delo, O meni in Arhiv so ista stran z drugim besedilom; razlika je v vsebini.
+//
+// Zavihek in stran sta povezana s stalnim kljucem (data-stran), ne z napisom:
+// napis je od jezika odvisen, kljuc ne.
 const strani = new Map([
-  ["Delo", installZapis(DELO)],
-  ["O meni", installZapis(OMENI)],
-  ["Arhiv", installZapis(ARHIV)],
+  ["delo", installZapis(DELO, "delo")],
+  ["omeni", installZapis(OMENI, "omeni")],
+  ["arhiv", installZapis(ARHIV, "arhiv")],
   // Stik ima svojo vsebino, a isto zaveso in isti register odprte strani.
-  ["Stik", installStik()],
+  ["stik", installStik()],
 ]);
-nav?.querySelectorAll('[role="tab"]').forEach((t) => {
-  const stran = strani.get(t.textContent.trim());
-  if (stran) t.addEventListener("click", () => stran.odpri());
+nav?.querySelectorAll('[role="tab"]').forEach((zavihek) => {
+  const stran = strani.get(zavihek.dataset.stran);
+  if (stran) zavihek.addEventListener("click", () => stran.odpri());
 });
 
 installContextMenu(profil, plosca);

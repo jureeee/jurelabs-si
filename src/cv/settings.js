@@ -23,6 +23,7 @@
  */
 
 import "./settings.css";
+import { JEZIKI, jezik, nastaviJezik, obJeziku, t } from "./jezik.js";
 
 const IKONA_PUSC =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>';
@@ -37,6 +38,7 @@ const IKONA_KLJUKICA =
 
 /** Trenutne vrednosti. Spreminjajo jih vrstice, bere jih stran. */
 export const nastavitve = {
+  jezik: "sl",
   prosojnost: 5,
   tema: "temna",
   ozadje: "galaksija",
@@ -252,37 +254,41 @@ function spust(kljuc, moznosti) {
 /** Sestava strani. Podmeniji so navadne funkcije, ki vrnejo isto obliko. */
 function stranGlavna(pojdi) {
   return {
-    naslov: "Nastavitve",
+    naslov: t("nast.naslov", "Nastavitve"),
     skupine: [
       {
-        naslovek: "Videz",
+        naslovek: t("nast.videz", "Videz"),
         vrstice: [
-          { ime: "Prosojnost", kontrola: drsnik("prosojnost", { min: 0, max: 30, enota: "%" }) },
           {
-            ime: "Tema",
+            ime: t("nast.jezik", "Jezik"),
+            kontrola: spust("jezik", JEZIKI.map((j) => ({ vrednost: j.koda, ime: j.ime }))),
+          },
+          { ime: t("nast.prosojnost", "Prosojnost"), kontrola: drsnik("prosojnost", { min: 0, max: 30, enota: "%" }) },
+          {
+            ime: t("nast.tema", "Tema"),
             kontrola: spust("tema", [
-              { vrednost: "temna", ime: "Temna" },
-              { vrednost: "svetla", ime: "Svetla" },
-              { vrednost: "sistem", ime: "Po sistemu" },
+              { vrednost: "temna", ime: t("nast.temna", "Temna") },
+              { vrednost: "svetla", ime: t("nast.svetla", "Svetla") },
+              { vrednost: "sistem", ime: t("nast.sistem", "Po sistemu") },
             ]),
           },
         ],
       },
       {
-        naslovek: "Ozadje",
+        naslovek: t("nast.ozadje", "Ozadje"),
         vrstice: [
           {
-            ime: "Prizor",
+            ime: t("nast.prizor", "Prizor"),
             kontrola: spust("ozadje", [
-              { vrednost: "galaksija", ime: "Galaksija" },
-              { vrednost: "zvezde", ime: "Samo zvezde" },
-              { vrednost: "izklop", ime: "Izklopljeno" },
+              { vrednost: "galaksija", ime: t("nast.galaksija", "Galaksija") },
+              { vrednost: "zvezde", ime: t("nast.zvezde", "Samo zvezde") },
+              { vrednost: "izklop", ime: t("nast.izklop", "Izklopljeno") },
             ]),
           },
-          { ime: "Oddaljena galaksija", opis: "Druga galaksija v ozadju", kontrola: stikalo("daljnaGalaksija") },
+          { ime: t("nast.daljna", "Oddaljena galaksija"), opis: t("nast.daljnaOpis", "Druga galaksija v ozadju"), kontrola: stikalo("daljnaGalaksija") },
           {
-            ime: "Galaksija",
-            opis: "Sij, velikost zvezd, hitrost",
+            ime: t("nast.galaksija", "Galaksija"),
+            opis: t("nast.galaksijaOpis", "Sij, velikost zvezd, hitrost"),
             klikna: true,
             naKlik: () => pojdi(stranGalaksija),
             kontrola: (() => {
@@ -295,16 +301,16 @@ function stranGlavna(pojdi) {
         ],
       },
       {
-        naslovek: "Gibanje",
+        naslovek: t("nast.gibanje", "Gibanje"),
         vrstice: [
-          { ime: "Odziv na miško", opis: "Pogled sledi kazalcu", kontrola: stikalo("odzivNaMisko") },
+          { ime: t("nast.odziv", "Odziv na miško"), opis: t("nast.odzivOpis", "Pogled sledi kazalcu"), kontrola: stikalo("odzivNaMisko") },
         ],
       },
       {
-        naslovek: "Kazalec",
+        naslovek: t("nast.kazalec", "Kazalec"),
         vrstice: [
-          { ime: "Kazalec po meri", opis: "Iskrica namesto sistemskega kazalca", kontrola: stikalo("kazalec") },
-          { ime: "Magnetni gumbi", opis: "Gumbi se nagnejo proti kazalcu", kontrola: stikalo("magnet") },
+          { ime: t("nast.kazalecMeri", "Kazalec po meri"), opis: t("nast.kazalecMeriOpis", "Iskrica namesto sistemskega kazalca"), kontrola: stikalo("kazalec") },
+          { ime: t("nast.magnet", "Magnetni gumbi"), opis: t("nast.magnetOpis", "Gumbi se nagnejo proti kazalcu"), kontrola: stikalo("magnet") },
         ],
       },
     ],
@@ -313,19 +319,19 @@ function stranGlavna(pojdi) {
 
 function stranGalaksija() {
   return {
-    naslov: "Galaksija",
+    naslov: t("nast.galaksija", "Galaksija"),
     skupine: [
       {
-        naslovek: "Izris",
+        naslovek: t("nast.izris", "Izris"),
         vrstice: [
-          { ime: "Sij", kontrola: drsnik("sij", { min: 0, max: 100, enota: "%" }) },
-          { ime: "Velikost zvezd", kontrola: drsnik("velikostZvezd", { min: 5, max: 60, enota: "" }) },
+          { ime: t("nast.sij", "Sij"), kontrola: drsnik("sij", { min: 0, max: 100, enota: "%" }) },
+          { ime: t("nast.velikost", "Velikost zvezd"), kontrola: drsnik("velikostZvezd", { min: 5, max: 60, enota: "" }) },
         ],
       },
       {
-        naslovek: "Kamera",
+        naslovek: t("nast.kamera", "Kamera"),
         vrstice: [
-          { ime: "Hitrost orbite", kontrola: drsnik("hitrostOrbite", { min: 0, max: 100, enota: "%" }) },
+          { ime: t("nast.hitrost", "Hitrost orbite"), kontrola: drsnik("hitrostOrbite", { min: 0, max: 100, enota: "%" }) },
         ],
       },
     ],
@@ -340,9 +346,9 @@ export function installSettings() {
     <div class="nast-zavesa"></div>
     <div class="nast-plosca dg">
       <div class="nast-glava">
-        <button class="nast-nazaj" type="button" aria-label="Nazaj">${IKONA_NAZAJ}</button>
-        <div class="nast-naslov">Nastavitve</div>
-        <button class="nast-zapri" type="button" aria-label="Zapri">${IKONA_ZAPRI}</button>
+        <button class="nast-nazaj" type="button" aria-label="${t("nast.nazaj", "Nazaj")}">${IKONA_NAZAJ}</button>
+        <div class="nast-naslov">${t("nast.naslov", "Nastavitve")}</div>
+        <button class="nast-zapri" type="button" aria-label="${t("nast.zapri", "Zapri")}">${IKONA_ZAPRI}</button>
       </div>
       <div class="nast-okno"></div>
     </div>`;
@@ -449,6 +455,20 @@ export function installSettings() {
   });
   // Klik izven spustnega menija ga zapre.
   koren.addEventListener("click", () => zapriVse(null));
+  // Jezik izbran v nastavitvah velja za vso stran - isto kot gumb zgoraj desno.
+  document.addEventListener("nast-sprememba", (e) => {
+    if (e.detail?.kljuc === "jezik" && nastavitve.jezik !== jezik()) nastaviJezik(nastavitve.jezik);
+  });
+  // Menjava jezika, od koderkoli: plosca, ce je odprta, se narise znova v novem
+  // jeziku. Spustni seznami stare strani zivijo v body, zato gredo z njo.
+  obJeziku(() => {
+    nastavitve.jezik = jezik();
+    gumbNazaj.setAttribute("aria-label", t("nast.nazaj", "Nazaj"));
+    gumbZapri.setAttribute("aria-label", t("nast.zapri", "Zapri"));
+    if (!koren.classList.contains("odprt")) return;
+    trenutna?.querySelectorAll(".spust").forEach((d) => d.seznam?.remove());
+    pokazi(sklad.length ? sklad[sklad.length - 1] : () => stranGlavna(pojdi), null);
+  });
   // Seznami zivijo v body, zato jih pobrisemo tudi ob zapiranju plosce.
   window.addEventListener("resize", () => zapriVse(null));
 

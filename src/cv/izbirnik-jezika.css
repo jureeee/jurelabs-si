@@ -1,0 +1,58 @@
+/* ---------------------------------------------------------------------------
+   IZBIRNIK JEZIKA — zgoraj desno
+
+   Zrcalo profila: isti odmik od roba in ista visina, zato stojita kot par.
+   Steklo pride od defractedGlass.js prek razreda .dg, tako kot pri meniju.
+--------------------------------------------------------------------------- */
+
+.jez {
+  position: fixed;
+  top: max(34px, calc(env(safe-area-inset-top) + 18px));
+  right: max(34px, calc(env(safe-area-inset-right) + 18px));
+  z-index: 21;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 46px;
+  padding: 0 15px 0 13px;
+  border: none;
+  border-radius: 999px;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+
+  /* Pride kot meni - iz globine, z zamikom za njim. */
+  opacity: 0;
+  animation: jezVstop 720ms var(--spring) 420ms both;
+  transition:
+    color var(--t-fast) var(--ease),
+    transform var(--t-med) var(--spring);
+}
+.jez.vstopil { animation: none; opacity: 1; }
+.jez:hover { color: var(--ink); }
+.jez:active { transform: scale(0.955); }
+
+@keyframes jezVstop {
+  from { opacity: 0; transform: translateY(-14px) scale(0.94); filter: blur(12px); }
+  to   { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+.jez-ikona { display: grid; place-items: center; width: 19px; height: 19px; }
+.jez-ikona svg { width: 100%; height: 100%; display: block; }
+.jez-koda { min-width: 2ch; text-align: center; }
+
+/* Seznam: iste vrstice kot v spustnih menijih, le daljsi, zato se drsi. */
+.jez-seznam {
+  min-width: 210px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Na telefonu gre nad dno zaslona, da je pod palcem. */
+@media (max-width: 560px) {
+  .jez { top: auto; bottom: max(34px, calc(env(safe-area-inset-bottom) + 18px)); left: max(18px, calc(env(safe-area-inset-left) + 12px)); right: auto; }
+}

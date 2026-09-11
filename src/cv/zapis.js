@@ -14,6 +14,7 @@
  * manjse, kot je.
  */
 
+import { obJeziku, t, tPredmet, prevediVsebino } from "./jezik.js";
 import "./zapis.css";
 import { mediji } from "./mediji.js";
 
@@ -123,38 +124,42 @@ function odsekHtml(o, slika) {
     </section>`;
 }
 
-/** @param {import("./vsebina.js").DELO} vsebina */
-export function installZapis(vsebina) {
+/**
+ * @param {import("./vsebina.js").DELO} vsebina slovenski izvor
+ * @param {string} [kljuc] pod katerim kljucem je prevod te strani ("delo" ...)
+ */
+export function installZapis(vsebina, kljuc) {
   const slike = mediji.filter((m) => !m.video).map((m) => m.url);
   const slika = (i) => slike[i % slike.length] ?? "";
 
-  // Vrtiljak je neobvezen: Arhiv je kratek in bi ga sklepni vrtiljak naredil
-  // daljsega od tega, kar ima povedati.
-  const karticeVsebina = vsebina.kartice?.seznam ?? [];
-
-  const koren = document.createElement("div");
-  koren.className = "zapis";
-  koren.innerHTML = `
-    <div class="zapis-zavesa"></div>
-    <button class="zapis-zapri dg" type="button" aria-label="Zapri">${ZAPRI}</button>
-
-    <div class="zapis-tok">
+  /**
+   * Vsebina toka iz podatkov.
+   *
+   * V svoji funkciji, ker jo ob menjavi jezika zgradimo znova - zavesa in
+   * gumb za zapiranje ostaneta, tok dobi nove besede.
+   *
+   * Vrtiljak je neobvezen: Arhiv je kratek in bi ga sklepni vrtiljak naredil
+   * daljsega od tega, kar ima povedati.
+   */
+  function vsebinaHtml(v) {
+    const kartice = v.kartice?.seznam ?? [];
+    return `
       <header class="odsek zapis-uvod">
-        ${vsebina.uvod.ikona ? `<div class="zapis-ikona">${IKONE[vsebina.uvod.ikona]}</div>` : ""}
-        <div class="zapis-oznaka">${vsebina.uvod.oznaka}</div>
-        <h1 class="zapis-glavni">${naslovHtml(vsebina.uvod.naslov)}</h1>
-        <p class="zapis-vodilo">${vsebina.uvod.vodilo}</p>
+        ${v.uvod.ikona ? `<div class="zapis-ikona">${IKONE[v.uvod.ikona]}</div>` : ""}
+        <div class="zapis-oznaka">${v.uvod.oznaka}</div>
+        <h1 class="zapis-glavni">${naslovHtml(v.uvod.naslov)}</h1>
+        <p class="zapis-vodilo">${v.uvod.vodilo}</p>
       </header>
 
-      ${vsebina.odseki.map((o) => odsekHtml(o, slika)).join("")}
+      ${v.odseki.map((o) => odsekHtml(o, slika)).join("")}
 
       ${
-        karticeVsebina.length
+        kartice.length
           ? `<section class="odsek zapis-zakljucek">
-        <div class="zapis-oznaka">${vsebina.kartice.oznaka}</div>
+        <div class="zapis-oznaka">${v.kartice.oznaka}</div>
         <div class="zapis-vrtiljak">
           <div class="zapis-tir">
-            ${karticeVsebina
+            ${kartice
               .map(
                 (k) => `
               <article class="zapis-kartica dg">
@@ -165,19 +170,26 @@ export function installZapis(vsebina) {
               )
               .join("")}
           </div>
-          <button class="zapis-nazaj dg" type="button" aria-label="Prejšnja">${PUSCICA}</button>
-          <button class="zapis-naprej dg" type="button" aria-label="Naslednja">${PUSCICA}</button>
+          <button class="zapis-nazaj dg" type="button" aria-label="${t("zapis.prejsnja", "Prejšnja")}">${PUSCICA}</button>
+          <button class="zapis-naprej dg" type="button" aria-label="${t("zapis.naslednja", "Naslednja")}">${PUSCICA}</button>
         </div>
       </section>`
           : ""
       }
 
-      <footer class="odsek zapis-konec"><p>${vsebina.konec}</p></footer>
-    </div>`;
+      <footer class="odsek zapis-konec"><p>${v.konec}</p></footer>`;
+  }
+
+  const koren = document.createElement("div");
+  koren.className = "zapis";
+  koren.innerHTML = `
+    <div class="zapis-zavesa"></div>
+    <button class="zapis-zapri dg" type="button" aria-label="Zapri">${ZAPRI}</button>
+    <div class="zapis-tok">${vsebinaHtml(vsebina)}</div>`;
   document.body.appendChild(koren);
 
   const tok = koren.querySelector(".zapis-tok");
-  const tir = koren.querySelector(".zapis-tir");
+  let tir = koren.querySelector(".zapis-tir");
 
   // --- razdelki se pojavijo, ko prides do njih -----------------------------
   const opazovalec = new IntersectionObserver(
@@ -187,7 +199,30 @@ export function installZapis(vsebina) {
   koren.querySelectorAll(".odsek").forEach((o) => opazovalec.observe(o));
 
   // --- vrtiljak (samo ce ga stran ima) -------------------------------------
-  const ponastaviVrtiljak = tir ? namestiVrtiljak() : () => {};
+  let ponastaviVrtiljak = tir ? namestiVrtiljak() : () => {};
+
+  /**
+   * Menjava jezika: tok zgradimo znova v prevodu.
+   *
+   * Stari razdelki gredo iz strani, zato jih nehamo opazovati; novi so ze
+   * prikazani, ce je stran odprta - sicer bi ob menjavi jezika sredi branja
+   * besedilo za trenutek izginilo.
+   */
+  function zgradiZnova(v) {
+    const odprta = koren.classList.contains("odprt");
+    opazovalec.disconnect();
+    tok.innerHTML = vsebinaHtml(v);
+    tok.querySelectorAll(".odsek").forEach((o) => {
+      if (odprta) o.classList.add("vidno");
+      opazovalec.observe(o);
+    });
+    tir = koren.querySelector(".zapis-tir");
+    ponastaviVrtiljak = tir ? namestiVrtiljak() : () => {};
+    koren.querySelector(".zapis-zapri").setAttribute("aria-label", t("zapis.zapri", "Zapri"));
+  }
+  if (kljuc) {
+    obJeziku(() => zgradiZnova(prevediVsebino(vsebina, tPredmet(`vsebina.${kljuc}`, null))));
+  }
 
   /**
    * Vrtiljak v svoji funkciji, ker ga nima vsaka stran: Arhiv je kratek in se
