@@ -190,6 +190,11 @@ const FRAGMENT = /* glsl */ `
     moc += distance(vUv, vec2(0.5)) * 12.5 - 7.0 * uProgress;
     moc = 1.0 - clamp(moc, 0.0, 1.0);
 
+    // Krog iz sredisca do vogalov ne seze: pri polnem napredku bi robovi
+    // ostali razjedeni in skoznje bi se videla temna zavesa. Zadnji del
+    // prihoda zato sliko dopolni do cele - ko obmiruje, je enaka izvirniku.
+    moc = max(moc, smoothstep(0.82, 1.0, uProgress));
+
     vec3 barva = texture2D(uSlika, uv).rgb;
     float vidnost = smoothstep(0.0, 0.7, uProgress);
 
@@ -353,7 +358,11 @@ export function odpri(url, opis = "") {
       if (!ogled || ogled.ovoj !== ovoj) return;
       ogled.razmerje = slika.naturalWidth / Math.max(1, slika.naturalHeight);
       ogled.tekstura = new THREE.Texture(slika);
-      ogled.tekstura.colorSpace = THREE.SRGBColorSpace;
+      // Brez barvnega prostora, namenoma. Oznaka sRGB bi teksturo ob branju
+      // pretvorila v linearne vrednosti, ta sencilnik pa jih ne pretvori nazaj -
+      // gama bi se uporabila dvakrat in slika bi bila temnejsa in bolj
+      // kontrastna od izvirnika. Tako gredo vrednosti skozi nespremenjene.
+      ogled.tekstura.colorSpace = THREE.NoColorSpace;
       ogled.tekstura.needsUpdate = true;
       nastaviMere(p, ogled.razmerje);
       ovoj.appendChild(p.izris.domElement);
