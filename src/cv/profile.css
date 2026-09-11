@@ -307,6 +307,21 @@
 /* Med menjavo razporeditve mreza zbledi in se vrne. */
 .prof-mreza.menja { opacity: 0; filter: blur(8px); }
 
+/* Prostor 3D: polja so v platnu (prostor.js), polja v dokumentu se umaknejo.
+   Oder je visok skoraj zaslon; platno iz njega stopi na celo sirino okna, zato
+   sirina mreze tu ne velja. Ta pravila so tu in ne v prostor.css, ker mora
+   mreza izginiti ze v trenutku izbire - modul se nalaga sele takrat. */
+.prof-mreza[data-razpored="prostor"][data-sirina] {
+  display: block;
+  position: relative;
+  width: 100%;
+  margin-left: 0;
+  height: max(460px, calc(100vh - 150px));
+}
+.prof-mreza[data-razpored="prostor"] > .prof-polje { display: none; }
+.prof-mreza:not([data-razpored="prostor"]) > .prostor { display: none; }
+.prof:has(.prof-mreza[data-razpored="prostor"]) { overflow-x: hidden; }
+
 .prof-mreza[data-razpored="tri"]  { grid-template-columns: repeat(3, 1fr); }
 .prof-mreza[data-razpored="dve"]  { grid-template-columns: repeat(2, 1fr); }
 .prof-mreza[data-razpored="stiri"] { grid-template-columns: repeat(4, 1fr); gap: 16px; }

@@ -104,6 +104,12 @@ export default {
   "gal.razpored.izvirnoxl": "Original ratios XL",
   "gal.razpored.polno": "Full screen",
   "gal.razpored.stolpci": "Brick",
+
+  "gal.razpored.prostor": "3D space",
+
+  "gal.prostor.priblizaj": "Zoom in",
+
+  "gal.prostor.oddalji": "Zoom out",
   "gal.razmik.da": "With spacing",
   "gal.razmik.ne": "No spacing",
   "gal.sirina.robovi": "Edge to edge",

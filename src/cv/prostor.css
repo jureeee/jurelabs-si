@@ -1,0 +1,46 @@
+/* ---------------------------------------------------------------------------
+   PROSTOR 3D
+
+   Oder zavzame mrezo; platno iz njega stopi na celo sirino okna (levi odmik
+   in sirino nastavi prostor.js). Zgoraj in spodaj se platno zlije s stranjo,
+   da polja ne trcijo ob trd rob.
+--------------------------------------------------------------------------- */
+
+.prostor {
+  position: absolute;
+  inset: 0;
+}
+
+.prostor-platno {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 8%, #000 92%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 8%, #000 92%, transparent 100%);
+}
+
+.prostor-pult {
+  position: absolute;
+  left: 50%;
+  bottom: 26px;
+  z-index: 2;
+  transform: translateX(-50%);
+}
+
+.prostor-zoom {
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: var(--ink);
+}
+.prostor-zoom svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}

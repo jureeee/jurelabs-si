@@ -497,6 +497,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     { kljuc: "izvirnoxl", ime: "Izvirna razmerja XL" },
     { kljuc: "polno", ime: "Čez cel zaslon" },
     { kljuc: "stolpci", ime: "Zidak" },
+    { kljuc: "prostor", ime: "Prostor 3D" },
   ];
   // Razmik je svoja izbira in ne del razporeditve: velja za vse in ga
   // uporabnik menja neodvisno od tega, koliko stolpcev gleda.
@@ -624,10 +625,35 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     setTimeout(() => {
       mreza.dataset.razpored = razpored;
       mreza.dataset.razmik = razmik;
-  mreza.dataset.sirina = sirina;
+      mreza.dataset.sirina = sirina;
       mreza.classList.remove("menja");
+      uskladiProstor();
     }, 190);
   });
+
+  /**
+   * Prostor 3D je svoj modul s three.js in se nalozi sele, ko ga kdo izbere.
+   * Tece le, dokler je izbran in je profil odprt.
+   */
+  let prostor = null;
+  let prostorNalaga = null;
+  function uskladiProstor() {
+    const hocemo = razpored === "prostor" && koren.classList.contains("odprt");
+    if (prostor || !hocemo) {
+      prostor?.nastavi(hocemo);
+      return;
+    }
+    prostorNalaga ??= import("./prostor.js").then((m) => {
+      prostor = m.namestiProstor(mreza, mediji, { odpri: odpriIzProstora });
+    });
+    prostorNalaga.then(uskladiProstor).catch(() => null);
+  }
+  function odpriIzProstora(m, cas) {
+    if (mirnoGibanje.matches) return;
+    import("./plapol.js")
+      .then((p) => p.odpri(m.url, "", m.video ? { video: true, cas } : {}))
+      .catch(() => null);
+  }
 
   koren.addEventListener("click", zapriSeznam);
   addEventListener("resize", zapriSeznam);
@@ -643,6 +669,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     koren.classList.add("odprt");
     koren.scrollTop = 0;
     cilj = 0;
+    uskladiProstor();
     onOdprt?.();
   }
 
@@ -657,6 +684,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
       koren.classList.remove("odprt", "zapira");
       koren.querySelectorAll("video").forEach((v) => v.pause());
       lebdenje.spusti(true);
+      uskladiProstor();
       onZaprt?.();
       zapiranje = null;
     }, 460);
