@@ -1,0 +1,28 @@
+/* ---------------------------------------------------------------------------
+   VAL NA MESTU SLIKE
+
+   Dokler val ne stece, slike ni videti - sicer bi za trenutek stala na mestu
+   in se sele nato odprla. Platno vala je za ZRAK vecje od okvirja, da ima val
+   kam pobegniti; presezek okvir odreze.
+--------------------------------------------------------------------------- */
+
+.val-caka img:not(.zapis-sij),
+.val-tece img:not(.zapis-sij) {
+  opacity: 0;
+}
+
+/* Prava slika se pokaze, ko val poide; platno hkrati zbledi, zato konca ni
+   videti kot menjavo. */
+.val-platno {
+  position: absolute;
+  left: -9%;
+  top: -9%;
+  width: 118%;
+  height: 118%;
+  display: block;
+  pointer-events: none;
+  transition: opacity 380ms var(--ease);
+}
+.val-platno.odhaja {
+  opacity: 0;
+}

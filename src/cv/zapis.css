@@ -250,11 +250,43 @@
 .zapis-par.obrnjen .zapis-besedilo { order: 2; }
 
 .zapis-slika {
+  position: relative;
   margin: 0;
   aspect-ratio: 4 / 5;
+}
+
+/* Sij: ista slika zadaj, zabrisana in malo vecja. Rob slike se tako ne konca
+   z ostro crto na temnem, ampak se prelije v barvo, ki pride iz nje same.
+   Sij sme cez rob okvirja, zato okvir ne reze - reze plast pod njim. */
+.zapis-sij {
+  position: absolute;
+  inset: -7%;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  filter: blur(38px) saturate(1.15);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.zapis-okvir {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   border-radius: 18px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.05);
+  /* Mehak rob na vse strani: slika se ob robu zlije s stranjo, namesto da bi
+     se odrezala. Dve maski, presek - ena skrbi za zgoraj in spodaj, druga za
+     levo in desno. */
+  -webkit-mask-image:
+    linear-gradient(to bottom, transparent 0, #000 3.5%, #000 96.5%, transparent 100%),
+    linear-gradient(to right, transparent 0, #000 3.5%, #000 96.5%, transparent 100%);
+  mask-image:
+    linear-gradient(to bottom, transparent 0, #000 3.5%, #000 96.5%, transparent 100%),
+    linear-gradient(to right, transparent 0, #000 3.5%, #000 96.5%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
 }
 .zapis-slika img {
   width: 100%;
@@ -263,7 +295,13 @@
   display: block;
   /* Fotografije iz telefona nosijo gain map in bi na HDR zaslonu pregorele. */
   dynamic-range-limit: standard;
+  /* Slika se odpre cez stran, zato naj bo videti, da je za klik. */
+  cursor: pointer;
+  transition: transform 620ms var(--ease);
 }
+.zapis-slika:hover img { transform: scale(1.03); }
+/* Slika pride iz vala; prehod je tu, da se ob njegovem koncu pokaze mehko. */
+.zapis-slika img { transition: transform 620ms var(--ease), opacity 380ms var(--ease); }
 
 .zapis-sirok h2 { max-width: 20ch; }
 

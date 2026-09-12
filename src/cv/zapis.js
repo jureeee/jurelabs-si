@@ -18,6 +18,7 @@ import { obJeziku, t, tPredmet, prevediVsebino } from "./jezik.js";
 import "./zapis.css";
 import { mediji } from "./mediji.js";
 import { oziviBesedilo } from "./crke.js";
+import { namestiVal } from "./val.js";
 
 const ZAPRI =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
@@ -121,7 +122,10 @@ function odsekHtml(o, slika) {
         <p>${o.telo}</p>
         ${o.znacke ? znacke(o.znacke) : ""}
       </div>
-      <figure class="zapis-slika"><img alt="" loading="lazy" src="${slika(o.slika)}" /></figure>
+      <figure class="zapis-slika">
+        <div class="zapis-sij" style="background-image:url(${slika(o.slika)})" aria-hidden="true"></div>
+        <div class="zapis-okvir"><img alt="" loading="lazy" src="${slika(o.slika)}" /></div>
+      </figure>
     </section>`;
 }
 
@@ -192,9 +196,30 @@ export function installZapis(vsebina, kljuc) {
   const tok = koren.querySelector(".zapis-tok");
   let tir = koren.querySelector(".zapis-tir");
 
+  /**
+   * Klik na sliko jo odpre cez stran z istim valom kot v galeriji.
+   *
+   * Ogled je tezek - nosi sencilnika in svoj izris - zato pride sele ob prvem
+   * kliku. Kdor je gibanje izklopil, ostane brez njega, tako kot v galeriji.
+   */
+  const mirnoGibanje = matchMedia("(prefers-reduced-motion: reduce)");
+  tok.addEventListener("click", (e) => {
+    const slika = e.target instanceof Element ? e.target.closest(".zapis-slika img") : null;
+    if (!slika || mirnoGibanje.matches) return;
+    const url = slika.currentSrc || slika.src;
+    if (!url) return;
+    import("./plapol.js")
+      .then((m) => m.odpri(url, slika.alt || ""))
+      .catch(() => null);
+  });
+
   /** Besedilo prileti po znakih, ko prides do njega. */
   const IZBOR_CRK = "h1, h2, h3, p, .zapis-oznaka, .zapis-znacka";
-  const oziviTok = () => oziviBesedilo(tok, { tok, izbor: IZBOR_CRK });
+  const oziviTok = () => {
+    oziviBesedilo(tok, { tok, izbor: IZBOR_CRK });
+    // Slika priplapola sama, z istim valom kot ogled v galeriji.
+    namestiVal(tok, { tok, izbor: ".zapis-okvir" });
+  };
   oziviTok();
 
   // --- razdelki se pojavijo, ko prides do njih -----------------------------
