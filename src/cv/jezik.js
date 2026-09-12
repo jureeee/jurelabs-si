@@ -58,8 +58,6 @@ let trenutni = "sl";
 let slovar = null;
 
 /** Prevodi se nalozijo po potrebi; Vite iz tega naredi po eno datoteko na jezik. */
-import "./jezik.css";
-
 const nalagalniki = import.meta.glob("./prevodi/*.js");
 
 function zacetni() {
@@ -142,6 +140,36 @@ export function obJeziku(fn) {
   return () => poslusalci.delete(fn);
 }
 
+/** Kaj se ob menjavi jezika zamegli - ploskve, na katerih so napisi. */
+const ZAMEGLI = ".nav, .dock, .jez, .zapis-tok, .prof-vsebina, .nast-plosca";
+const KRIVULJA_JEZIK = "cubic-bezier(0.22, 1, 0.36, 1)";
+/** Tece zameglitev; drzimo jo, da jo znamo prekiniti ob vrnitvi. */
+let megla = [];
+
+/**
+ * Vmesnik zdrsne iz ostrine in nazaj.
+ *
+ * Z Web Animations API in ne s CSS: meni, dock in izbirnik jezika imajo
+ * vstopno animacijo s fill: both, ki lastnost filter drzi zase - dokler jo
+ * drzi animacija, CSS prehod ne stece in menjava je oster preskok. Animacije
+ * iz skripte so v cascadi nad tistimi iz CSS, zato prevzamejo.
+ */
+function zamegli(ven) {
+  const okvirji = ven
+    ? [{ filter: "blur(0px)", opacity: 1 }, { filter: "blur(9px)", opacity: 0.15 }]
+    : [{ filter: "blur(9px)", opacity: 0.15 }, { filter: "blur(0px)", opacity: 1 }];
+  const tece = [...document.querySelectorAll(ZAMEGLI)].map((el) =>
+    el.animate(okvirji, {
+      duration: ven ? 240 : 340,
+      easing: KRIVULJA_JEZIK,
+      // Ob odhodu megla obstane, dokler ne zamenjamo besedila; ob vrnitvi se
+      // animacija umakne in ploskev je spet taka, kot jo doloca slog.
+      fill: ven ? "forwards" : "none",
+    })
+  );
+  return tece;
+}
+
 /**
  * Zamenja jezik.
  *
@@ -153,10 +181,14 @@ export function obJeziku(fn) {
 export async function nastaviJezik(koda, { tiho = false } = {}) {
   if (!JEZIKI.some((j) => j.koda === koda)) return;
   const prehod = !tiho && !matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (prehod) document.documentElement.classList.add("jezik-menja");
+  if (prehod) {
+    for (const a of megla) a.cancel();
+    megla = zamegli(true);
+  }
   slovar = await naloziSlovar(koda);
-  // Pocakamo, da megla pride; sele nato zamenjamo besedilo.
-  if (prehod) await new Promise((r) => setTimeout(r, 210));
+  // Pocakamo, da megla pride; sele nato zamenjamo besedilo. Cakamo na cas in
+  // ne na animacijo: v skritem zavihku ta ne tece in menjava bi obvisela.
+  if (prehod) await new Promise((r) => setTimeout(r, 240));
   trenutni = koda;
   try {
     localStorage.setItem(SHRAMBA, koda);
@@ -167,10 +199,8 @@ export async function nastaviJezik(koda, { tiho = false } = {}) {
   document.documentElement.dir = jeRtl(koda) ? "rtl" : "ltr";
   for (const fn of poslusalci) fn(koda);
   if (prehod) {
-    // Dve slicici: prva postavi novo besedilo, druga ga izostri.
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => document.documentElement.classList.remove("jezik-menja"))
-    );
+    for (const a of megla) a.cancel();
+    megla = zamegli(false);
   }
 }
 
