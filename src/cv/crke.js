@@ -16,9 +16,16 @@
 
 import "./crke.css";
 
-/** Zamik med znakoma v isti vrstici in trajanje enega znaka. */
-const KORAK_MS = 50;
-const TRAJANJE_MS = 650;
+/**
+ * Zamik med znakoma v isti vrstici in trajanje enega znaka.
+ *
+ * Zamik je zgornja meja, ne pravilo: dolga vrstica ga stisne, da se cela
+ * sestavi v NAJVEC_ZAMIKA_MS. Brez tega bi vrstica s sestdesetimi znaki
+ * prihajala tri sekunde in bralec bi cakal na konec povedi.
+ */
+const KORAK_MS = 22;
+const NAJVEC_ZAMIKA_MS = 360;
+const TRAJANJE_MS = 480;
 /** power3.out iz GSAP. */
 const KRIVULJA = "cubic-bezier(0.165, 0.84, 0.44, 1)";
 /** Od kod prileti znak: pet visin pisave, a nikoli vec kot toliko. */
@@ -95,13 +102,15 @@ function pozeni(el, { korak, trajanje, zamik }) {
   const odmik = Math.min(ODMIK_NAJVEC, velikost * 5);
   el.classList.remove("crke-caka");
   for (const vrstica of poVrsticah(crke)) {
+    // Daljsa kot je vrstica, gostejsi je korak - konec pride pravocasno.
+    const k = vrstica.length > 1 ? Math.min(korak, NAJVEC_ZAMIKA_MS / (vrstica.length - 1)) : 0;
     vrstica.forEach((c, i) => {
       c.animate(
         [
           { transform: `translateX(${odmik}px) skewX(${NAGIB}deg)`, opacity: 0 },
           { transform: "translateX(0) skewX(0deg)", opacity: 1 },
         ],
-        { duration: trajanje, delay: zamik + i * korak, easing: KRIVULJA, fill: "both" }
+        { duration: trajanje, delay: zamik + i * k, easing: KRIVULJA, fill: "both" }
       );
     });
   }

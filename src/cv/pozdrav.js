@@ -359,6 +359,20 @@ const KAZALEC_R = 150;
 const KAZALEC_MOC = 2.6;
 
 /**
+ * Napis se kazalcu umakne po CELIH CRKAH in ne po posameznih znakih.
+ *
+ * Ce se umakne vsak znak zase, crka pod kazalcem razpade in se sesuje sama
+ * vase; ko se umakne crka kot celota, ostane berljiva in gib je videti kot
+ * odriv predmeta. Crka ima zato svojo vzmet: kazalec ji da pospesek stran,
+ * vzmet jo vlece nazaj, dusenje pa poskrbi, da se ne trese.
+ */
+const CRKA_R = 120;
+const CRKA_MOC = 3.4;
+const CRKA_VZMET = 0.045;
+const CRKA_DUSENJE = 0.87;
+const CRKA_NAJVEC = 95;
+
+/**
  * Blescanje.
  *
  * Znaki v mirovanju gorijo pri 40 odstotkih, ob blisku pa pri polni moci.
@@ -419,8 +433,13 @@ function sirinaRazmaknjena(ctx, besedilo, velikost) {
   return Math.max(0, sirina - razmik + velikost * DEBELINA) * SIRJENJE;
 }
 
-/** Izris crko za crko z razmikom. Vrne skupno sirino. */
-function narisiRazmaknjeno(ctx, besedilo, x, y, velikost) {
+/**
+ * Izris crko za crko z razmikom. Vrne skupno sirino.
+ *
+ * Ce dobi polje obsegov, vanj zapise vodoravni pas vsake crke - po njem
+ * pozneje vemo, kateri crki pripada posamezna tocka.
+ */
+function narisiRazmaknjeno(ctx, besedilo, x, y, velikost, obsegi) {
   const razmik = velikost * RAZMIK;
   ctx.strokeStyle = ctx.fillStyle;
   ctx.lineWidth = velikost * DEBELINA;
@@ -428,6 +447,9 @@ function narisiRazmaknjeno(ctx, besedilo, x, y, velikost) {
   ctx.lineCap = "round";
   let kje = x;
   for (const c of besedilo) {
+    const sirinaCrke = ctx.measureText(c).width;
+    // Pas je v pikah platna, izris pa tece raztegnjen - zato SIRJENJE.
+    if (obsegi) obsegi.push({ od: kje * SIRJENJE, do: (kje + sirinaCrke) * SIRJENJE });
     ctx.fillText(c, kje, y);
     // Obris zadebeli potezo navzven; brez njega je crka tanka kot nit in po
     // njeni sirini gre komaj en znak.
@@ -435,6 +457,23 @@ function narisiRazmaknjeno(ctx, besedilo, x, y, velikost) {
     kje += ctx.measureText(c).width + razmik;
   }
   return Math.max(0, kje - x - razmik);
+}
+
+/** Kateri crki pripada tocka - crke stojijo druga ob drugi, zato odloci lega. */
+function crkaZa(obsegi, x) {
+  let naj = -1;
+  let najblizje = Infinity;
+  for (let i = 0; i < obsegi.length; i++) {
+    const o = obsegi[i];
+    if (x >= o.od && x <= o.do) return i;
+    // Obris crko razsiri cez njen pas; tocka tik ob robu pripada isti crki.
+    const d = x < o.od ? o.od - x : x - o.do;
+    if (d < najblizje) {
+      najblizje = d;
+      naj = i;
+    }
+  }
+  return naj;
 }
 
 function tockeBesedila(vrstice, sirinaNaVoljo, velikostPisave, gostota = GOSTOTA) {
@@ -468,9 +507,10 @@ function tockeBesedila(vrstice, sirinaNaVoljo, velikostPisave, gostota = GOSTOTA
   ctx.textBaseline = "alphabetic";
   // Raztezek dosezemo z merilom platna, ne s prilagojeno pisavo: pisava
   // razlicnih sirin nima, prilagojena pa bi izgubila obliko potez.
+  const obsegi = [];
   ctx.save();
   ctx.scale(SIRJENJE, 1);
-  narisiRazmaknjeno(ctx, besedilo, 4 / SIRJENJE, nad + 4, velikost);
+  narisiRazmaknjeno(ctx, besedilo, 4 / SIRJENJE, nad + 4, velikost, obsegi);
   ctx.restore();
 
   const slika = ctx.getImageData(0, 0, sirina, visina).data;
@@ -483,6 +523,7 @@ function tockeBesedila(vrstice, sirinaNaVoljo, velikostPisave, gostota = GOSTOTA
         tocke.push({
           x: x - sirina / 2 + nakljucno(-r, r),
           y: y - visina / 2 + nakljucno(-r, r),
+          crka: crkaZa(obsegi, x),
         });
       }
     }
@@ -510,8 +551,18 @@ function tockeVecVrstic(vrstice, sirinaNaVoljo, velikostPisave, gostota) {
   const zamik = ((vrstice.length - 1) * visina) / 2;
 
   const tocke = [];
+  let prvaCrka = 0;
   posamezne.forEach((del, i) => {
-    for (const t of del) tocke.push({ x: t.x, y: t.y + i * visina - zamik });
+    let najvecja = -1;
+    for (const t of del) {
+      tocke.push({
+        x: t.x,
+        y: t.y + i * visina - zamik,
+        crka: t.crka < 0 ? -1 : prvaCrka + t.crka,
+      });
+      if (t.crka > najvecja) najvecja = t.crka;
+    }
+    prvaCrka += najvecja + 1;
   });
   return tocke;
 }
@@ -613,6 +664,7 @@ function poveziNajblizje(delci, kandidati, tocke, sredX, sredY) {
     const d = delci[najboljsi];
     d.ciljX = cx;
     d.ciljY = cy;
+    d.crka = t.crka ?? -1;
     d.imaCilj = true;
   }
   return zaseden;
@@ -653,6 +705,8 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
   const vrhStrani = () => (drsnik ? drsnik.scrollTop : 0);
 
   const besedni = [];   // znaki, ki sestavljajo napis
+  /** Crke napisa: sredisce, polmer in odmik, ki ga da kazalec. */
+  const crkeNapisa = [];
   const ozadje = [];    // znaki na Chladnijevi figuri
   const kotni = [];     // podpis v kotu
   /** Vsak okras ima svoje znake, da lahko diha in menja odtenek po svoje. */
@@ -749,6 +803,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
       ciljX: 0,
       ciljY: 0,
       imaCilj: false,
+      crka: -1,
       cakaj: 0,
       z: znak(),
       velikost: nakljucno(najmanj, najvec),
@@ -792,6 +847,64 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
       const delez = (d.ciljX - sredX) / Math.max(1, mereB.s * NAJVEC_SIRINE * 0.5);
       d.cakaj = ((delez + 1) / 2) * val;
       d.z = znak();
+    }
+
+    sestaviCrke();
+  }
+
+  /**
+   * Iz tarc znakov sestavi crke: sredisce in polmer vsake.
+   *
+   * Sredisce je povprecje tarc, polmer pa polovica daljse stranice - toliko
+   * dalec seze crka in po tem vemo, kdaj je kazalec dovolj blizu.
+   */
+  function sestaviCrke() {
+    crkeNapisa.length = 0;
+    for (const d of besedni) {
+      if (!d.imaCilj || d.crka < 0) continue;
+      let c = crkeNapisa[d.crka];
+      if (!c) {
+        c = crkeNapisa[d.crka] = {
+          n: 0, sx: 0, sy: 0,
+          levo: Infinity, desno: -Infinity, zgoraj: Infinity, spodaj: -Infinity,
+          cx: 0, cy: 0, r: 0, ox: 0, oy: 0, vx: 0, vy: 0,
+        };
+      }
+      c.n += 1;
+      c.sx += d.ciljX;
+      c.sy += d.ciljY;
+      c.levo = Math.min(c.levo, d.ciljX);
+      c.desno = Math.max(c.desno, d.ciljX);
+      c.zgoraj = Math.min(c.zgoraj, d.ciljY);
+      c.spodaj = Math.max(c.spodaj, d.ciljY);
+    }
+    for (const c of crkeNapisa) {
+      if (!c) continue;
+      c.cx = c.sx / c.n;
+      c.cy = c.sy / c.n;
+      c.r = Math.max(c.desno - c.levo, c.spodaj - c.zgoraj) * 0.5;
+    }
+  }
+
+  /** Kazalec odrine celo crko; vzmet jo prinese nazaj. */
+  function korakCrk(lok) {
+    for (const c of crkeNapisa) {
+      if (!c) continue;
+      if (lok.ziv) {
+        const dx = c.cx + c.ox - lok.x;
+        const dy = c.cy + c.oy - lok.y;
+        const r = Math.hypot(dx, dy);
+        const doseg = c.r + CRKA_R;
+        if (r < doseg && r > 0.01) {
+          const moc = (1 - r / doseg) * CRKA_MOC;
+          c.vx += (dx / r) * moc;
+          c.vy += (dy / r) * moc;
+        }
+      }
+      c.vx = (c.vx - c.ox * CRKA_VZMET) * CRKA_DUSENJE;
+      c.vy = (c.vy - c.oy * CRKA_VZMET) * CRKA_DUSENJE;
+      c.ox = Math.max(-CRKA_NAJVEC, Math.min(CRKA_NAJVEC, c.ox + c.vx));
+      c.oy = Math.max(-CRKA_NAJVEC, Math.min(CRKA_NAJVEC, c.oy + c.vy));
     }
   }
 
@@ -891,7 +1004,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
     }
   }
 
-  function korakPolja(polje, mere, dt, lok, sek) {
+  function korakPolja(polje, mere, dt, lok, sek, crke) {
     for (const d of polje) {
       // Blescanje. Sij pade proti nic; ko pride cas, spet skoci na polno.
       d.sij *= Math.pow(BLESK_UPAD, dt);
@@ -903,14 +1016,18 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
       if (d.cakaj > 0) {
         d.cakaj -= dt;
       } else if (d.imaCilj) {
-        d.vx += (d.ciljX - d.x) * VZMET;
-        d.vy += (d.ciljY - d.y) * VZMET;
+        // Tarca se premakne skupaj s crko, ki ji znak pripada.
+        const c = crke && d.crka >= 0 ? crke[d.crka] : null;
+        d.vx += (d.ciljX + (c ? c.ox : 0) - d.x) * VZMET;
+        d.vy += (d.ciljY + (c ? c.oy : 0) - d.y) * VZMET;
       } else {
         d.vx += nakljucno(-0.05, 0.05);
         d.vy += nakljucno(-0.07, 0.03);
       }
 
-      if (lok.ziv) {
+      // Kjer se umikajo cele crke, posamezni znak kazalca ne cuti - sicer bi
+      // crka ob odrivu se razpadla.
+      if (lok.ziv && !crke) {
         const dx = d.x - lok.x;
         const dy = d.y - lok.y;
         const r = Math.hypot(dx, dy);
@@ -1008,7 +1125,10 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
       frekvencaOb = sek + FREKVENCA_S;
     }
     const kazalecB = kazalecZa(gnezdoBesedila);
-    if (napisTece) korakPolja(besedni, mereB, dt, kazalecB, sek);
+    if (napisTece) {
+      korakCrk(kazalecB);
+      korakPolja(besedni, mereB, dt, kazalecB, sek, crkeNapisa);
+    }
     korakPolja(ozadje, mereO, dt, kazalecZa(gnezdoOzadja), sek);
 
     // Kazalec je za okrase v prostoru strani, torej nizje za toliko, kolikor

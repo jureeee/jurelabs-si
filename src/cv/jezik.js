@@ -58,6 +58,8 @@ let trenutni = "sl";
 let slovar = null;
 
 /** Prevodi se nalozijo po potrebi; Vite iz tega naredi po eno datoteko na jezik. */
+import "./jezik.css";
+
 const nalagalniki = import.meta.glob("./prevodi/*.js");
 
 function zacetni() {
@@ -140,9 +142,21 @@ export function obJeziku(fn) {
   return () => poslusalci.delete(fn);
 }
 
-export async function nastaviJezik(koda) {
+/**
+ * Zamenja jezik.
+ *
+ * Napisi v drugem jeziku so drugace dolgi, zato se ploskve pod njimi
+ * prerisejo in premaknejo. Da to ni sunek, vmesnik najprej zdrsne iz ostrine,
+ * zamenjava se zgodi v megli in nato se izostri nazaj. Ob zagonu strani
+ * prehoda ni - takrat se ni bilo cesa zamenjati.
+ */
+export async function nastaviJezik(koda, { tiho = false } = {}) {
   if (!JEZIKI.some((j) => j.koda === koda)) return;
+  const prehod = !tiho && !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (prehod) document.documentElement.classList.add("jezik-menja");
   slovar = await naloziSlovar(koda);
+  // Pocakamo, da megla pride; sele nato zamenjamo besedilo.
+  if (prehod) await new Promise((r) => setTimeout(r, 210));
   trenutni = koda;
   try {
     localStorage.setItem(SHRAMBA, koda);
@@ -152,9 +166,15 @@ export async function nastaviJezik(koda) {
   document.documentElement.lang = koda;
   document.documentElement.dir = jeRtl(koda) ? "rtl" : "ltr";
   for (const fn of poslusalci) fn(koda);
+  if (prehod) {
+    // Dve slicici: prva postavi novo besedilo, druga ga izostri.
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => document.documentElement.classList.remove("jezik-menja"))
+    );
+  }
 }
 
 /** Ob zagonu: nalozi zacetni jezik. Do takrat stran tece v slovenscini. */
 export function zacniJezik() {
-  return nastaviJezik(zacetni());
+  return nastaviJezik(zacetni(), { tiho: true });
 }
