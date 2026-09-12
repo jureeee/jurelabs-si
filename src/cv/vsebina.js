@@ -1,3 +1,5 @@
+import strojnaSlika from "../assets/zapis/strojna-programska.webp";
+
 /**
  * Besedilo strani Delo, O meni in Arhiv.
  *
@@ -42,7 +44,7 @@ export const DELO = {
         "Strežniško okolje, omrežja in tehnični sistemi na eni strani, poln " +
         "razvoj aplikacij na drugi. Obojega ne ločujem – večina problemov " +
         "stoji ravno na meji med njima.",
-      slika: 1,
+      slika: strojnaSlika,
     },
     {
       tip: "par",

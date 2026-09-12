@@ -135,7 +135,9 @@ function odsekHtml(o, slika) {
  */
 export function installZapis(vsebina, kljuc) {
   const slike = mediji.filter((m) => !m.video).map((m) => m.url);
-  const slika = (i) => slike[i % slike.length] ?? "";
+  // Stevilka je mesto v galeriji, niz pa svoja datoteka - zapis, ki ima svojo
+  // sliko, je ne jemlje iz mreze.
+  const slika = (i) => (typeof i === "string" ? i : slike[i % slike.length] ?? "");
 
   /**
    * Vsebina toka iz podatkov.
