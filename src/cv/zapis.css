@@ -276,17 +276,10 @@
   border-radius: 18px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.05);
-  /* Mehak rob na vse strani: slika se ob robu zlije s stranjo, namesto da bi
-     se odrezala. Dve maski, presek - ena skrbi za zgoraj in spodaj, druga za
-     levo in desno. */
-  -webkit-mask-image:
-    linear-gradient(to bottom, transparent 0, #000 3.5%, #000 96.5%, transparent 100%),
-    linear-gradient(to right, transparent 0, #000 3.5%, #000 96.5%, transparent 100%);
-  mask-image:
-    linear-gradient(to bottom, transparent 0, #000 3.5%, #000 96.5%, transparent 100%),
-    linear-gradient(to right, transparent 0, #000 3.5%, #000 96.5%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
+  /* Mehak rob samo levo in desno; zgoraj in spodaj ostane rob ostr, ker tam
+     slika meji na besedilo in mora imeti crto, na kateri se konca. */
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 11%, #000 89%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 11%, #000 89%, transparent 100%);
 }
 .zapis-slika img {
   width: 100%;
@@ -304,10 +297,7 @@
    ob koncu bi slika poskocila iz nje v povecano. */
 .zapis-slika:hover .val-caka img,
 .zapis-slika:hover .val-tece img { transform: none; }
-/* Slika pride iz vala: zbledi in se izostri, zato konec vala ni preskok. */
-.zapis-slika img {
-  transition: transform 620ms var(--ease), opacity 620ms var(--ease), filter 620ms var(--ease);
-}
+.zapis-slika img { transition: transform 620ms var(--ease); }
 
 .zapis-sirok h2 { max-width: 20ch; }
 

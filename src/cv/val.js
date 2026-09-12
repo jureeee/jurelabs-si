@@ -31,8 +31,9 @@ const CAS_MS = 1500;
 const NAJVEC_PIK = 1600;
 /** Koliko valov tece hkrati; ostali pocakajo v vrsti. */
 const HKRATI = 2;
-/** Koliko casa se prava slika bledi in izostruje cez platno. */
-const IZOSTRITEV_MS = 620;
+/** Koliko casa se pod platnom prizge prava slika in koliko nato bledi platno. */
+const PRIHOD_MS = 520;
+const ODHOD_MS = 560;
 /** Kdor je gibanje izklopil, dobi navadno sliko. */
 const mirno = matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -160,22 +161,31 @@ function slicica(ms) {
 }
 
 /**
- * Konec vala.
+ * Konec vala, v dveh stopnjah - in nobena ne zniza svetlosti.
  *
- * Prava slika se zbledi in izostri NAD platnom, ne pa hkrati z njegovim
- * bledenjem: dve na pol prosojni plasti druga na drugi sta skupaj svetlejsi
- * ali temnejsi od ene, in prav ta razlika je bila videti kot utrip. Platno
- * zato pocaka, da je slika cela, in gre za njo, ko ga ni vec videti.
+ * Najprej se POD polnim platnom pocasi prizge prava slika. Ker je platno se
+ * povsem neprozorno, je to videti le tam, kjer ga je sum razjedel: koticki in
+ * robovi se zapolnijo mehko, namesto da bi poknili v ostro sliko.
+ *
+ * Nato zbledi samo platno in pod njim ostane ista slika - prelivata se dve
+ * enaki sliki, zato prehoda ni videti. Slika sama nima zameglitve, ki bi ji
+ * brskalnik ob koncu odvzel svojo plast in jo prerisal; prav to se je prej
+ * videlo kot sunek.
  */
 function konec(delo) {
   tecejo.delete(delo);
-  delo.okvir.classList.remove("val-tece", "val-caka");
   delo.tekstura?.dispose();
   const platno = delo.platno;
-  if (platno) {
-    setTimeout(() => platno.classList.add("odhaja"), IZOSTRITEV_MS);
-    setTimeout(() => platno.remove(), IZOSTRITEV_MS + 420);
+  const okvir = delo.okvir;
+  if (!platno) {
+    okvir.classList.remove("val-tece", "val-caka");
+    naprej();
+    return;
   }
+  // Slicica vmes, da prehod prosojnosti na sliki res stece.
+  requestAnimationFrame(() => okvir.classList.remove("val-tece", "val-caka"));
+  setTimeout(() => platno.classList.add("odhaja"), PRIHOD_MS);
+  setTimeout(() => platno.remove(), PRIHOD_MS + ODHOD_MS + 120);
   naprej();
 }
 
