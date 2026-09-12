@@ -300,8 +300,10 @@
   transition: transform 620ms var(--ease);
 }
 .zapis-slika:hover img { transform: scale(1.03); }
-/* Slika pride iz vala; prehod je tu, da se ob njegovem koncu pokaze mehko. */
-.zapis-slika img { transition: transform 620ms var(--ease), opacity 380ms var(--ease); }
+/* Slika pride iz vala: zbledi in se izostri, zato konec vala ni preskok. */
+.zapis-slika img {
+  transition: transform 620ms var(--ease), opacity 620ms var(--ease), filter 620ms var(--ease);
+}
 
 .zapis-sirok h2 { max-width: 20ch; }
 

@@ -6,10 +6,11 @@
  * tu pa val stece v okvirju, kjer slika ze stoji, in to sam od sebe, ko
  * prides do nje. Klika ni treba.
  *
- * Izrisovalnik je en sam in nevidljen. Vsaka slika ima svoje platno 2D, v
+ * Izrisovalnik je en sam in neviden. Vsaka slika ima svoje platno 2D, v
  * katero prepisemo sliko iz WebGL - tako lahko tece vec valov hkrati, ne da bi
- * za vsako sliko odpirali svoj graficni kontekst. Ko je val pri koncu, platno
- * zbledi, prava slika pa se pokaze pod njim: konca torej ni videti.
+ * za vsako sliko odpirali svoj graficni kontekst. Ko je val pri koncu, se prava
+ * slika zbledi in izostri cez platno, platno pa gre tiho za njo - konca zato
+ * ni videti.
  *
  * Ploskev je manjsa od platna (za ZRAK), da ima val kam pobegniti. Presezek
  * okvir odreze, a ravno toliko, da se gube ob robu se vidijo.
@@ -21,10 +22,17 @@ import "./val.css";
 
 /** Koliko traja prihod. Isto kot v ogledu, da je ucinek en in isti. */
 const CAS_MS = 1500;
-/** Najdaljsa stranica izrisa - val je mehak in drobnih razlik ne nosi. */
-const NAJVEC_PIK = 1000;
+/**
+ * Najdaljsa stranica izrisa.
+ *
+ * Mora biti dovolj velika, da je slika iz vala enako ostra kot prava slika
+ * pod njim - ce je mehkejsa, ob koncu vidis, kako slika skoci v ostrino.
+ */
+const NAJVEC_PIK = 1600;
 /** Koliko valov tece hkrati; ostali pocakajo v vrsti. */
 const HKRATI = 2;
+/** Koliko casa se prava slika bledi in izostruje cez platno. */
+const IZOSTRITEV_MS = 620;
 /** Kdor je gibanje izklopil, dobi navadno sliko. */
 const mirno = matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -151,15 +159,22 @@ function slicica(ms) {
   else naprej();
 }
 
-/** Prava slika se pokaze, platno zbledi in gre iz strani. */
+/**
+ * Konec vala.
+ *
+ * Prava slika se zbledi in izostri NAD platnom, ne pa hkrati z njegovim
+ * bledenjem: dve na pol prosojni plasti druga na drugi sta skupaj svetlejsi
+ * ali temnejsi od ene, in prav ta razlika je bila videti kot utrip. Platno
+ * zato pocaka, da je slika cela, in gre za njo, ko ga ni vec videti.
+ */
 function konec(delo) {
   tecejo.delete(delo);
   delo.okvir.classList.remove("val-tece", "val-caka");
   delo.tekstura?.dispose();
   const platno = delo.platno;
   if (platno) {
-    platno.classList.add("odhaja");
-    setTimeout(() => platno.remove(), 420);
+    setTimeout(() => platno.classList.add("odhaja"), IZOSTRITEV_MS);
+    setTimeout(() => platno.remove(), IZOSTRITEV_MS + 420);
   }
   naprej();
 }

@@ -6,13 +6,14 @@
    kam pobegniti; presezek okvir odreze.
 --------------------------------------------------------------------------- */
 
+/* Slika prileti iz zameglitve: ob koncu vala se zbledi in izostri cez platno,
+   ki je pod njo - zato prehoda ni videti kot menjava dveh plasti. */
 .val-caka img:not(.zapis-sij),
 .val-tece img:not(.zapis-sij) {
   opacity: 0;
+  filter: blur(12px);
 }
 
-/* Prava slika se pokaze, ko val poide; platno hkrati zbledi, zato konca ni
-   videti kot menjavo. */
 .val-platno {
   position: absolute;
   left: -9%;
@@ -21,8 +22,16 @@
   height: 118%;
   display: block;
   pointer-events: none;
-  transition: opacity 380ms var(--ease);
+  /* Pod sliko, ne nad njo. */
+  z-index: 0;
+  transition: opacity 400ms var(--ease);
 }
 .val-platno.odhaja {
   opacity: 0;
+}
+
+/* Slika mora biti nad platnom, sicer bi jo to prekrilo. */
+.zapis-okvir img {
+  position: relative;
+  z-index: 1;
 }
