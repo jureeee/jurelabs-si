@@ -17,6 +17,7 @@ import avatarUrl from "../assets/media/profile picture.webp";
 import { mediji } from "./mediji.js";
 import { obJeziku, t } from "./jezik.js";
 import { namestiLebdenje } from "./lebdenje.js";
+import { oziviBesedilo } from "./crke.js";
 
 const IKONA_ZAPRI =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
@@ -158,6 +159,14 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
 
   const mreza = koren.querySelector(".prof-mreza");
   const zgodbe = koren.querySelector(".prof-zgodbe");
+
+  /** Besedilo profila prileti po znakih. */
+  const oziviProfil = () =>
+    oziviBesedilo(koren, {
+      tok: koren,
+      izbor: ".prof-ime, .prof-pravo, .prof-bio, .prof-stevci span, .prof-gumb, .prof-zavihek",
+    });
+  oziviProfil();
 
   // --- zgodbe: prvih nekaj slik ---
   mediji
@@ -581,6 +590,8 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     koren.querySelector(".prof-zapri")?.setAttribute("aria-label", t("prof.zapri", "Zapri"));
     koren.querySelector(".prof-razpored")?.setAttribute("aria-label", t("prof.razporeditev", "Razporeditev"));
     osveziSeznam();
+    // Prevod besedilo prepise, zato ga razbijemo znova.
+    oziviProfil();
   }
   obJeziku(prevediProfil);
 

@@ -1,0 +1,22 @@
+/* ---------------------------------------------------------------------------
+   BESEDILO, KI PRILETI PO ZNAKIH
+
+   Beseda je svoja skatla, da je prelom vrstic isti kot prej - znaki znotraj
+   nje se ne smejo lomiti vsak zase. Znak je skatla zato, da ga je mogoce
+   premakniti in nagniti.
+--------------------------------------------------------------------------- */
+
+.beseda {
+  display: inline-block;
+  white-space: pre;
+}
+.crka {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+
+/* Dokler besedilo ne pride na zaslon, ga ni videti - sicer bi za trenutek
+   stalo na mestu in sele nato odletelo nazaj. */
+.crke-caka .crka {
+  opacity: 0;
+}

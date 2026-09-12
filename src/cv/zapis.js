@@ -17,6 +17,7 @@
 import { obJeziku, t, tPredmet, prevediVsebino } from "./jezik.js";
 import "./zapis.css";
 import { mediji } from "./mediji.js";
+import { oziviBesedilo } from "./crke.js";
 
 const ZAPRI =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
@@ -191,6 +192,11 @@ export function installZapis(vsebina, kljuc) {
   const tok = koren.querySelector(".zapis-tok");
   let tir = koren.querySelector(".zapis-tir");
 
+  /** Besedilo prileti po znakih, ko prides do njega. */
+  const IZBOR_CRK = "h1, h2, h3, p, .zapis-oznaka, .zapis-znacka";
+  const oziviTok = () => oziviBesedilo(tok, { tok, izbor: IZBOR_CRK });
+  oziviTok();
+
   // --- razdelki se pojavijo, ko prides do njih -----------------------------
   const opazovalec = new IntersectionObserver(
     (vnosi) => vnosi.forEach((v) => v.isIntersecting && v.target.classList.add("vidno")),
@@ -218,6 +224,7 @@ export function installZapis(vsebina, kljuc) {
     });
     tir = koren.querySelector(".zapis-tir");
     ponastaviVrtiljak = tir ? namestiVrtiljak() : () => {};
+    oziviTok();
     koren.querySelector(".zapis-zapri").setAttribute("aria-label", t("zapis.zapri", "Zapri"));
   }
   if (kljuc) {

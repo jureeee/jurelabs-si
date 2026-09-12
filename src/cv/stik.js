@@ -25,6 +25,7 @@ import "./stik.css";
 import { prevzemiOdprto, sprostiOdprto } from "./zapis.js";
 import { mountVizitka } from "./vizitka.js";
 import { mediji } from "./mediji.js";
+import { oziviBesedilo } from "./crke.js";
 
 const ZAPRI =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
@@ -137,6 +138,10 @@ export function installStik() {
   document.body.appendChild(koren);
 
   const tok = koren.querySelector(".zapis-tok");
+  /** Besedilo prileti po znakih, ko prides do njega. */
+  const oziviTok = () =>
+    oziviBesedilo(tok, { tok, izbor: "h1, h2, h3, p, .zapis-oznaka, .stik-ime" });
+  oziviTok();
 
   function prevediStik() {
     for (const [izbor, [kljuc, izvor]] of Object.entries(BESEDILA)) {
@@ -145,7 +150,11 @@ export function installStik() {
     }
     koren.querySelector(".zapis-zapri")?.setAttribute("aria-label", t("zapis.zapri", "Zapri"));
   }
-  obJeziku(prevediStik);
+  // Prevod besedilo prepise, zato ga razbijemo znova.
+  obJeziku(() => {
+    prevediStik();
+    oziviTok();
+  });
 
   mountVizitka(koren.querySelector(".stik-vizitka-host"), { opro: OPRO });
 
