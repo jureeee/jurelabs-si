@@ -57,6 +57,8 @@ export const DELO = {
         "Nadzorna plošča za senzorje kakovosti zraka in varnosti. Zbira " +
         "meritve, prepozna vzorce in opozori, preden postane težava.",
       znacke: ["Python", "Flask", "SQLite", "Nadzorne plošče"],
+      // Pravi vmesnik aplikacije na izmisljenih podatkih.
+      aplikacija: { pot: "demo/trace-space/index.html", ime: "Trace Space" },
       slika: traceSpaceSlika,
       // Vmesnik je lezec; v pokoncnem okvirju bi se mu odrezala polovica.
       razmerje: "3 / 2",

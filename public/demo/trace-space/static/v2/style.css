@@ -1,0 +1,2574 @@
+/* HALO Dashboard — "liquid glass" redesign.
+   Svetlo, čisto, Apple-like: frosted steklo (blur + saturate), hairline
+   robovi, mehke sence, umirjena tipografija. Gibanje je subtilno in vzmetno
+   (squish ob pritisku, spring pri menijih) — nič neona, nič dvigovanja.
+   Barvna disciplina ostaja: rdeča izključno za alarm, jantar za opozorilo,
+   en zadržan modri poudarek za podatke. Brez zunanjih virov. */
+
+:root {
+  --bg: #eef0f4;
+  --bg-deep: #e6e9ef;
+  --glass: rgba(255, 255, 255, 0.62);
+  --glass-heavy: rgba(255, 255, 255, 0.78);
+  --hairline: rgba(20, 25, 35, 0.08);
+  --hairline-2: rgba(20, 25, 35, 0.14);
+  --ink: #1b1f27;
+  --muted: #697180;
+  --faint: #98a0ae;
+  --accent: #5a8fe6;
+  --accent-soft: rgba(90, 143, 230, 0.13);
+  --grid: rgba(20, 25, 35, 0.06);
+  --lg-fill: rgba(255, 255, 255, 0.5);
+  --lg-fill-2: rgba(255, 255, 255, 0.26);
+  --lg-spec: 0.85;
+  --ok: #2e9e6b;
+  --warn: #ad6800;
+  --alert: #d9403a;
+  --warn-strong: #cf5f28;              /* krepko cez opozorilno mejo, se ne alarm */
+  --warn-strong-bg: rgba(207, 95, 40, 0.11);
+  --ok-bg: rgba(46, 158, 107, 0.1);
+  --warn-bg: rgba(173, 104, 0, 0.1);
+  --alert-bg: rgba(217, 64, 58, 0.09);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "Cascadia Code", ui-monospace, Consolas, monospace;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --spring: cubic-bezier(0.34, 1.45, 0.5, 1);
+  --t-fast: 180ms;
+  --t-med: 320ms;
+  --t-slow: 560ms;
+  --shadow-1: 0 1px 2px rgba(16, 24, 40, 0.05), 0 4px 16px rgba(16, 24, 40, 0.05);
+  --shadow-2: 0 8px 40px rgba(16, 24, 40, 0.14);
+  --blur: saturate(1.7) blur(22px);
+}
+
+/* ---------- Temna tema (data-theme="dark" na <html>) ---------- */
+:root[data-theme="dark"] {
+  --bg: #0e1116;
+  --bg-deep: #0a0d11;
+  --glass: rgba(30, 35, 44, 0.55);
+  --glass-heavy: rgba(34, 40, 50, 0.74);
+  --hairline: rgba(255, 255, 255, 0.09);
+  --hairline-2: rgba(255, 255, 255, 0.17);
+  --ink: #e9edf3;
+  --muted: #9aa5b3;
+  --faint: #66707e;
+  --accent-soft: rgba(90, 150, 255, 0.16);
+  --grid: rgba(255, 255, 255, 0.06);
+  --lg-fill: rgba(255, 255, 255, 0.08);
+  --lg-fill-2: rgba(255, 255, 255, 0.03);
+  --lg-spec: 0.4;
+  --ok: #3ecf8e; --warn: #e6a53d; --alert: #ff5c54;
+  --warn-strong: #f08a4b; --warn-strong-bg: rgba(240, 138, 75, 0.16);
+  --ok-bg: rgba(62, 207, 142, 0.14);
+  --warn-bg: rgba(230, 165, 61, 0.14);
+  --alert-bg: rgba(255, 92, 84, 0.14);
+  --shadow-1: 0 1px 2px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-2: 0 12px 44px rgba(0,0,0,0.55);
+}
+:root[data-theme="dark"] .bg-stage {
+  background:
+    radial-gradient(1100px 700px at 80% -10%, #141b26 0%, transparent 60%),
+    radial-gradient(900px 700px at 0% 100%, #10141b 0%, transparent 55%),
+    var(--bg);
+}
+:root[data-theme="dark"] .login-card input,
+:root[data-theme="dark"] table.data th { background: rgba(255,255,255,0.04); }
+
+/* ---------- Gostota (compact) ---------- */
+body.dense .content { padding: 16px; }
+body.dense .card { padding: 12px; }
+body.dense .health-banner { padding: 16px 18px; }
+body.dense table.data th, body.dense table.data td { padding: 7px 11px; }
+body.dense .device-row { padding: 9px 6px; }
+body.dense .stat .value { font-size: 24px; }
+body.dense .grid { gap: 10px; }
+
+/* ---------- Animacije izklopljene ---------- */
+body.no-anim *, body.no-anim *::before, body.no-anim *::after {
+  animation-duration: 0.001ms !important; animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+a { color: var(--accent); text-decoration: none; }
+button { font-family: inherit; color: inherit; }
+::selection { background: var(--accent-soft); }
+
+/* Ozadje: mehak nevtralen preliv, brez mreže in brez svetlobnih gmot */
+.bg-stage { position: fixed; inset: 0; z-index: -1;
+  transform: scale(1.06); will-change: transform; background:
+  radial-gradient(1100px 700px at 80% -10%, #f6f8fb 0%, transparent 60%),
+  radial-gradient(900px 700px at 0% 100%, #e9ecf2 0%, transparent 55%),
+  var(--bg); transition: background 600ms var(--ease); }
+
+/* Super barve: paleta pobarva OZADJE, stekla in besedilo pa ostanejo, kot so
+   -- tako se ohrani berljivost, alarmne barve pa svoj pomen. Temna barva
+   pade v zgornji kot, svetla nosi ploskev, poudarek zasije v sredini. */
+:root[data-super] .bg-stage {
+  background:
+    radial-gradient(1200px 780px at 78% -12%, var(--sc-d) 0%, transparent 58%),
+    radial-gradient(980px 760px at 6% 104%, var(--sc-a) 0%, transparent 52%),
+    radial-gradient(1400px 900px at 50% 40%, var(--sc-l) 0%, transparent 78%),
+    var(--sc-l);
+  opacity: 0.9;
+}
+:root[data-super] .bg-stage::after {
+  content: ""; position: absolute; inset: 0;
+  background: rgba(255, 255, 255, 0.55);
+}
+:root[data-theme="dark"][data-super] .bg-stage::after {
+  background: rgba(10, 13, 17, 0.6);
+}
+
+/* ---------- Vstopne animacije (mehko, brez dviga) ---------- */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes popIn { from { opacity: 0; transform: scale(0.965); } to { opacity: 1; transform: none; } }
+.view-enter .vstop { animation: vstopBlur 720ms var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 70ms); }
+@keyframes vstopBlur {
+  from { opacity: 0; transform: translateY(var(--vstop, 12px)); filter: blur(12px); }
+  to { opacity: 1; transform: none; filter: blur(0); }
+}
+.boot { padding: 3rem; color: var(--muted); animation: fadeIn var(--t-slow) both; }
+
+/* ---------- Layout ---------- */
+.shell { display: grid; grid-template-columns: 224px 1fr; min-height: 100vh; }
+.sidebar {
+  background: var(--glass);
+  backdrop-filter: var(--blur);
+  border-right: 1px solid var(--hairline);
+  padding: 18px 12px;
+  display: flex; flex-direction: column; gap: 2px;
+  position: sticky; top: 0; height: 100vh;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 12px; border-radius: var(--radius-sm); color: var(--muted);
+  cursor: pointer; border: none; background: none; width: 100%; text-align: left;
+  font-size: 13.5px;
+  transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease),
+    transform var(--t-med) var(--spring);
+}
+.nav-item:hover { background: rgba(20, 25, 35, 0.05); color: var(--ink); }
+.nav-item:active { transform: scale(0.965); }
+.nav-item.active { background: #fff; color: var(--accent); font-weight: 600;
+  box-shadow: var(--shadow-1); }
+.nav-item svg { width: 17px; height: 17px; flex: none; opacity: 0.85; }
+.nav-sep { height: 1px; background: var(--hairline); margin: 10px 8px; }
+.info-btn { display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--hairline);
+  background: none; color: var(--faint); cursor: pointer; position: relative;
+  transition: background var(--t-fast), color var(--t-fast),
+    transform var(--t-med) var(--spring); }
+.info-btn:hover { background: rgba(20, 25, 35, 0.05); color: var(--muted); }
+.info-btn:active { transform: scale(0.94); }
+.info-btn svg { width: 16px; height: 16px; }
+:root[data-theme="dark"] .info-btn:hover { background: rgba(255, 255, 255, 0.07); }
+.nav-foot { margin-top: auto; font-size: 11px; color: var(--faint); padding: 8px 10px; }
+
+.main { min-width: 0; display: flex; flex-direction: column; }
+.topbar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 13px 26px; border-bottom: 1px solid var(--hairline);
+  background: var(--glass); backdrop-filter: var(--blur);
+  /* nad SVG cono (88) in dockom (90) -> dropdowni v topbaru so vedno
+     klikljivi tudi ko je SVG stream odprt (topbar tvori stacking context,
+     zato mora biti visok on sam, ne le meniji v njem) */
+  position: sticky; top: 0; z-index: 95;
+}
+.topbar h1 { font-size: 16px; margin: 0; font-weight: 650; letter-spacing: -0.01em; }
+.topbar .spacer { flex: 1; }
+#topControls { display: flex; gap: 8px; align-items: center; }
+.content { padding: 26px; max-width: 1200px; width: 100%; }
+
+/* ---------- Kontrole: squish namesto dviga ---------- */
+.select, .btn {
+  background: var(--glass-heavy); border: 1px solid var(--hairline); color: var(--ink);
+  padding: 8px 13px; border-radius: var(--radius-sm); font-size: 13px; cursor: pointer;
+  backdrop-filter: var(--blur); box-shadow: var(--shadow-1);
+  transition: background var(--t-fast), border-color var(--t-fast),
+    transform var(--t-med) var(--spring);
+}
+.select:hover, .btn:hover { background: #fff; border-color: var(--hairline-2); }
+.btn:active, .select:active { transform: scale(0.955); }
+.btn.primary { background: var(--accent); color: #fff; border-color: transparent; font-weight: 600; }
+.btn.primary:hover { background: #2861d4; }
+.select:focus-visible, .btn:focus-visible, input:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* ---------- Apple-like dropdown ---------- */
+.dd { position: relative; }
+.dd-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--glass-heavy); border: 1px solid var(--hairline);
+  padding: 8px 13px; border-radius: var(--radius-sm); font-size: 13px; cursor: pointer;
+  backdrop-filter: var(--blur); box-shadow: var(--shadow-1);
+  transition: background var(--t-fast), transform var(--t-med) var(--spring);
+}
+.dd-btn:hover { background: #fff; }
+.dd-btn:active { transform: scale(0.955); }
+.dd-btn .chev { width: 10px; height: 6px; color: var(--faint);
+  transition: transform var(--t-med) var(--spring); }
+.dd.open .dd-btn .chev { transform: rotate(180deg); }
+/* meni se renderira v <body> (portal), da uide backdrop-rootu topbara —
+   sicer backdrop-filter nima česa vzorčiti in blur ne dela */
+.dd-menu {
+  position: fixed; min-width: 168px; z-index: 300;  /* nad modalom (200) */
+  background: rgba(250, 250, 253, 0.82); backdrop-filter: var(--blur);
+  border: 1px solid var(--hairline); border-radius: 13px; padding: 5px;
+  box-shadow: var(--shadow-2);
+  transform-origin: top right;
+  opacity: 0; transform: scale(0.92) translateY(-6px); pointer-events: none;
+  filter: blur(10px);
+  transition: opacity var(--t-fast) var(--ease), transform var(--t-med) var(--spring),
+    filter var(--t-med) var(--ease);
+}
+.dd-menu.open { opacity: 1; transform: none; pointer-events: auto; filter: blur(0); }
+/* Drsniki povsod enaki kot v menijih -- privzeti sistemski so pretemni. */
+* { scrollbar-width: thin; scrollbar-color: var(--hairline-2) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: var(--hairline-2); border-radius: 8px;
+  border: 2px solid transparent; background-clip: padding-box; }
+*::-webkit-scrollbar-thumb:hover { background: rgba(20, 25, 35, 0.30);
+  border: 2px solid transparent; background-clip: padding-box; }
+*::-webkit-scrollbar-corner { background: transparent; }
+:root[data-theme="dark"] *::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28); border: 2px solid transparent;
+  background-clip: padding-box; }
+
+.dd-menu::-webkit-scrollbar { width: 8px; }
+.dd-menu::-webkit-scrollbar-thumb { background: var(--hairline-2); border-radius: 8px; }
+.dd-menu::-webkit-scrollbar-track { background: transparent; }
+.dd-opt {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%; text-align: left; border: none; background: none; cursor: pointer;
+  padding: 7px 11px; border-radius: 9px; font-size: 13px; color: var(--ink);
+  transition: background var(--t-fast), transform var(--t-med) var(--spring);
+}
+.dd-opt:hover { background: rgba(20, 25, 35, 0.06); }
+.dd-opt:active { transform: scale(0.965); }
+.dd-opt.sel { font-weight: 600; }
+.dd-opt .check { width: 12px; height: 10px; color: var(--accent); flex: none; }
+
+/* ---------- Status hero ---------- */
+.health-banner {
+  display: flex; align-items: center; gap: 18px;
+  padding: 24px 26px; border-radius: var(--radius); margin-bottom: 20px;
+  border: 1px solid var(--hairline);
+  background: var(--glass); backdrop-filter: var(--blur); box-shadow: var(--shadow-1);
+}
+.health-banner h2 { margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -0.01em; }
+.health-banner p { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
+.hero-ring { position: relative; width: 46px; height: 46px; flex: none; }
+.hero-ring i { position: absolute; inset: 0; border-radius: 50%; }
+.hero-ring .core { inset: 15px; background: var(--ok); }
+.hero-ring .halo1 { border: 1.5px solid rgba(46, 158, 107, 0.45); animation: breathe 4s var(--ease) infinite; }
+.hero-ring .halo2 { border: 1px solid rgba(46, 158, 107, 0.22); animation: breathe 4s var(--ease) infinite 1s; }
+@keyframes breathe { 0%, 100% { transform: scale(0.84); opacity: 0.9; } 50% { transform: scale(1.04); opacity: 0.3; } }
+.health-banner.warning { border-color: rgba(173, 104, 0, 0.3); background: linear-gradient(0deg, var(--warn-bg), var(--warn-bg)), var(--glass); }
+.health-banner.warning .core { background: var(--warn); }
+.health-banner.warning .halo1 { border-color: rgba(173, 104, 0, 0.45); animation-duration: 2.4s; }
+.health-banner.warning .halo2 { border-color: rgba(173, 104, 0, 0.22); animation-duration: 2.4s; }
+.health-banner.alert { border-color: rgba(217, 64, 58, 0.4); background: linear-gradient(0deg, var(--alert-bg), var(--alert-bg)), var(--glass); }
+.health-banner.alert .core { background: var(--alert); }
+.health-banner.alert .halo1 { border-color: rgba(217, 64, 58, 0.55); animation: breathe 1.4s var(--ease) infinite; }
+.health-banner.alert .halo2 { border-color: rgba(217, 64, 58, 0.3); animation: breathe 1.4s var(--ease) infinite 0.4s; }
+
+/* ---------- Kartice ---------- */
+.grid { display: grid; gap: 13px; }
+.grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.card {
+  position: relative;                  /* sidro za svetlobo ob kazalcu */
+  background: var(--glass); border: 1px solid var(--hairline);
+  border-radius: var(--radius); padding: 17px;
+  backdrop-filter: var(--blur);
+  /* senca se rahlo premika s kazalcem (parallax) */
+  box-shadow: var(--shx, 0px) var(--shy, 4px) 18px rgba(16, 24, 40, 0.07),
+    0 1px 2px rgba(16, 24, 40, 0.05);
+  transition: background var(--t-med) var(--ease), border-color var(--t-med),
+    box-shadow 0.25s var(--ease);
+}
+/* Po stisku ostane komaj zaznaven poudarek -- senca se rahlo poglobi in
+   spusti, da je jasno, katera kartica je pod kazalcem. */
+/* Velikost drzi animacija v JS, ne to pravilo -- sicer se borita. */
+.card:hover { background: var(--glass-heavy); border-color: var(--hairline-2); }
+.card:not(.ai-sum):hover {
+  box-shadow: var(--shx, 0px) calc(var(--shy, 4px) + 3px) 28px rgba(16, 24, 40, 0.10),
+    0 1px 2px rgba(16, 24, 40, 0.05); }
+.card h3 { margin: 0 0 12px; font-size: 11px; font-weight: 650; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.08em; }
+.section-title { font-size: 12px; font-weight: 650; margin: 24px 0 11px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.07em; }
+
+.stat .label { font-size: 12px; color: var(--muted); }
+.stat .value { font-size: 28px; font-weight: 350; margin-top: 3px;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.stat .value small { font-size: 13px; color: var(--faint); font-weight: 450; margin-left: 4px; }
+.stat .value.alert-v { color: var(--alert); font-weight: 500; }
+
+/* ---------- Naprave ---------- */
+.device-row {
+  display: flex; align-items: center; gap: 12px; padding: 12px 6px;
+  border-bottom: 1px solid var(--hairline); border-radius: 10px;
+  transition: background var(--t-fast);
+}
+.device-row:hover { background: rgba(20, 25, 35, 0.035); }
+.device-row:last-child { border-bottom: none; }
+.device-row .name { font-weight: 600; font-size: 14px; }
+.device-row .loc { color: var(--faint); font-size: 12px; }
+.device-row .spacer { flex: 1; }
+
+.pill {
+  font-size: 11px; padding: 4px 11px; border-radius: 999px; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 6px; letter-spacing: 0.02em;
+}
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.ok { color: var(--ok); background: var(--ok-bg); }
+.pill.warning { color: var(--warn); background: var(--warn-bg); }
+.pill.alert { color: var(--alert); background: var(--alert-bg); }
+.pill.alert::before { animation: blipdot 1.3s ease-in-out infinite; }
+@keyframes blipdot { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+.pill.off { color: var(--faint); background: rgba(20, 25, 35, 0.05); }
+
+/* ---------- Tabele ---------- */
+.table-wrap { overflow-x: auto; border: 1px solid var(--hairline); border-radius: var(--radius);
+  background: var(--glass); backdrop-filter: var(--blur); box-shadow: var(--shadow-1); }
+table.data { width: 100%; border-collapse: collapse; font-size: 13px; }
+table.data th, table.data td { text-align: left; padding: 10px 14px;
+  border-bottom: 1px solid var(--hairline); white-space: nowrap; }
+table.data th { color: var(--faint); font-weight: 650; font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.06em; position: sticky; top: 0;
+  background: var(--glass-heavy); backdrop-filter: var(--blur); }
+table.data tbody tr { transition: background var(--t-fast); }
+table.data tbody tr:hover { background: var(--accent-soft); cursor: pointer; }
+table.data tbody tr:last-child td { border-bottom: none; }
+table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.sev-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+.sev-alert { background: var(--alert); }
+.sev-warning { background: var(--warn); }
+.sev-normal, .sev-info { background: var(--faint); }
+
+/* ---------- Filtri ---------- */
+.search-wrap { position: relative; margin-bottom: 12px; }
+.search-wrap input {
+  width: 100%; padding: 11px 14px 11px 38px; font-size: 14px; font-family: inherit;
+  color: var(--ink); background: var(--glass-heavy); border: 1px solid var(--hairline);
+  border-radius: 12px; -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-1); transition: border-color var(--t-fast), box-shadow var(--t-fast);
+}
+.search-wrap input:focus { outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft); }
+.search-wrap svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+  width: 15px; height: 15px; color: var(--faint); pointer-events: none; }
+.search-hint { font-size: 11.5px; color: var(--faint); margin: 6px 2px 0; }
+.search-hint b { color: var(--muted); font-weight: 600; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; margin-bottom: 15px; }
+.filters .chip {
+  padding: 6px 13px; border-radius: 999px; border: 1px solid var(--hairline);
+  background: var(--glass-heavy); color: var(--muted); cursor: pointer; font-size: 12.5px;
+  backdrop-filter: var(--blur);
+  transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast),
+    transform var(--t-med) var(--spring);
+}
+.filters .chip:hover { background: #fff; color: var(--ink); }
+.filters .chip:active { transform: scale(0.94); }
+.filters .chip.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+/* Gumb metrike nosi barvo SVOJE krivulje (--c). Resnost je locen signal:
+   obroc okoli gumba, ne barva besedila -- sicer bi se signala prekrivala in
+   ne bi bilo mogoce hkrati vedeti "katera krivulja" in "kako hudo". */
+.filters .chip.metric { display: inline-flex; align-items: center; gap: 7px;
+  color: var(--ink); }
+.filters .chip.metric .dot { width: 9px; height: 9px; border-radius: 50%; flex: none;
+  background: var(--c, var(--accent)); transition: transform var(--t-fast) var(--ease); }
+.filters .chip.metric:not(.active) { color: var(--faint); }
+.filters .chip.metric:not(.active) .dot { opacity: 0.45; transform: scale(0.8); }
+.filters .chip.metric.active { background: color-mix(in srgb, var(--c) 14%, #fff);
+  border-color: color-mix(in srgb, var(--c) 45%, transparent); color: var(--ink); }
+.filters .chip.metric.focus { box-shadow: inset 0 0 0 1.5px var(--c); }
+/* cez opozorilno mejo: jantarni obroc; cez alarmno: rdeci */
+.filters .chip.metric.warm { box-shadow: inset 0 0 0 1.5px var(--warn); }
+.filters .chip.metric.hot { box-shadow: inset 0 0 0 1.5px var(--alert); }
+.filters .chip.metric.warm.focus { box-shadow: inset 0 0 0 1.5px var(--warn), 0 0 0 3px var(--accent-soft); }
+.filters .chip.metric.hot.focus { box-shadow: inset 0 0 0 1.5px var(--alert), 0 0 0 3px var(--accent-soft); }
+:root[data-theme="dark"] .filters .chip.metric.active {
+  background: color-mix(in srgb, var(--c) 22%, transparent); }
+
+/* ---------- Grafi ---------- */
+.chart-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+.chart-head .metric-value { font-size: 28px; font-weight: 350; font-variant-numeric: tabular-nums; }
+.chart-head .metric-unit { color: var(--faint); font-size: 13px; }
+.chart-head .res { margin-left: auto; font-size: 10px; color: var(--faint);
+  text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 9px;
+  border: 1px solid var(--hairline); border-radius: 999px; background: var(--glass-heavy); }
+svg.linechart { width: 100%; height: auto; display: block; }
+svg.linechart .grid-line { stroke: var(--grid); stroke-width: 1; }
+svg.linechart .axis-label { fill: var(--faint); font-size: 10px; }
+svg.linechart .series { fill: none; stroke: var(--accent); stroke-width: 2;
+  stroke-linejoin: round; stroke-linecap: round; }
+svg.linechart .series.draw { transition: stroke-dashoffset 1s var(--ease); }
+/* svetloba na celu vala med preoblikovanjem krivulje */
+svg.linechart .morph-glow { fill: none; stroke-width: 3.2; stroke-linecap: round;
+  filter: blur(2.6px); pointer-events: none; }
+svg.linechart .band { fill: var(--accent-soft); stroke: none; }
+svg.linechart .cursor-line { stroke: var(--faint); stroke-width: 1; }
+svg.linechart .cursor-dot { fill: var(--accent); stroke: #fff; stroke-width: 1.5; }
+.chart-tip {
+  position: fixed; pointer-events: none; z-index: 280; opacity: 0;
+  background: rgba(255, 255, 255, 0.42); color: var(--ink);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: saturate(1.8) blur(26px); backdrop-filter: saturate(1.8) blur(26px);
+  padding: 9px 12px; border-radius: 13px; font-size: 12px;
+  transition: opacity 0.12s; font-variant-numeric: tabular-nums; white-space: nowrap;
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.75), 0 8px 30px rgba(16,24,40,0.16);
+  display: grid; gap: 1px;
+}
+.chart-tip b { font-size: 13px; font-weight: 650; }
+.chart-tip .rng { color: var(--muted); }
+.chart-tip .tt { color: var(--faint); font-size: 11px; }
+.chart-tip .state { font-size: 11px; font-weight: 650; margin-top: 2px; }
+.chart-tip .state.ok { color: var(--ok); }
+.chart-tip .state.warning { color: var(--warn); }
+.chart-tip .state.alert { color: var(--alert); }
+
+/* Pod navpicnico grafa pise cel datum in ura tocke pod kazalcem. */
+.chart-xlab {
+  position: absolute; z-index: 3; pointer-events: none; opacity: 0;
+  transform: translate(-50%, 2px); white-space: nowrap;
+  padding: 3px 8px; border-radius: 8px; font-size: 11px;
+  font-variant-numeric: tabular-nums; color: var(--ink);
+  background: var(--glass-heavy); border: 1px solid var(--hairline);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-1);
+  transition: opacity var(--t-fast) var(--ease); }
+.chart-xlab.on { opacity: 1; }
+
+/* ---------- Skeleton / stanja ---------- */
+.skeleton { border-radius: var(--radius); border: 1px solid var(--hairline);
+  background: rgba(255, 255, 255, 0.5); position: relative; overflow: hidden; }
+.skeleton::after { content: ""; position: absolute; inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.85) 50%, transparent 70%);
+  animation: shimmer 1.4s infinite; }
+@keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+.sk-row { display: grid; gap: 13px; }
+.empty { padding: 46px; text-align: center; color: var(--faint);
+  border: 1px dashed var(--hairline-2); border-radius: var(--radius);
+  animation: fadeIn var(--t-slow) both; }
+.error-state { padding: 26px; border-radius: var(--radius); text-align: center;
+  border: 1px solid rgba(217, 64, 58, 0.3); background: var(--alert-bg);
+  animation: popIn var(--t-med) var(--spring) both; }
+.error-state .muted { display: block; margin-top: 4px; }
+
+/* ---------- Hover mikrointerakcije: subtilen squish + ripple ---------- */
+.nav-item, .btn, .dd-btn, .chip, .dd-opt { position: relative; overflow: hidden; }
+.icon-btn .ripple { border-radius: 50%; }
+.ripple { position: absolute; border-radius: 50%; pointer-events: none;
+  background: currentColor; opacity: 0.08; transform: scale(0);
+  animation: ripple 560ms var(--ease); }
+@keyframes ripple { to { transform: scale(2.2); opacity: 0; } }
+@keyframes hvsquish { 0% { transform: scale(1); } 42% { transform: scale(0.966); } 100% { transform: scale(1); } }
+.hv-squish { animation: hvsquish 340ms var(--spring); }
+
+/* klik na "govoreč" element (alarm, naprava): rahlo poveča */
+@keyframes pop { 0%, 100% { transform: none; } 45% { transform: scale(1.035); } }
+.pop { animation: pop 300ms var(--spring); }
+.health-banner, .device-row { cursor: pointer; }
+
+/* ---------- Modal: minimalna zatemnitev + blur ---------- */
+/* Ozadje ima prehod, ne animacije -- tako ga je mogoce tudi ODPETI, ko se
+   okno zapira. Prej je bilo fadeIn brez para in zapiranje je bilo sunkovito. */
+.modal-back { position: fixed; inset: 0; background: rgba(18, 22, 30, 0); display: grid;
+  place-items: center; z-index: 200; padding: 20px;
+  -webkit-backdrop-filter: blur(0px) saturate(1); backdrop-filter: blur(0px) saturate(1);
+  transition: background 420ms var(--ease), backdrop-filter 420ms var(--ease),
+    -webkit-backdrop-filter 420ms var(--ease); }
+.modal-back.open { background: rgba(18, 22, 30, 0.22);
+  -webkit-backdrop-filter: blur(9px) saturate(1.15);
+  backdrop-filter: blur(9px) saturate(1.15); }
+.detail-head { margin-bottom: 2px; }
+.mini-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 4px; }
+.mini { position: relative; background: var(--glass); border: 1px solid var(--hairline);
+  border-radius: 11px; padding: 10px 12px;
+  transition: background var(--t-med) var(--ease), border-color var(--t-med) var(--ease); }
+.mini[hidden] { display: none; }
+.mini .mk { font-size: 11px; color: var(--muted); }
+.mini .mv { font-size: 18px; font-weight: 350; font-variant-numeric: tabular-nums; margin-top: 1px; }
+.mini .mv small { font-size: 11px; color: var(--faint); margin-left: 3px; }
+.mini .mtrend { font-size: 11px; color: var(--faint); margin-top: 3px; }
+.mini .mtrend.strong { color: var(--muted); font-weight: 600; }
+/* barva pove stanje vrednosti (rdeča izključno za alarm) */
+.mini.lvl-warn { border-color: rgba(173, 104, 0, 0.4); background: var(--warn-bg); }
+.mini.lvl-warn .mv, .mini.lvl-warn .mk { color: var(--warn); }
+/* Krepko cez opozorilno mejo: opecnata, med jantarno in rdeco. Rdeca ostane
+   IZKLJUCNO za alarm. */
+.mini.lvl-warn-strong { border-color: rgba(207, 95, 40, 0.45); background: var(--warn-strong-bg); }
+.mini.lvl-warn-strong .mv, .mini.lvl-warn-strong .mk { color: var(--warn-strong); }
+.mini.lvl-alert { border-color: rgba(217, 64, 58, 0.45); background: var(--alert-bg); }
+.mini.lvl-alert .mv, .mini.lvl-alert .mk { color: var(--alert); }
+
+/* ---------- Časovni stroj (Alarmi danes) ---------- */
+.tm-head { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 4px; }
+.tm-clock { font-size: 40px; font-weight: 300; letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums; line-height: 1.05; }
+.tm-date { font-size: 14px; color: var(--muted); margin-top: 2px; text-transform: capitalize; }
+.tm-live { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ok); border: 1px solid var(--ok); border-radius: 999px; padding: 3px 9px; }
+.tm-back { color: var(--muted); border-color: var(--hairline-2); }
+
+/* --tm-th zivi na .tm-slider, ker ga potrebujeta OBA otroka: tir (rocica,
+   pilula) in pas dogodkov pod njim -- sosed tira ga ne bi podedoval */
+.tm-slider { position: relative; margin: 20px 2px 6px; --tm-th: 44px; }
+/* Tir je steklena kapsula, znotraj nje modra pilula do trenutne vrednosti,
+   cez njen konec pa lezi steklena lecа (rocica).
+   --tm-th = sirina rocice; ISTA mora biti tudi na nativnem gumbu spodaj,
+   sicer se rocica in vrednost razideta. */
+.tm-track {
+  position: relative; height: 36px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.46), rgba(255,255,255,0.24));
+  border: 1px solid var(--hairline);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: inset 0 1px 3px rgba(16,24,40,0.07), inset 0 -1px 0 rgba(255,255,255,0.7);
+}
+.tm-slider input[type="range"] {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 36px;
+  background: transparent; margin: 0; position: relative; z-index: 3; cursor: grab;
+}
+.tm-slider input[type="range"]:active { cursor: grabbing; }
+.tm-slider input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px; border-radius: 999px; background: transparent; }
+/* nativni gumb je neviden — kaže ga steklen .tm-thumb, ki ga premikamo s
+   transformom (tekoče, brez prerisovanja postavitve) */
+.tm-slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 44px; height: 36px; opacity: 0; cursor: grab; }
+/* Steklena leca cez konec modre pilule -- cela steklena, brez pike. */
+.tm-thumb {
+  position: absolute; top: 3px; width: var(--tm-th); height: 30px;
+  margin-left: calc(var(--tm-th) / -2);
+  left: calc(var(--tm-th) / 2 + var(--tm-f, 0) * (100% - var(--tm-th)));
+  border-radius: 999px; z-index: 4; pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.66), rgba(255,255,255,0.30));
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  -webkit-backdrop-filter: saturate(2) blur(10px); backdrop-filter: saturate(2) blur(10px);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.95),
+    inset 0 -1px 2px rgba(255,255,255,0.55),
+    0 8px 26px rgba(16,24,40,0.13), 0 2px 7px rgba(16,24,40,0.07);
+  transform-origin: center;
+  transition: box-shadow var(--t-med) var(--ease),
+    transform var(--t-med) var(--spring); }
+/* ob prijemu se rocica rahlo stisne in dobi razprsen sij namesto ostre sence */
+.tm-slider.dragging .tm-thumb {
+  transform: scale(0.90, 1.10);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.95),
+    inset 0 -1px 2px rgba(255,255,255,0.55),
+    0 10px 30px rgba(16,24,40,0.16), 0 0 26px 7px var(--accent-soft); }
+:root[data-theme="dark"] .tm-track {
+  background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.4), inset 0 -1px 0 rgba(255,255,255,0.08); }
+:root[data-theme="dark"] .tm-thumb {
+  background: linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0.10));
+  border-color: rgba(255,255,255,0.34);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.35), 0 4px 14px rgba(0,0,0,0.45); }
+/* modra pilula konca natanko v sredini rocice */
+/* Polnitev je NEVTRALNA: bela in siva z le nekaj poudarne barve. Polna
+   poudarna barva je na tako dolgem pasu prevec glasna in tekmuje z grafi. */
+.tm-fill { position: absolute; left: 3px; top: 3px; bottom: 3px; border-radius: 999px;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--accent) 26%, #ffffff),
+    color-mix(in srgb, var(--accent) 42%, #e8ecf3));
+  z-index: 1;
+  width: calc(var(--tm-th) / 2 + var(--tm-f, 0) * (100% - var(--tm-th)) - 3px);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.35); }
+/* Ko drsnik stoji v casu dogodka, konec crte pocasi prevzame njegovo barvo.
+   Dve plasti (jantar, rdeca) se prelivata prek opacity, zato je prehod gladek
+   tudi ob menjavi stopnje. Zacetek preliva --tm-d0 postavi JS. */
+.tm-fill::before, .tm-fill::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  pointer-events: none; transition: opacity 900ms var(--ease); }
+.tm-fill::before {
+  background: linear-gradient(90deg, transparent var(--tm-d0, 60%), var(--warn) 100%);
+  opacity: var(--tm-warn-op, 0); }
+.tm-fill::after {
+  background: linear-gradient(90deg, transparent var(--tm-d0, 60%), var(--alert) 100%);
+  opacity: var(--tm-alert-op, 0); }
+
+/* Dogodki v svojem pasu pod drsnikom: dolzina odseka = trajanje dogodka. */
+.tm-lane { position: relative; height: 12px; margin-top: 9px; }
+.tm-seg { position: absolute; top: 4px; height: 4px; border-radius: 999px; cursor: pointer;
+  transition: height var(--t-fast) var(--ease), top var(--t-fast) var(--ease),
+    opacity var(--t-fast) var(--ease); }
+.tm-seg.alarm { background: var(--alert); }
+.tm-seg.warning { background: var(--warn); opacity: 0.7; }
+.tm-seg:hover { height: 10px; top: 1px; opacity: 1; }
+/* Med vlecenjem se vrednosti zameglijo, ob ustavitvi se ostrina vrne pocasi. */
+#tmSnap .mnum, #tmSnap .snap-meta, #tmSnap .pill {
+  transition: filter 700ms var(--ease), opacity 700ms var(--ease); }
+#tmSnap.scrubbing .mnum { filter: blur(6px); opacity: 0.5;
+  transition: filter 90ms linear, opacity 90ms linear; }
+#tmSnap.scrubbing .snap-meta, #tmSnap.scrubbing .pill {
+  filter: blur(2.5px); opacity: 0.55;
+  transition: filter 90ms linear, opacity 90ms linear; }
+
+.tm-clock small { font-size: 0.5em; font-weight: 400; color: var(--muted);
+  margin-left: 1px; letter-spacing: 0; }
+.snap-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+  flex-wrap: wrap; }
+.snap-dev .dd-btn { padding: 5px 11px; font-size: 12.5px; font-weight: 600; }
+
+/* Oder s stranmi: puscici sta nevidni, dokler nisi blizu. */
+.snap-stage { position: relative; }
+.snap-arrow { position: absolute; top: 50%; transform: translateY(-50%) scale(0.9);
+  width: 26px; height: 46px; border-radius: 9px; border: 1px solid var(--hairline);
+  background: var(--glass-heavy); color: var(--muted); cursor: pointer; z-index: 2;
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  font-size: 15px; line-height: 1; opacity: 0; pointer-events: none;
+  transition: opacity var(--t-fast) var(--ease), transform var(--t-med) var(--spring); }
+.snap-arrow.l { left: -9px; }
+.snap-arrow.r { right: -9px; }
+.snap-card:hover .snap-arrow { opacity: 1; pointer-events: auto;
+  transform: translateY(-50%) scale(1); }
+.snap-arrow:hover { background: #fff; color: var(--ink); }
+.snap-arrow:active { transform: translateY(-50%) scale(0.92); }
+
+.snap-dots { display: flex; justify-content: center; gap: 7px; margin-top: 11px; }
+.snap-dot { width: 6px; height: 6px; border-radius: 50%; border: none; padding: 0;
+  background: var(--hairline-2); cursor: pointer;
+  transition: background var(--t-fast) var(--ease), width var(--t-med) var(--spring); }
+.snap-dot.on { width: 18px; border-radius: 999px; background: var(--accent); }
+.snap-dot:hover { background: var(--muted); }
+.snap-dot.on:hover { background: var(--accent); }
+
+/* Med vlecenjem casovnice: stevilke se premesajo in so rahlo zamegljene --
+   ravno toliko, da vidis, da se dogaja, in premalo, da bi jih bral. */
+.scrambling .mnum, .scrambling .mk {
+  filter: blur(1.6px); opacity: 0.72; }
+#snapGrid .mnum, #snapGrid .mk {
+  transition: filter 420ms var(--ease), opacity 420ms var(--ease); }
+.snap-head .snap-meta { font-size: 12px; }
+.snap-head .snap-meta:empty { display: none; }
+.tm-scale { display: flex; justify-content: space-between; font-size: 11px;
+  color: var(--faint); margin-top: 2px; }
+.tm-hint { font-size: 12px; color: var(--muted); margin-top: 10px; }
+.tm-nav { display: flex; gap: 8px; align-items: center; }
+
+/* ---------- Eventi: sklepi obdobja ---------- */
+.dig-card { margin-bottom: 12px; }
+.dig-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+.dig-per { font-size: 12px; font-weight: 650; text-transform: uppercase;
+  letter-spacing: 0.07em; }
+.dig-head .muted { font-size: 12px; }
+.dig-lead { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+.dig-rows { display: flex; flex-direction: column; }
+.dig-row { display: grid; grid-template-columns: 22px 1fr auto auto; gap: 10px;
+  align-items: baseline; padding: 7px 2px; border-bottom: 1px solid var(--hairline); }
+.dig-row:last-child { border-bottom: none; }
+.dig-ic { color: var(--faint); text-align: center; font-size: 13px; }
+.dig-t { font-size: 13.5px; }
+.dig-n { font-size: 12.5px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.dig-n.up { color: var(--warn); }
+.dig-n.down { color: var(--ok); }
+.dig-v { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums;
+  text-align: right; min-width: 96px; }
+.dig-v small { color: var(--faint); }
+.dig-empty { font-size: 13px; color: var(--muted); padding: 6px 2px; }
+.dig-fact { font-size: 13.5px; margin-top: 4px; }
+.dig-fact + .dig-fact { margin-top: 6px; font-size: 12.5px; }
+.dig-fact b { font-weight: 650; }
+.dig-alert { color: var(--alert); }
+.dig-pill { display: inline-block; margin-left: 8px; font-size: 11px; padding: 2px 8px;
+  border-radius: 999px; background: var(--hairline); color: var(--muted); }
+.dig-pill.up { background: var(--warn-bg); color: var(--warn); }
+.dig-pill.down { background: var(--ok-bg); color: var(--ok); }
+.grid.cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 780px) { .grid.cols-2 { grid-template-columns: 1fr; } }
+
+/* ---------- Pogled odstopanj ---------- */
+.dev-summary { margin: -4px 0 2px; font-size: 15px; line-height: 1.55; }
+.summary-card { border-left: 3px solid var(--accent); }
+.dev-row { display: grid; grid-template-columns: 150px 96px 1fr 132px; gap: 12px;
+  align-items: center; padding: 11px 4px; border-bottom: 1px solid var(--hairline);
+  border-radius: 10px; cursor: pointer; transition: background var(--t-fast); }
+.dev-row:hover { background: rgba(20, 25, 35, 0.035); }
+.dev-row:last-child { border-bottom: none; }
+.dev-name { font-weight: 600; font-size: 13.5px; }
+.dev-name small { display: block; font-weight: 400; color: var(--faint); font-size: 11px; }
+.dev-val { font-variant-numeric: tabular-nums; font-size: 15px; }
+.dev-val small { color: var(--faint); font-size: 11px; margin-left: 2px; }
+.dev-bar { position: relative; height: 12px; border-radius: 6px; background: var(--hairline); }
+.dev-bar i { position: absolute; top: 0; bottom: 0; border-radius: 6px; background: var(--accent); opacity: 0.75; }
+.dev-bar .mid { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px;
+  background: var(--hairline-2); border-radius: 0; opacity: 1; }
+.dev-row.warn .dev-bar i { background: var(--warn); }
+.dev-row.alert .dev-bar i { background: var(--alert); }
+.dev-note { font-size: 12px; color: var(--muted); text-align: right; }
+.dev-note b { display: block; font-size: 13px; color: var(--ink); }
+.dev-row.warn .dev-note b { color: var(--warn); }
+.dev-row.alert .dev-note b { color: var(--alert); }
+@media (max-width: 860px) {
+  .dev-row { grid-template-columns: 1fr 1fr; }
+  .dev-bar { grid-column: 1 / -1; }
+}
+@media (max-width: 860px) { .mini-grid { grid-template-columns: repeat(2, 1fr); } }
+.modal { background: rgba(252, 252, 254, 0.9); backdrop-filter: var(--blur);
+  border-radius: 18px; border: 1px solid var(--hairline);
+  max-width: 760px; width: 100%; max-height: 88vh; overflow: auto; padding: 26px;
+  box-shadow: var(--shadow-2); }
+.modal .close { float: right; }
+.modal.wide { max-width: 960px; }
+
+/* ---------- Login ---------- */
+.login-wrap { display: grid; place-items: center; min-height: 100vh; padding: 20px; }
+.login-card { width: 360px; padding: 32px; border-radius: 20px;
+  background: var(--glass-heavy); border: 1px solid var(--hairline);
+  backdrop-filter: var(--blur); box-shadow: var(--shadow-2);
+  animation: popIn 0.6s var(--spring) both; }
+.login-card h1 { font-size: 21px; margin: 0 0 4px; letter-spacing: -0.01em; }
+.login-card p { color: var(--muted); margin: 0 0 20px; font-size: 13px; }
+.login-card label { display: block; font-size: 11px; color: var(--muted); margin: 13px 0 5px;
+  text-transform: uppercase; letter-spacing: 0.05em; }
+.login-card input { width: 100%; padding: 11px 12px; border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm); background: #fff; color: var(--ink);
+  font-size: 14px; font-family: inherit; transition: border-color var(--t-fast); }
+.login-card input:focus { border-color: var(--accent); }
+.login-card .btn.primary { width: 100%; margin-top: 22px; padding: 12px; font-size: 14px; }
+.login-err { color: var(--alert); font-size: 13px; margin-top: 12px; min-height: 18px; }
+
+/* ---------- Razno ---------- */
+.muted { color: var(--muted); }
+.set-row { display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 13px 2px; border-bottom: 1px solid var(--hairline); }
+.set-row:last-child { border-bottom: none; }
+.set-l { font-weight: 600; font-size: 14px; }
+.set-h { color: var(--muted); font-size: 12px; margin-top: 1px; }
+.set-row .dd { flex: none; }
+
+/* ---------- SVG stream dock (slide-in iz levega roba) ---------- */
+/* fit po višini (100vh), širina po razmerju SVG-ja (minimalna); z desnega roba */
+#svgDock {
+  position: fixed; right: 0; top: 0; height: 100vh; z-index: 90;
+  display: flex; align-items: center;
+  transform: translateX(100%); transition: transform 0.42s var(--ease);
+}
+#svgDock.open { transform: translateX(0); }
+#svgDock[data-mode="off"] { display: none; }
+/* panel je ožji od slike -> beli L/D robovi SVG-ja se odrežejo (JS auto-crop).
+   Zliva se z našim ozadjem: multiply spremeni belo v barvo ozadja, levi rob
+   pa mehko zbledi (mask) — fade iz ozadja v SVG, brez trdih robov. */
+.svg-panel {
+  position: relative; height: 100vh; width: min(83vh, 52vw); overflow: hidden;
+  background: transparent; border: none; box-shadow: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 16%);
+}
+.svg-img { position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  height: 100vh; width: auto; background: transparent; mix-blend-mode: multiply; }
+/* temna tema: multiply bi pogoltnil vsebino -> bel zaobljen panel */
+:root[data-theme="dark"] .svg-panel { background: #fff; border-radius: 14px 0 0 14px;
+  -webkit-mask-image: none; mask-image: none; box-shadow: var(--shadow-2); }
+:root[data-theme="dark"] .svg-img { mix-blend-mode: normal; }
+/* nevidna cona ob DESNI (cela prazna desna sekcija = neviden gumb).
+   Širina = prazen prostor desno od vsebine (max-width 1200 + sidebar); na
+   ožjih zaslonih pade na tanek rob (22px), da ne prekrije vsebine. */
+/* začne POD topbarom, da so gumbi/dropdowni zgoraj vedno klikljivi */
+#svgEdge { position: fixed; right: 0; top: 62px; width: max(22px, calc(100vw - 1476px));
+  height: calc(100vh - 62px); z-index: 88; cursor: pointer; overflow: hidden; color: var(--accent); }
+#svgEdge::after { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 3px;
+  background: linear-gradient(180deg, transparent, var(--accent), transparent);
+  opacity: 0; transition: opacity 0.25s; }
+#svgEdge:hover::after { opacity: 0.35; }
+
+/* val čez CEL zaslon: pravi ripple — mehak svetlobni kolobar (prozorno
+   središče -> svetel pas + pridih accenta -> prozorno), rahel blur za
+   cinematic občutek, počasnejše širjenje; elementi ob prehodu squishnejo */
+.page-ripple {
+  position: fixed; border-radius: 50%;
+  background: radial-gradient(circle,
+    transparent 0%, transparent 52%,
+    rgba(255, 255, 255, 0.55) 66%,
+    color-mix(in srgb, var(--accent) 45%, transparent) 76%,
+    transparent 88%);
+  transform: translate(-50%, -50%); width: 0; height: 0; opacity: 0.32;
+  filter: blur(7px);
+  pointer-events: none; z-index: 300;
+  animation: pageRipple 1.5s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+@keyframes pageRipple {
+  0% { width: 0; height: 0; opacity: 0.32; }
+  75% { opacity: 0.2; }
+  100% { width: 300vmax; height: 300vmax; opacity: 0; }
+}
+
+/* fullscreen split: ob odprtem SVG se meni skrči na icon-rail, vsebina zdrsne levo */
+.shell { transition: grid-template-columns 0.45s var(--ease); }
+.main { transition: margin-right 0.45s var(--ease); }
+.nav-item span, .nav-foot { transition: opacity 0.2s var(--ease); }
+body.svg-open .shell { grid-template-columns: 68px 1fr; }
+body.svg-open .nav-item span, body.svg-open .nav-foot { opacity: 0; pointer-events: none; }
+body.svg-open .main { margin-right: var(--svg-panel-w, 38vw); }
+
+/* bleščice ob kliku (Nastavitve -> Bleščice) */
+/* ---------- Povzetek dneva (AI) ---------- */
+/* Kartica mora izstopati, a ostati mirna: dva zelo blaga barvna zamaha v
+   kotih namesto obrobe, ki bi kricala. Rdeca se pojavi SAMO ob alarmu, in
+   sicer kot tanka nitka ob levem robu, ne kot ozadje. */
+.ai-sum {
+  position: relative; overflow: hidden;
+  margin-bottom: 12px; padding: 13px 15px 11px;
+  border: 1px solid rgba(120, 140, 220, 0.20);
+  box-shadow: var(--shx, 0px) var(--shy, 4px) 20px rgba(60, 70, 140, 0.08),
+    0 1px 2px rgba(16, 24, 40, 0.05);
+  transition: transform var(--t-med) var(--spring), box-shadow var(--t-med) var(--ease),
+    border-color var(--t-med) var(--ease);
+}
+/* Preliv MORA prezivet prehod z misko: .card:hover ga je prej prepisal z
+   navadnim steklom in kartica je pobelela. Zato je preliv na svoji plasti. */
+.ai-sum, .card.ai-sum:hover { background: var(--glass-heavy); }
+/* Preliv sta DVE plasti mehurjev. Osnovna vedno tiho stoji, druga je pri
+   miru nevidna in se prizge, ko se miska premika -- barva se rahlo poglobi
+   in mehurji nabreknejo, ko se ustavis, spet splahne. Zasuk je komaj zaznaven
+   (do 3,5 stopinje): ocitna rotacija je videti poceni. */
+/* Barva je ENA MASA, ne skupek oblackov: trije veliki prelivi se mocno
+   prekrivajo, zato prehajajo drug v drugega -- levo modra, sredina vijolicna,
+   desno roza. Maska jo proti robovom kartice zmehca v belo, da nikjer ne
+   nastane rob. Masa v zanki pocasi diha (se skrci in razsiri), miska pa jo
+   samo rahlo premakne in poglobi.
+   Dihanje je na NOTRANJEM elementu, odziv na misko na zunanjem -- sicer bi
+   si animacija in transform iz JS prepisovala isto lastnost. */
+/* Ovoj je 10 % VECJI od kartice in NE obrezuje. Prej je imel overflow:
+   hidden in bil natanko velik kot kartica -- ko se je ob prehodu z misko
+   premaknil, se je premaknilo tudi njegovo obrezovalno okno in na nasprotni
+   strani je nastal pas. Rezerva na notranji plasti tega ni mogla resiti,
+   ker je rezala skatla ovoja. Obrezuje kartica sama (overflow: hidden). */
+.ai-wash {
+  position: absolute; inset: -10%; z-index: 0; pointer-events: none;
+  transform: translate3d(var(--ai-x, 0px), var(--ai-y, 0px), 0);
+  transition: transform 1400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* Sestava po zlatem rezu: vsi prelivi so zasidrani v ROBOVE in KOTE, njihovi
+   polmeri so 1,618 in 2,618 kratniki, ustavijo pa se pri 61,8 %. Zato barva
+   proti nasprotni strani naravno pojenja in nikjer ne nastane lik ne rob --
+   maske sploh niso potrebne. Tezisce barve pade na zlato tocko (61,8 %), kar
+   je tisto, kar oko bere kot mirno.
+   Prej sem delal lise s SREDISCI ZNOTRAJ kartice in si s tem sam ustvaril
+   robove, ki sem jih potem lovil z maskami. */
+.ai-wash i {
+  position: absolute; display: block; pointer-events: none;
+  opacity: calc(0.86 + var(--ai-glow, 0) * 0.14);
+  transition: opacity 1400ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+/* Nosilna plast. Ima 10 % REZERVE na vsako stran: ovoj se ob prehodu z misko
+   premakne, in ce bi bila plast natanko velika kot kartica, bi se na
+   nasprotni strani odkril nepokrit pas -- to je bil tisti rob.
+   Sidra so preracunana na vecjo skatlo, da preliv se vedno izhaja iz KOTOV
+   kartice: 8,33 % ustreza levemu robu, 91,67 % desnemu. */
+.ai-wash i.b {
+  inset: 0;
+  background:
+    radial-gradient(115% 135% at 8.33% 8.33%,   rgba(108, 140, 244, 0.18), transparent 61.8%),
+    radial-gradient(103% 125% at 91.67% 8.33%,  rgba(198, 134, 228, 0.15), transparent 61.8%),
+    radial-gradient(75% 103% at 59.83% 91.67%,  rgba(146, 128, 242, 0.12), transparent 61.8%);
+}
+/* Dve plasti, ki zelo pocasi zaplavata -- samo toliko, da kartica zivi. */
+.ai-wash i.f1 {
+  inset: -8%;
+  background: radial-gradient(61.8% 100% at 38.2% 26%,
+    rgba(120, 152, 246, 0.12), transparent 61.8%);
+  animation: aiDriftA 41s ease-in-out infinite alternate;
+}
+.ai-wash i.f2 {
+  inset: -8%;
+  background: radial-gradient(52% 86% at 68% 61.8%,
+    rgba(206, 140, 226, 0.10), transparent 61.8%);
+  animation: aiDriftB 53s ease-in-out infinite alternate;
+}
+@keyframes aiDriftA {
+  from { transform: translate3d(-2.6%, -1.6%, 0); }
+  to   { transform: translate3d(3.8%, 2.4%, 0); }
+}
+@keyframes aiDriftB {
+  from { transform: translate3d(2.4%, 1.4%, 0); }
+  to   { transform: translate3d(-3.2%, -2%, 0); }
+}
+
+.ai-sum > *:not(.ai-wash) { position: relative; z-index: 1; }
+.ai-sum:hover { border-color: rgba(120, 140, 220, 0.34); }
+
+.ai-head { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
+.ai-title { font-size: 11.5px; font-weight: 650; letter-spacing: 0.07em;
+  text-transform: uppercase; color: var(--muted); flex: 1; min-width: 0; }
+.ai-day { flex: none; }
+/* Gumb za dan mora PUSTITI preliv skozi: privzeti .dd-btn je skoraj bel in
+   na tej kartici izstopa kot zaplata. Tu je samo steklo -- rob, sijaj in
+   zamegljeno ozadje, brez lastne barve. */
+.ai-day .dd-btn {
+  padding: 5px 10px; font-size: 12px;
+  background: rgba(255, 255, 255, 0.30);
+  border-color: rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: saturate(1.8) blur(14px);
+  backdrop-filter: saturate(1.8) blur(14px);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.7),
+    0 2px 8px rgba(60, 70, 140, 0.07);
+}
+.ai-day .dd-btn:hover { background: rgba(255, 255, 255, 0.46);
+  border-color: rgba(255, 255, 255, 0.75); }
+.ai-day .dd .chev { opacity: 0.65; }
+:root[data-theme="dark"] .ai-day .dd-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.20);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.14), 0 2px 8px rgba(0, 0, 0, 0.3); }
+:root[data-theme="dark"] .ai-day .dd-btn:hover { background: rgba(255, 255, 255, 0.15); }
+
+/* Zvezdice: tri, razlicno velike, utripajo z zamikom in zelo blago. */
+.ai-stars { position: relative; display: inline-block; width: 30px; height: 30px;
+  flex: none; color: var(--accent); }
+.ai-stars i { position: absolute; display: block; line-height: 0; }
+.ai-stars .s1 { left: 0; top: 3px; width: 22px; height: 22px; opacity: 0.95; }
+.ai-stars .s2 { right: 0; top: 0; width: 11px; height: 11px; opacity: 0.72;
+  color: color-mix(in srgb, var(--accent) 55%, #a882eb); }
+.ai-stars .s3 { right: 3px; bottom: 1px; width: 8px; height: 8px; opacity: 0.58; }
+/* zrcalno spodaj desno -- kartico "uokviri" brez dodatnega okvirja */
+.ai-stars-br { position: absolute; right: 13px; bottom: 10px; z-index: 1;
+  transform: rotate(180deg); opacity: 0.75; pointer-events: none; }
+.ai-star { width: 100%; height: 100%; fill: currentColor; display: block; }
+.ai-stars .s1 { animation: aiTwinkle 3.6s var(--ease) infinite; }
+.ai-stars .s2 { animation: aiTwinkle 3.6s var(--ease) 0.7s infinite; }
+.ai-stars .s3 { animation: aiTwinkle 3.6s var(--ease) 1.5s infinite; }
+@keyframes aiTwinkle {
+  0%, 62%, 100% { transform: scale(1) rotate(0deg); opacity: var(--o, 0.8); }
+  76% { transform: scale(1.28) rotate(18deg); opacity: 1; }
+}
+
+.ai-lead { font-size: 15px; font-weight: 600; line-height: 1.4; letter-spacing: -0.01em; }
+.ai-text { font-size: 13px; color: var(--muted); line-height: 1.55; margin-top: 4px;
+  font-style: italic; }
+.ai-sk { display: flex; flex-direction: column; gap: 8px; }
+
+.ai-hls { display: flex; flex-direction: column; gap: 1px; margin-top: 9px; }
+.ai-hl { display: flex; align-items: flex-start; gap: 9px; width: 100%; text-align: left;
+  padding: 6px 8px; border: none; background: none; border-radius: 9px;
+  color: inherit; font: inherit; position: relative; overflow: hidden;
+  transition: background var(--t-fast) var(--ease), transform var(--t-med) var(--spring); }
+.ai-hl.go { cursor: pointer; }
+.ai-hl.go:hover { background: rgba(120, 140, 220, 0.10); }
+.ai-hl.go:active { transform: scale(0.985); }
+.ai-hl[disabled] { opacity: 1; }
+.ai-dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 6px; flex: none;
+  background: var(--faint); }
+.ai-dot.alert { background: var(--alert); }
+.ai-dot.warning { background: var(--warn); }
+.ai-dot.info { background: var(--accent); opacity: 0.7; }
+.ai-hl-b { flex: 1; min-width: 0; }
+.ai-hl-t { display: flex; align-items: baseline; gap: 7px; font-size: 13px; font-weight: 600; }
+.ai-hl-w { font-size: 11px; font-weight: 500; color: var(--faint);
+  font-variant-numeric: tabular-nums; }
+.ai-hl-x { display: block; font-size: 12px; color: var(--muted); line-height: 1.45; }
+.ai-go { flex: none; color: var(--faint); font-size: 14px; opacity: 0;
+  transform: translateX(-3px);
+  transition: opacity var(--t-fast) var(--ease), transform var(--t-med) var(--spring); }
+.ai-hl.go:hover .ai-go { opacity: 1; transform: none; }
+
+.ai-foot { margin-top: 8px; font-size: 10.5px; color: var(--faint);
+  font-variant-numeric: tabular-nums; }
+.ai-empty { font-size: 13px; color: var(--muted); }
+
+/* med osvezevanjem stara vsebina ostane, le zabrise se -- enako kot pri
+   drsniku casovnega stroja */
+.ai-body { transition: filter 640ms var(--ease), opacity 640ms var(--ease); }
+.ai-body.refreshing { filter: blur(4px); opacity: 0.55;
+  transition: filter 140ms linear, opacity 140ms linear; }
+
+:root[data-theme="dark"] .ai-sum,
+:root[data-theme="dark"] .card.ai-sum:hover { background: var(--glass-heavy); }
+:root[data-theme="dark"] .ai-sum { border-color: rgba(140, 160, 240, 0.22); }
+:root[data-theme="dark"] .ai-wash i.b {
+  background:
+    radial-gradient(115% 135% at 8.33% 8.33%,  rgba(108, 140, 244, 0.21), transparent 61.8%),
+    radial-gradient(103% 125% at 91.67% 8.33%, rgba(198, 134, 228, 0.18), transparent 61.8%),
+    radial-gradient(75% 103% at 59.83% 91.67%, rgba(146, 128, 242, 0.14), transparent 61.8%); }
+:root[data-theme="dark"] .ai-hl.go:hover { background: rgba(140, 160, 240, 0.12); }
+
+/* poudarek vrstice v nastavitvah, kadar te tja pripelje iskanje */
+.set-row.set-focus { box-shadow: 0 0 0 2px var(--accent-soft); border-radius: 10px; }
+
+body.no-anim .ai-wash i, body.no-anim .ai-stars i { animation: none; }
+
+/* ---------- Iskanje: ukazna plosca (Spotlight) ---------- */
+/* Vrstica za vnos stoji zgoraj na sredini, rezultati pa rastejo pod njo kot
+   svoja plosca -- ne kot en dolg okvir. Visino animira JS po IZMERJENI visini
+   seznama, zato rezultati zrastejo in ne poskocijo. */
+.cmdk-back {
+  position: fixed; inset: 0; z-index: 265; opacity: 0;
+  background: rgba(18, 22, 30, 0.22);
+  -webkit-backdrop-filter: blur(9px) saturate(1.15); backdrop-filter: blur(9px) saturate(1.15);
+  transition: opacity var(--t-med) var(--ease);
+}
+.cmdk-back.open { opacity: 1; }
+
+.cmdk {
+  position: fixed; z-index: 270; top: 11vh; left: 50%;
+  width: min(640px, 92vw);
+  display: flex; flex-direction: column; gap: 9px;
+  opacity: 0; transform: translateX(-50%) translateY(-14px) scale(0.965);
+  transition: opacity var(--t-fast) var(--ease),
+    transform var(--t-slow) cubic-bezier(0.16, 1, 0.22, 1);
+}
+.cmdk.open { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+
+.cmdk-bar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 18px; height: 60px; border-radius: 17px;
+  background: var(--glass-heavy); border: 1px solid var(--hairline-2);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.7), 0 18px 50px rgba(16,24,40,0.22);
+}
+.cmdk-ic { width: 20px; height: 20px; color: var(--faint); flex: none; }
+.cmdk-bar input {
+  flex: 1; min-width: 0; border: none; background: none; outline: none;
+  font: inherit; font-size: 17px; color: var(--ink); padding: 0;
+}
+.cmdk-bar input::placeholder { color: var(--faint); }
+.cmdk-esc {
+  flex: none; font-size: 10.5px; color: var(--faint); text-transform: uppercase;
+  letter-spacing: 0.06em; padding: 3px 7px; border-radius: 7px;
+  border: 1px solid var(--hairline); background: rgba(255,255,255,0.4);
+}
+.cmdk-spin {
+  flex: none; width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid var(--hairline-2); border-top-color: var(--accent);
+  animation: cmdkSpin 0.7s linear infinite;
+}
+.cmdk-spin[hidden] { display: none; }
+@keyframes cmdkSpin { to { transform: rotate(360deg); } }
+
+.cmdk-panel {
+  border-radius: 17px; overflow: hidden; height: 0;
+  background: var(--glass-heavy); border: 1px solid var(--hairline);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: 0 18px 50px rgba(16,24,40,0.18);
+}
+.cmdk-list { max-height: 52vh; overflow-y: auto; padding: 7px; }
+
+.cmdk-sec {
+  font-size: 10.5px; font-weight: 650; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.08em; padding: 9px 9px 5px;
+}
+.cmdk-sec:empty { display: none; }
+.cmdk-row {
+  display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
+  padding: 9px 10px; border: none; background: none; border-radius: 11px;
+  color: inherit; font: inherit; cursor: pointer;
+  animation: cmdkRow 0.34s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 14ms);
+}
+@keyframes cmdkRow {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: none; }
+}
+.cmdk-row.sel { background: var(--accent-soft); }
+.cmdk-row .cr-ic { width: 17px; height: 17px; flex: none; color: var(--muted); }
+.cmdk-row .cr-ic svg { width: 17px; height: 17px; display: block; }
+.cmdk-row.sel .cr-ic { color: var(--accent); }
+.cr-body { flex: 1; min-width: 0; }
+.cr-title { display: block; font-size: 13.5px; font-weight: 550;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cr-sub { display: block; font-size: 11.5px; color: var(--muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cr-go { flex: none; font-size: 12px; color: var(--faint); opacity: 0;
+  transition: opacity var(--t-fast); }
+.cmdk-row.sel .cr-go { opacity: 1; }
+
+/* Odgovor na vprasanje stoji nad zadetki in je vidno drugacen. */
+.cmdk-answer {
+  margin: 4px 3px 8px; padding: 13px 14px; border-radius: 13px;
+  background:
+    radial-gradient(120% 150% at 0% 0%, rgba(120, 150, 240, 0.14), transparent 60%),
+    rgba(255, 255, 255, 0.42);
+  border: 1px solid rgba(120, 140, 220, 0.22);
+  animation: cmdkRow 0.4s var(--ease) both;
+}
+.cmdk-answer .ca-head { font-size: 15px; font-weight: 600; line-height: 1.4; }
+.cmdk-answer .ca-detail { font-size: 12.5px; color: var(--muted); line-height: 1.55;
+  margin-top: 5px; }
+.cmdk-answer.yes { border-color: rgba(120, 140, 220, 0.34); }
+.cmdk-answer.no .ca-head { font-weight: 550; }
+
+/* Nastavljiv zadetek: kaj, kako in kdaj -- vse troje zamenljivo brez tipkanja */
+.cmdk-chart { margin: 4px 3px 8px; padding: 12px 13px; border-radius: 13px;
+  background: rgba(255, 255, 255, 0.4); border: 1px solid var(--hairline);
+  animation: cmdkRow 0.4s var(--ease) both; }
+.cmdk-chart .cc-head { font-size: 13px; font-weight: 600; margin-bottom: 9px; }
+.cmdk-chart .cc-ctl { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
+.cmdk-chart .cc-ctl .dd-btn { padding: 6px 10px; font-size: 12px; }
+.cmdk-chart .cc-open { margin-left: auto; padding: 6px 14px; font-size: 12.5px; }
+:root[data-theme="dark"] .cmdk-chart { background: rgba(255, 255, 255, 0.05); }
+
+/* predlogi za naprej pod odgovorom */
+.ca-more { font-size: 11.5px; color: var(--faint); margin-top: 6px; }
+.ca-next { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.ca-chip { border: 1px solid var(--hairline); background: rgba(255, 255, 255, 0.45);
+  color: var(--muted); font: inherit; font-size: 11.5px; padding: 4px 10px;
+  border-radius: 999px; cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast),
+    transform var(--t-med) var(--spring); }
+.ca-chip:hover { background: #fff; color: var(--ink); }
+.ca-chip:active { transform: scale(0.95); }
+:root[data-theme="dark"] .ca-chip { background: rgba(255, 255, 255, 0.06); }
+
+.cmdk-empty { padding: 26px 18px; text-align: center; font-size: 14px; }
+.cmdk-empty span { display: block; font-size: 12px; color: var(--muted); margin-top: 5px; }
+
+:root[data-theme="dark"] .cmdk-esc { background: rgba(255,255,255,0.06); }
+:root[data-theme="dark"] .cmdk-answer {
+  background:
+    radial-gradient(120% 150% at 0% 0%, rgba(120, 150, 240, 0.18), transparent 60%),
+    rgba(255, 255, 255, 0.05); }
+body.no-anim .cmdk-row, body.no-anim .cmdk-answer { animation: none; }
+
+/* ---------- Obvestila ---------- */
+.icon-btn { position: relative; display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--hairline);
+  background: var(--glass-heavy); color: var(--muted); cursor: pointer; overflow: visible;
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-1);
+  transition: background var(--t-fast), color var(--t-fast),
+    transform var(--t-med) var(--spring); }
+.icon-btn:hover { background: #fff; color: var(--ink); }
+.icon-btn:active { transform: scale(0.94); }
+.icon-btn.open { background: #fff; color: var(--accent); border-color: var(--hairline-2); }
+.icon-btn svg { width: 18px; height: 18px; }
+.icon-btn.has-new { color: var(--ink); }
+.notif-badge { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px;
+  padding: 0 5px; border-radius: 999px; background: var(--alert); color: #fff;
+  font-size: 11px; font-weight: 700; line-height: 18px; text-align: center;
+  box-shadow: 0 0 0 2.5px var(--bg), 0 2px 6px rgba(217, 64, 58, 0.4);
+  animation: badgePop 460ms cubic-bezier(0.16, 1, 0.22, 1) both; }
+@keyframes badgePop {
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: none; opacity: 1; } }
+.notif-badge[hidden] { display: none; }
+
+/* Iskalna ikona se ob prehodu z misko razsiri v polje. Sirina se animira, ne
+   pa postavitev sosedov: gumb je zadnji pred zvoncem, zato nic ne poskoci. */
+.icon-btn.search-btn { width: 34px; overflow: hidden; white-space: nowrap;
+  justify-content: flex-start; padding: 0 8px; gap: 8px;
+  transition: width var(--t-slow) cubic-bezier(0.16, 1, 0.22, 1),
+    background var(--t-fast), color var(--t-fast); }
+.icon-btn.search-btn svg { flex: none; }
+.icon-btn.search-btn .sb-label { display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12.5px; opacity: 0; transform: translateX(-4px);
+  transition: opacity var(--t-fast) var(--ease), transform var(--t-med) var(--ease); }
+.icon-btn.search-btn .sb-label kbd { font: inherit; font-size: 10.5px; color: var(--faint);
+  border: 1px solid var(--hairline); border-radius: 6px; padding: 1px 5px; }
+.icon-btn.search-btn:hover { width: 132px; border-radius: 17px; }
+.icon-btn.search-btn:hover .sb-label { opacity: 1; transform: none;
+  transition-delay: 90ms; }
+
+/* Predogled obvestil ob ikoni -- pove, kaj je novega, brez odpiranja. */
+.notif-peek {
+  /* fiksna sirina: merjenje sirine tik po vstavitvi vsebine je vracalo napacno
+     vrednost in oblacek je bil 60 px vstran od ikone */
+  position: fixed; z-index: 258; width: 244px;
+  padding: 10px 12px; border-radius: 13px; pointer-events: none;
+  background: var(--glass-heavy); border: 1px solid var(--hairline);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-2);
+  opacity: 0; transform: translateY(-6px) scale(0.97); transform-origin: top center;
+  transition: opacity var(--t-fast) var(--ease), transform var(--t-med) var(--spring); }
+.notif-peek.on { opacity: 1; transform: none; }
+.notif-peek .np-head { font-size: 12px; font-weight: 650; margin-bottom: 6px; }
+.notif-peek .np-row { display: flex; align-items: center; gap: 8px; font-size: 12px;
+  padding: 3px 0; }
+.notif-peek .np-t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; }
+.notif-peek .np-w { color: var(--faint); font-size: 11px; font-variant-numeric: tabular-nums; }
+.notif-peek .np-empty { font-size: 12px; color: var(--muted); }
+
+.notif-panel { position: fixed; z-index: 260; display: flex; flex-direction: column;
+  border-radius: 15px; overflow: hidden;
+  background: var(--glass-heavy); border: 1px solid var(--hairline);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-2);
+  opacity: 0; transform: scale(0.96) translateY(-6px); transform-origin: top right;
+  transition: opacity var(--t-fast) var(--ease), transform var(--t-med) var(--spring); }
+.notif-panel.open { opacity: 1; transform: none; }
+.notif-head { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 12px 14px; border-bottom: 1px solid var(--hairline); font-size: 14px; }
+.notif-clear { border: none; background: none; color: var(--accent); font-size: 12px;
+  cursor: pointer; padding: 4px 6px; border-radius: 8px; }
+.notif-clear:hover { background: var(--accent-soft); }
+.notif-list { overflow-y: auto; padding: 6px; }
+.notif-sec { font-size: 11px; font-weight: 650; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.07em; padding: 10px 8px 6px; }
+.notif-item { display: flex; align-items: flex-start; gap: 10px; width: 100%; text-align: left;
+  padding: 9px 8px; border: none; background: none; border-radius: 10px; cursor: pointer;
+  transition: background var(--t-fast); }
+.notif-item:hover { background: rgba(20,25,35,0.05); }
+.notif-item.novo { background: var(--accent-soft); }
+/* sistemsko obvestilo ni klikljivo -- ni dogodka, ki bi ga odprl */
+.notif-item.sys { cursor: default; background: var(--warn-bg); }
+.notif-item.sys:hover { background: var(--warn-bg); }
+.ni-dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 6px; flex: none; }
+.ni-dot.alarm { background: var(--alert); }
+.ni-dot.warning { background: var(--warn); }
+.ni-body { flex: 1; min-width: 0; }
+.ni-title { display: block; font-size: 13px; font-weight: 600; }
+.ni-new { display: inline-block; margin-left: 6px; padding: 0 5px; border-radius: 5px;
+  background: var(--accent); color: #fff; font-size: 9.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.04em; vertical-align: 1px; }
+.ni-why { display: block; font-size: 11.5px; color: var(--muted); line-height: 1.4;
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.ni-time { font-size: 11px; color: var(--faint); text-align: right; flex: none; }
+.ni-time small { display: block; font-size: 10px; }
+.notif-empty { padding: 34px 18px; text-align: center; font-size: 14px; color: var(--ink); }
+.notif-empty span { font-size: 12px; color: var(--muted); }
+.notif-foot { padding: 9px 14px; border-top: 1px solid var(--hairline);
+  font-size: 11px; color: var(--faint); }
+:root[data-theme="dark"] .notif-item:hover { background: rgba(255,255,255,0.06); }
+
+/* Neprebran alarm: pikica na kartici "Alarmi danes" -- prek <body>, da prezivi
+   ponoven izris kartice ob osvezitvi. */
+/* ::before in ne ::after -- ::after na isti kartici ze uporablja svetlobni
+   rob ob kazalcu. Ko si sel z misko cez, je tisto pravilo prevzelo pikico in
+   ta je poskocila cez kartico. */
+body.new-alarms [data-stat="alerts"]::before {
+  content: ""; position: absolute; top: 12px; right: 12px; z-index: 3;
+  width: 9px; height: 9px; border-radius: 50%; background: var(--alert);
+  box-shadow: 0 0 0 3px var(--alert-bg);
+  animation: newPulse 2.4s var(--ease) infinite; }
+@keyframes newPulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--alert-bg); }
+  50% { box-shadow: 0 0 0 7px transparent; } }
+
+/* ---------- Svetloba, ki sledi kazalcu ---------- */
+/* Mehka luc pod kazalcem: brez blend nacina, da premik ostane na GPU. */
+#cursorGlow {
+  position: fixed; left: 0; top: 0; width: 520px; height: 520px;
+  pointer-events: none; z-index: 1; opacity: 0; border-radius: 50%;
+  background: radial-gradient(circle closest-side,
+    rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.12) 45%, transparent 72%);
+  transition: opacity var(--t-med) var(--ease);
+  will-change: transform; contain: strict;
+}
+body.glow-on #cursorGlow { opacity: 1; }
+:root[data-theme="dark"] #cursorGlow {
+  background: radial-gradient(circle closest-side,
+    rgba(150, 190, 255, 0.16), rgba(120, 160, 255, 0.05) 45%, transparent 72%);
+}
+/* Rob elementa zasveti tocno tam, kjer je kazalec (maska pusti samo obrobo). */
+.lit { position: relative; }
+.lit::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  padding: 1px; pointer-events: none; z-index: 2;
+  background: radial-gradient(130px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.32) 34%, transparent 68%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+:root[data-theme="dark"] .lit::after {
+  background: radial-gradient(130px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(200, 222, 255, 0.9), rgba(150, 190, 255, 0.28) 34%, transparent 68%);
+}
+body.no-anim #cursorGlow, body.no-anim .lit::after { display: none; }
+
+.sparkle {
+  position: fixed; pointer-events: none; z-index: 320;
+  width: var(--s, 7px); height: var(--s, 7px);
+  background: currentColor; filter: drop-shadow(0 0 3px currentColor);
+  clip-path: polygon(50% 0%, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0% 50%, 38% 38%);
+  transform: translate(-50%, -50%) scale(0); opacity: 0;
+  animation: sparkleFly 0.65s var(--ease) forwards;
+}
+/* Prah je manjsi, mehkejsi in brez ostrih zarkov -- zvezdica ob kliku je
+   dogodek, prah pa samo obcutek, da je element ziv. */
+/* Zvezdica je BELA s sivim prelivom in sivim robom, ki se rahlo blesci --
+   sama bela je na svetli podlagi nevidna, sam siv ton pa umazan. Preliv da
+   telo, rob pa oprijem na oko. */
+.sparkle.dust {
+  z-index: 318;
+  /* Bel sme biti le SIJ v sredini; ce je bela vecina zvezdice, se na svetli
+     podlagi spet izgubi. Zato siva prevzame ze pri 45 %. */
+  background: radial-gradient(circle at 36% 30%,
+    #ffffff 0%, #f0f3f8 22%, #cfd7e4 52%, #93a0b8 100%);
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.95))
+          drop-shadow(0 0 6px rgba(96, 118, 158, 0.55));
+  clip-path: polygon(50% 0%, 58% 42%, 100% 50%, 58% 58%, 50% 100%, 42% 58%, 0% 50%, 42% 42%);
+  animation: dustFly 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+/* trije odtenki, da niso vse enake -- razlika je v sivini roba */
+.sparkle.dust.d2 { background: radial-gradient(circle at 36% 30%,
+  #ffffff 0%, #e9eef6 20%, #c2ccdd 50%, #8492ad 100%); }
+.sparkle.dust.d3 { background: radial-gradient(circle at 40% 28%,
+  #ffffff 0%, #f7f9fc 28%, #dce3ee 58%, #a4b0c6 100%); }
+:root[data-theme="dark"] .sparkle.dust {
+  background: radial-gradient(circle at 36% 30%,
+    #ffffff 0%, #f4f8ff 38%, #d8e3f7 68%, #93a6c4 100%);
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.9))
+          drop-shadow(0 0 7px rgba(150, 185, 255, 0.55)); }
+@keyframes dustFly {
+  0%   { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 0; }
+  22%  { transform: translate(calc(-50% + var(--dx) * 0.35), calc(-50% + var(--dy) * 0.35))
+           scale(1) rotate(calc(var(--rot) * 0.4)); opacity: 0.85; }
+  100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy)))
+           scale(0.15) rotate(var(--rot)); opacity: 0; }
+}
+
+@keyframes sparkleFly {
+  0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 0.95; }
+  35% { transform: translate(calc(-50% + var(--dx) * 0.5), calc(-50% + var(--dy) * 0.5)) scale(1) rotate(calc(var(--rot) * 0.5)); opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.2) rotate(var(--rot)); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { #svgDock, #svgEdge::after { transition: none; } }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 7px 18px; font-size: 13px; }
+.kv dt { color: var(--faint); }
+.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
+.logtail { font-family: var(--mono); font-size: 12px; white-space: pre-wrap; word-break: break-all;
+  background: rgba(20, 25, 35, 0.04); border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm); padding: 14px; max-height: 320px; overflow: auto; color: var(--muted); }
+input.select { cursor: text; }
+iframe.report-frame { width: 100%; height: 72vh; border: 1px solid var(--hairline);
+  border-radius: var(--radius); background: #fff; box-shadow: var(--shadow-1);
+  animation: fadeUp var(--t-slow) var(--ease) both; }
+
+/* ---------- Mood ozadja glede na stanje (komaj zaznano) ---------- */
+.bg-stage::after { content: ""; position: absolute; inset: 0; opacity: 0;
+  transition: opacity 1.1s var(--ease), background 1.1s var(--ease); }
+:root[data-mood="ok"] .bg-stage::after { opacity: 1;
+  background: radial-gradient(1200px 800px at 50% 0%, rgba(46, 158, 107, 0.045), transparent 70%); }
+:root[data-mood="warning"] .bg-stage::after { opacity: 1;
+  background: radial-gradient(1200px 800px at 50% 0%, rgba(173, 104, 0, 0.07), transparent 70%); }
+:root[data-mood="alert"] .bg-stage::after { opacity: 1;
+  background: radial-gradient(1200px 800px at 50% 0%, rgba(217, 64, 58, 0.085), transparent 70%); }
+
+/* ---------- Prehod med pogledi: vertikalni carousel ---------- */
+#main { will-change: transform, filter, opacity; }
+#carousel { position: fixed; z-index: 60; pointer-events: none; overflow: hidden; }
+.car-slide { position: absolute; left: 0; right: 0; top: 0; display: flex;
+  justify-content: center; will-change: transform, filter, opacity; }
+.car-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 18px 26px; border-radius: var(--radius);
+  background: var(--glass); border: 1px solid var(--hairline);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-1); color: var(--muted);
+  font-size: 16px; font-weight: 600; letter-spacing: -0.01em;
+}
+.car-card svg { width: 20px; height: 20px; opacity: 0.8; }
+@keyframes crossfade { from { opacity: 0.35; } to { opacity: 1; } }
+#main.crossfade { animation: crossfade 0.3s var(--ease); }
+
+/* ---------- Živa točka na koncu grafa ----------
+   Točka je v svoji plasti (g.live), ker izris prepiše plast "dyn" ob vsakem
+   premiku miške. Sama po sebi mirno diha — to pove, da slika teče; ob novi
+   meritvi pa iz nje steče obroč, kar se vidi tudi, če je vrednost enaka. */
+svg.linechart g.live { pointer-events: none; }
+svg.linechart .live-core { fill: var(--accent); animation: zivaTocka 2.4s var(--ease) infinite; }
+svg.linechart .live-halo { fill: var(--accent); opacity: 0.18;
+  animation: zivHalo 2.4s var(--ease) infinite; }
+@keyframes zivaTocka { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+@keyframes zivHalo {
+  0%, 100% { opacity: 0.2; r: 6; }
+  50% { opacity: 0.06; r: 9; }
+}
+svg.linechart .pulse-ring { fill: none; stroke: var(--accent); stroke-width: 1.6;
+  animation: pulseRing 1.7s var(--ease) 2; }
+@keyframes pulseRing { 0% { r: 3; opacity: 0.9; } 100% { r: 18; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  svg.linechart .live-core, svg.linechart .live-halo { animation: none; }
+}
+/* primerjalna serija (drugo obdobje) */
+svg.linechart .series2 { fill: none; stroke: var(--faint); stroke-width: 1.6;
+  stroke-dasharray: 5 4; opacity: 0.85; }
+/* označeni točki + izbrani odsek */
+svg.linechart .sel-mark { stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 3 3; }
+svg.linechart .sel-dot { fill: var(--accent); stroke: #fff; stroke-width: 1.5; }
+svg.linechart .sel-band { fill: var(--accent); opacity: 0.08; }
+.sel-chip { position: absolute; left: 50%; top: 8px; transform: translateX(-50%) scale(0.94);
+  display: none; align-items: center; gap: 4px; z-index: 4;
+  opacity: 0; transition: opacity var(--t-fast), transform var(--t-med) var(--spring); }
+.sel-chip.on { display: flex; opacity: 1; transform: translateX(-50%) scale(1); }
+.sel-chip button { border: 1px solid var(--hairline); background: var(--glass-heavy);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  color: var(--ink); font: 500 12px var(--font); cursor: pointer;
+  padding: 7px 12px; border-radius: 999px 0 0 999px; box-shadow: var(--shadow-1);
+  transition: background var(--t-fast), transform var(--t-med) var(--spring); }
+.sel-chip .sel-x { border-radius: 0 999px 999px 0; border-left: none; padding: 7px 11px;
+  font-size: 15px; line-height: 1; color: var(--muted); }
+.sel-chip button:hover { background: #fff; }
+.sel-chip button:active { transform: scale(0.95); }
+.chart-legend { display: flex; gap: 16px; align-items: center; margin: 2px 0 8px;
+  font-size: 12px; color: var(--muted); }
+.chart-legend i { display: inline-block; width: 16px; height: 0; margin-right: 6px;
+  border-top: 2px solid var(--accent); vertical-align: middle; }
+.chart-legend .cmp i { border-top: 2px dashed var(--faint); }
+
+/* ---------- Toast obvestila ---------- */
+#toasts { position: fixed; right: 18px; bottom: 18px; z-index: 340;
+  display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
+.toast {
+  display: flex; align-items: flex-start; gap: 11px; max-width: 340px;
+  padding: 13px 15px; border-radius: 14px; cursor: pointer;
+  background: var(--glass-heavy); border: 1px solid var(--hairline);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-2);
+  animation: toastIn 0.45s var(--spring) both;
+  transition: transform var(--t-med) var(--spring), opacity var(--t-med);
+}
+.toast:active { transform: scale(0.96); }
+.toast.out { opacity: 0; transform: translateX(24px); }
+.toast .tdot { width: 9px; height: 9px; border-radius: 50%; margin-top: 5px; flex: none; }
+.toast.alarm .tdot { background: var(--alert); box-shadow: 0 0 9px var(--alert); animation: blipdot 1.1s ease-in-out infinite; }
+.toast.warning .tdot { background: var(--warn); }
+.toast b { display: block; font-size: 13.5px; }
+.toast span { font-size: 12.5px; color: var(--muted); }
+@keyframes toastIn { from { opacity: 0; transform: translateX(30px) scale(0.96); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}
+
+@media (max-width: 860px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar { position: static; height: auto; flex-direction: row; flex-wrap: wrap; }
+  .nav-foot { display: none; }
+  .content { padding: 16px; }
+  .grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid.cols-3, .grid.cols-2 { grid-template-columns: 1fr; }
+  .stat .value { font-size: 23px; }
+  .dd-menu { right: auto; left: 0; transform-origin: top left; }
+}
+
+/* Povzetek obdobja na Eventih: ista kartica kot povzetek dneva na Statusu,
+   samo brez izbirnika dneva (tega ima zavihek ze v orodni vrstici). */
+.dig-ai { min-height: 0; }
+.dig-ai .ai-body { padding-top: 2px; }
+.dig-ai .ai-lead { font-size: 15px; }
+.dig-ai .ai-text { font-size: 12.5px; }
+.dig-sig {
+  margin-left: 8px; padding: 1px 6px; border-radius: 6px;
+  background: var(--accent-soft); color: var(--accent);
+  font-size: 10.5px; font-weight: 600; letter-spacing: 0.02em;
+}
+
+/* ---------- Eventi: iskanje in razpiralne palice ---------- */
+/* Dnevnika ni vec: surova tabela je povedala, kaj se je zgodilo, ni pa
+   odgovorila na nobeno vprasanje. Zdaj je zgoraj iskalnik, spodaj pa palice,
+   ki se ob kliku razprejo -- kontekst dogodka je del seznama in ne novo okno. */
+.ev-search { margin: 16px 0 10px; }
+.ev-box {
+  display: flex; align-items: center; gap: 10px;
+  padding: 4px 4px 4px 14px; border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: var(--glass-heavy); backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-1);
+  transition: box-shadow var(--t-med) var(--ease), border-color var(--t-fast);
+}
+.ev-box:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow-1);
+}
+.ev-box > svg { width: 17px; height: 17px; flex: none; color: var(--faint); }
+.ev-box input {
+  flex: 1; min-width: 0; border: 0; background: none; outline: none;
+  font: inherit; font-size: 14.5px; color: var(--ink); padding: 11px 0;
+}
+.ev-box input::placeholder { color: var(--faint); }
+.ev-types-btn {
+  display: inline-flex; align-items: center; gap: 7px; flex: none;
+  padding: 9px 14px; border-radius: 999px; border: 1px solid var(--hairline);
+  background: #fff; color: var(--muted); font-size: 12.5px; font-weight: 600;
+  cursor: pointer;
+  transition: color var(--t-fast), background var(--t-fast),
+    transform var(--t-med) var(--spring);
+}
+.ev-types-btn svg { width: 9px; height: 6px; transition: transform var(--t-med) var(--ease); }
+.ev-types-btn:hover { color: var(--ink); }
+.ev-types-btn:active { transform: scale(0.95); }
+.ev-types-btn.on { color: var(--accent); background: var(--accent-soft); }
+.ev-types-btn.on svg { transform: rotate(180deg); }
+:root[data-theme="dark"] .ev-types-btn { background: rgba(255, 255, 255, 0.06); }
+
+.ev-tips { margin: 10px 2px 0; font-size: 12px; color: var(--faint); }
+.ev-tip {
+  display: inline-block; margin: 0 4px 4px 0; padding: 4px 11px;
+  border-radius: 999px; border: 1px solid var(--hairline);
+  background: none; color: var(--muted); font-size: 12px; cursor: pointer;
+  transition: color var(--t-fast), background var(--t-fast),
+    transform var(--t-med) var(--spring);
+}
+.ev-tip:hover { color: var(--accent); background: var(--accent-soft); }
+.ev-tip:active { transform: scale(0.94); }
+.ev-types { overflow: hidden; margin-top: 10px; }
+.ev-types[hidden] { display: none; }
+
+.ev-answer {
+  margin: 12px 0; padding: 14px 16px; border-radius: var(--radius);
+  border: 1px solid var(--hairline); background: var(--glass);
+  backdrop-filter: var(--blur); border-left: 3px solid var(--faint);
+}
+.ev-answer.yes { border-left-color: var(--alert); }
+.ev-answer.no { border-left-color: var(--ok); }
+.ev-answer.maybe { border-left-color: var(--warn); }
+.ea-head { font-size: 14.5px; font-weight: 600; color: var(--ink); }
+.ea-detail { margin-top: 4px; font-size: 13px; color: var(--muted); line-height: 1.5; }
+.ea-next { margin-top: 10px; }
+
+.ev-count { margin: 6px 2px 10px; font-size: 12px; }
+.ev-list { display: flex; flex-direction: column; gap: 6px; }
+.ev-bar {
+  border-radius: var(--radius-sm); border: 1px solid var(--hairline);
+  background: var(--glass); backdrop-filter: var(--blur);
+  overflow: hidden;
+  transition: border-color var(--t-fast) var(--ease),
+    box-shadow var(--t-med) var(--ease);
+}
+.ev-bar:hover { border-color: var(--hairline-2); }
+.ev-bar.open { border-color: var(--accent); box-shadow: var(--shadow-1); }
+.ev-head {
+  display: grid; align-items: center; gap: 12px; width: 100%;
+  grid-template-columns: 10px minmax(120px, 1.1fr) minmax(0, 2fr) minmax(80px, 0.9fr) 150px 90px 12px;
+  padding: 12px 14px; border: 0; background: none; text-align: left;
+  font: inherit; font-size: 13px; color: var(--ink); cursor: pointer;
+}
+.ev-head > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ev-t { font-weight: 600; }
+.ev-d, .ev-loc { color: var(--muted); }
+.ev-time { color: var(--faint); font-size: 12px; }
+.ev-val { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+.ev-chev { width: 10px; height: 6px; color: var(--faint);
+  transition: transform var(--t-med) var(--ease); }
+.ev-bar.open .ev-chev { transform: rotate(180deg); }
+.ev-body { height: 0; overflow: hidden; }
+.ev-bar.open .ev-body { border-top: 1px solid var(--hairline); }
+.ev-grid {
+  display: grid; grid-template-columns: minmax(240px, 0.9fr) minmax(0, 1.4fr);
+  gap: 18px; padding: 14px;
+}
+.ev-grid .kv { margin: 0; }
+.ev-raw { font-family: var(--mono); font-size: 11.5px; }
+.ev-chart-t {
+  font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--faint); margin-bottom: 6px;
+}
+.ev-msg {
+  padding: 0 14px 14px; font-size: 12.5px; color: var(--muted); line-height: 1.5;
+}
+.ev-load { padding: 16px 14px; font-size: 12.5px; color: var(--faint); }
+
+@media (max-width: 1100px) {
+  .ev-head { grid-template-columns: 10px minmax(100px, 1fr) minmax(0, 1.6fr) 120px 12px; }
+  .ev-loc, .ev-val { display: none; }
+  .ev-grid { grid-template-columns: 1fr; }
+}
+
+/* Kdo je kriv za stanje: meritev, njena vrednost in koliko je cez mejo.
+   Prej je v traku pisalo ime stolpca iz baze, kar ne pove niti smeri. */
+.kr-grid { display: flex; gap: 10px; flex-wrap: wrap; margin: 0 0 18px; }
+.kr-card {
+  flex: 1 1 150px; padding: 12px 14px; border-radius: var(--radius-sm);
+  border: 1px solid var(--hairline); background: var(--glass);
+}
+.kr-card.warning { border-color: rgba(173, 104, 0, 0.35); background: var(--warn-bg); }
+.kr-card.alert { border-color: rgba(217, 64, 58, 0.35); background: var(--alert-bg); }
+.kr-ime { font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--muted); }
+.kr-v { font-size: 26px; font-weight: 300; letter-spacing: -0.01em; margin-top: 2px;
+  font-variant-numeric: tabular-nums; }
+.kr-v small { font-size: 12px; margin-left: 4px; color: var(--faint); }
+.kr-cez { margin-top: 4px; font-size: 12.5px; font-weight: 600; }
+.kr-cez.warning { color: var(--warn); }
+.kr-cez.alert { color: var(--alert); }
+.kr-meja { margin-top: 2px; font-size: 11.5px; color: var(--faint); }
+
+/* ---------- Desni klik in namigi ---------- */
+/* Sistemski meni in crni sistemski oblacek sta bila edini mesti, kjer je
+   plosca nenadoma izgledala kot brskalnik. Oboje ima zdaj isto steklo, iste
+   robove in isto gibanje kot vse drugo. */
+.ctx-menu {
+  position: fixed; z-index: 340; min-width: 200px; padding: 6px;
+  border-radius: 14px; border: 1px solid var(--hairline);
+  background: var(--glass-heavy); backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-2);
+  opacity: 0; transform: scale(0.95) translateY(-4px);
+  transition: opacity 150ms var(--ease), transform 220ms var(--spring);
+}
+.ctx-menu.open { opacity: 1; transform: none; }
+.ctx-item {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  padding: 8px 10px; border: 0; border-radius: 9px; background: none;
+  color: var(--ink); font: inherit; font-size: 13px; text-align: left;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.ctx-item span { flex: 1; }
+.ctx-item kbd {
+  font: 600 10.5px var(--mono); color: var(--faint);
+  border: 1px solid var(--hairline); border-radius: 5px; padding: 1px 5px;
+}
+.ctx-item:hover { background: var(--accent-soft); color: var(--accent); }
+.ctx-item:active { transform: scale(0.98); }
+.ctx-sep { height: 1px; margin: 5px 8px; background: var(--hairline); }
+
+.app-tip {
+  position: fixed; z-index: 350; max-width: 280px; padding: 7px 11px;
+  border-radius: 10px; border: 1px solid var(--hairline);
+  background: var(--glass-heavy); backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-1);
+  color: var(--ink); font-size: 12px; line-height: 1.45; pointer-events: none;
+  opacity: 0; transform: translateY(3px);
+  transition: opacity 160ms var(--ease), transform 220ms var(--ease);
+}
+.app-tip.on { opacity: 1; transform: none; }
+
+/* Seznam bliznjic: dve koloni, tipka desno -- da se prebere kot tabela in
+   ne kot odstavek. */
+.bliz { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 22px; }
+.bliz-v {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  padding: 8px 2px; border-bottom: 1px solid var(--hairline); font-size: 13px;
+}
+.bliz-v kbd {
+  font: 600 11px var(--mono); color: var(--muted);
+  border: 1px solid var(--hairline); border-radius: 6px; padding: 2px 7px;
+  background: var(--glass);
+}
+@media (max-width: 700px) { .bliz { grid-template-columns: 1fr; } }
+
+/* ---------- Poročila ---------- */
+/* Sodba je prvo, kar človek prebere, in edino, kar si bo zapomnil -- zato je
+   velika, obarvana po stanju in nad vsem drugim. */
+.rep-sodba {
+  display: flex; align-items: flex-start; gap: 18px; margin-bottom: 14px;
+  border-left: 4px solid var(--faint);
+}
+.rep-sodba.ok { border-left-color: var(--ok); }
+.rep-sodba.warning { border-left-color: var(--warn); }
+.rep-sodba.alert { border-left-color: var(--alert); }
+.rep-znak {
+  flex: none; width: 46px; height: 46px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 22px; font-weight: 700;
+  background: var(--ok-bg); color: var(--ok);
+}
+.rep-sodba.warning .rep-znak { background: var(--warn-bg); color: var(--warn); }
+.rep-sodba.alert .rep-znak { background: var(--alert-bg); color: var(--alert); }
+.rep-mesec {
+  font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--faint);
+}
+.rep-naslov { margin: 2px 0 6px; font-size: clamp(20px, 2.4vw, 28px); font-weight: 600; }
+.rep-stavek { font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+.rep-grid { margin-bottom: 14px; }
+.rep-num { border-top: 3px solid var(--hairline); }
+.rep-num.ok { border-top-color: var(--ok); }
+.rep-num.warning { border-top-color: var(--warn); }
+.rep-num.alert { border-top-color: var(--alert); }
+.rep-k { font-size: 11.5px; color: var(--muted); }
+.rep-v {
+  font-size: 34px; font-weight: 300; letter-spacing: -0.02em; line-height: 1.15;
+  margin: 2px 0 4px; font-variant-numeric: tabular-nums;
+}
+.rep-v small { font-size: 15px; margin-left: 2px; color: var(--faint); }
+.rep-p { font-size: 12px; color: var(--faint); line-height: 1.4; }
+
+/* Trak dnevov: visina je stevilo dogodkov tistega dne, barva pa najhujsa
+   stopnja. Prva razlicica je risala povprecje dneva -- vsi stolpci so bili
+   enako zeleni in graf ni povedal nicesar. */
+.rep-legenda { display: flex; align-items: center; gap: 6px; font-size: 11.5px;
+  margin: -6px 0 14px; }
+.rep-legenda i { width: 9px; height: 9px; border-radius: 3px; margin-left: 10px; }
+.rep-legenda i.ok { background: var(--ok); opacity: 0.45; }
+.rep-legenda i.warning { background: var(--warn); }
+.rep-legenda i.alert { background: var(--alert); }
+.rep-cistih { margin-left: auto; color: var(--faint); }
+.rep-plot { display: flex; gap: 10px; }
+.rep-os {
+  display: flex; flex-direction: column; justify-content: space-between;
+  height: 128px; padding-bottom: 16px; font-size: 10px; color: var(--faint);
+  font-variant-numeric: tabular-nums; text-align: right; min-width: 18px;
+}
+.rep-trak {
+  flex: 1; display: flex; align-items: flex-end; gap: 3px; height: 128px;
+  background:
+    linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 100% 50%;
+  background-repeat: repeat-y; padding-bottom: 16px; position: relative;
+}
+.rep-trak::after { content: ""; position: absolute; left: 0; right: 0; bottom: 16px;
+  height: 1px; background: var(--hairline-2); }
+.rep-dan {
+  flex: 1; display: flex; flex-direction: column; justify-content: flex-end;
+  align-items: center; height: 100%; cursor: pointer; position: relative;
+}
+.rep-stolp {
+  display: flex; flex-direction: column-reverse; justify-content: flex-start;
+  width: 100%; height: 100%; gap: 1px;
+}
+.rep-stolp i { display: block; width: 100%; border-radius: 3px;
+  transition: transform var(--t-med) var(--spring), filter var(--t-fast); }
+.rep-stolp i.a { background: var(--alert); }
+.rep-stolp i.w { background: var(--warn); }
+.rep-stolp i.prazno { height: 3px; background: var(--ok); opacity: 0.35;
+  border-radius: 2px; }
+.rep-dnum { position: absolute; bottom: -16px; font-size: 9.5px; color: var(--faint);
+  font-variant-numeric: tabular-nums; }
+.rep-dan:hover .rep-stolp i { filter: brightness(1.12); transform: scaleX(1.25); }
+.rep-dan:active .rep-stolp i { transform: scaleX(1.1) scaleY(0.96); }
+.rep-skrajnosti {
+  display: flex; gap: 22px; flex-wrap: wrap; margin-top: 24px;
+  font-size: 12.5px; color: var(--muted);
+}
+.rep-skrajnosti b { font-weight: 600; margin-right: 6px; }
+.rep-skrajnosti b.ok { color: var(--ok); }
+.rep-skrajnosti b.alert { color: var(--alert); }
+
+/* Delež časa v redu: vodoravni stolpci, ker gre za odstotke enega celega. */
+.rep-bar { display: grid; grid-template-columns: 150px 1fr 54px; align-items: center;
+  gap: 12px; padding: 5px 0; font-size: 13px; }
+.rep-bl { color: var(--muted); }
+.rep-bt { display: block; height: 9px; border-radius: 99px; background: var(--grid);
+  overflow: hidden; }
+.rep-bt i { display: block; height: 100%; border-radius: 99px; }
+.rep-bt i.ok { background: var(--ok); }
+.rep-bt i.warning { background: var(--warn); }
+.rep-bt i.alert { background: var(--alert); }
+.rep-bv { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink); }
+
+.rep-dogodki { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px;
+  color: var(--muted); }
+.rep-dogodki b { color: var(--ink); font-weight: 600; }
+.rep-gib { margin-top: 12px; font-size: 12.5px; }
+.rep-nasvet ul { margin: 0; padding-left: 18px; }
+.rep-nasvet li { font-size: 13px; line-height: 1.6; color: var(--muted); margin-bottom: 4px; }
+
+@media print {
+  /* Brskalnik ob tisku privzeto ODVRZE barve ozadij -- stolpci traku, polnila
+     stolpcev in obarvane kartice so ozadja, zato so se natisnili prazni. To je
+     edini nacin, da barva pride na papir. */
+  * { print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important; }
+  /* Vstopne animacije imajo "both": ce se ob tisku se niso izvedle, ostane
+     vsebina na prosojnosti 0 in list je prazen. */
+  *, *::before, *::after {
+    animation: none !important; transition: none !important;
+    opacity: 1 !important; filter: none !important; transform: none !important;
+  }
+  .sidebar, .topbar, .ctx-menu, .app-tip, #cursorGlow, .bg-stage,
+  .viz-sheet, .duh-let, .sparkle, .page-ripple { display: none !important; }
+  html, body { background: #fff !important; }
+  .content { padding: 0 !important; }
+  .card {
+    break-inside: avoid; box-shadow: none !important;
+    border: 1px solid #dcdfe6 !important; background: #fff !important;
+    backdrop-filter: none !important;
+  }
+  /* trak dnevov mora obdrzati visino, sicer se stolpci sesedejo v crto */
+  .rep-trak { height: 128px !important; }
+  .rep-os { height: 128px !important; }
+  .rep-dan .rep-stolp i { min-height: 2px; }
+  .rep-bt { background: #eceff4 !important; }
+  a[href]::after { content: ""; }        /* brez izpisovanja naslovov */
+  @page { margin: 12mm; }
+}
+@media (max-width: 700px) {
+  .rep-bar { grid-template-columns: 110px 1fr 46px; }
+  .rep-dan span { display: none; }
+}
+
+/* ---------- Meje meritev ---------- */
+/* Stiri stevilke same po sebi ne povedo nicesar, zato ima vsaka meritev se
+   stavek in trak: rdece na obeh skrajnih koncih (alarm), jantar ob njem
+   (opozorilo), zeleno v sredini. Iz traku se vidi, ali meja sploh obstaja. */
+.meje-btn { margin: 4px 0 0; }
+.meje {
+  margin-top: 12px; border-radius: var(--radius);
+  border: 1px solid var(--hairline); background: var(--glass);
+  backdrop-filter: var(--blur); padding: 16px 18px;
+}
+.meje[hidden] { display: none; }
+.meje-uvod { font-size: 12.5px; color: var(--muted); line-height: 1.55; margin-bottom: 14px; }
+.meje-skupina { margin-bottom: 18px; }
+.meje-naslov {
+  font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase;
+  color: var(--faint); margin-bottom: 8px;
+}
+.meje-vrstica {
+  display: grid; align-items: center; gap: 10px 16px;
+  grid-template-columns: minmax(120px, 1fr) 90px minmax(360px, 1.6fr);
+  padding: 10px 0; border-top: 1px solid var(--hairline);
+}
+.meje-vrstica:first-of-type { border-top: 0; }
+.meje-ime { display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap; font-size: 13px; }
+.meje-e { color: var(--faint); font-size: 11.5px; }
+.meje-znak {
+  padding: 1px 7px; border-radius: 6px; background: var(--accent-soft);
+  color: var(--accent); font-size: 10px; font-weight: 600;
+}
+.meje-trak { display: flex; gap: 2px; height: 8px; border-radius: 99px; overflow: hidden; }
+.meje-trak i { flex: 1; display: block; }
+.meje-trak i.alert { background: var(--alert); }
+.meje-trak i.warn { background: var(--warn); }
+.meje-trak i.ok { background: var(--ok); flex: 2; }
+.meje-polja { display: flex; gap: 8px; flex-wrap: wrap; }
+.meje-f { display: flex; flex-direction: column; gap: 3px; }
+.meje-l { font-size: 10px; letter-spacing: 0.04em; color: var(--faint); }
+.meje-l.alert { color: var(--alert); }
+.meje-l.warn { color: var(--warn); }
+.meje-f input { width: 86px; font-size: 12.5px; padding: 6px 8px; }
+.meje-f.rocno input { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.meje-txt {
+  grid-column: 1 / -1; font-size: 12px; color: var(--muted); line-height: 1.5;
+  margin-top: -2px;
+}
+.meje-noga { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+
+@media (max-width: 900px) {
+  .meje-vrstica { grid-template-columns: 1fr; }
+}
+
+/* ---------- Vizitka ---------- */
+/* Gumb v nogi menija se ne sili v ospredje: v mirovanju je samo droben
+   krogec z "i" ob desnem robu, tak kot vsak drug tihi gumb. Sele ko gres
+   cezenj, se raztegne v stekleno kapsulo, iz nje pride duhec in napis se
+   izpise v crno. Vse raste od desne proti levi, ker je krogec zasidran
+   desno -- zato se nic ne premakne, samo odpre se. */
+#vizitkaHost { display: flex; justify-content: flex-end; }
+.viz-btn {
+  position: relative; display: flex; align-items: center; gap: 0;
+  width: 34px; height: 34px; padding: 0 6px; border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: rgba(255, 255, 255, 0);
+  box-shadow: none;
+  color: var(--ink); font-size: 13.5px; font-weight: 600; letter-spacing: 0.01em;
+  cursor: pointer; overflow: hidden;
+  transition:
+    width 460ms var(--ease), height 460ms var(--ease), padding 460ms var(--ease),
+    gap 460ms var(--ease), background 300ms var(--ease),
+    box-shadow 300ms var(--ease), border-color 300ms var(--ease),
+    transform var(--t-med) var(--spring);
+}
+.viz-btn:hover,
+.viz-btn:focus-visible,
+.viz-btn.on {
+  width: 100%; height: 46px; gap: 8px; padding: 7px 10px 7px 7px;
+  border-color: rgba(255, 255, 255, 0.9);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.66));
+  /* sij je box-shadow in ne psevdoelement, ker ga overflow: hidden ne obreze */
+  box-shadow:
+    0 0 0 1px rgba(150, 170, 255, 0.2),
+    0 14px 30px rgba(120, 130, 210, 0.2),
+    0 0 34px rgba(216, 170, 255, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+.viz-btn:active { transform: scale(0.972); }
+.viz-btn-txt {
+  flex: 1; text-align: center; max-width: 0; opacity: 0; overflow: hidden;
+  white-space: nowrap; color: #10151f;
+  transition: max-width 460ms var(--ease), opacity 260ms var(--ease) 120ms;
+}
+.viz-btn:hover .viz-btn-txt,
+.viz-btn:focus-visible .viz-btn-txt,
+.viz-btn.on .viz-btn-txt { max-width: 160px; opacity: 1; }
+.viz-btn-info {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; flex: none; margin-left: auto; border-radius: 50%;
+  color: var(--faint); opacity: 0.85; cursor: pointer;
+  transition: transform var(--t-med) var(--spring), opacity var(--t-fast),
+    color var(--t-fast) var(--ease);
+}
+.viz-btn-info svg { width: 19px; height: 19px; }
+.viz-btn:hover .viz-btn-info { color: var(--accent); opacity: 1; }
+.viz-btn-info:hover { opacity: 1; transform: scale(1.12); }
+.viz-btn-info:active { transform: scale(0.9); }
+
+/* Duhec: telo je ena slika, obrazi so plasti nad njo - menja se samo obraz. */
+.duh {
+  position: relative; width: 30px; height: 30px; flex: none; display: block;
+  animation: duhPlava 4.8s ease-in-out infinite;
+}
+/* Na gumbu duhec caka skrit: pokaze se sele, ko gres cezenj. Mesto zanj
+   ostane rezervirano, da se napis ob tem ne premakne. Prelivamo samo
+   prosojnost in ostrino -- transform je od lebdenja. */
+.viz-btn .duh {
+  width: 0; opacity: 0; filter: blur(3px);
+  transition: width 460ms var(--ease), opacity 300ms var(--ease),
+    filter 300ms var(--ease);
+}
+.viz-btn:not(.leti):hover .duh,
+.viz-btn:not(.leti):focus-visible .duh,
+.viz-btn.on:not(.leti) .duh { width: 30px; opacity: 1; filter: blur(0); }
+.duh img { position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: contain; pointer-events: none; user-select: none; }
+.duh .duh-body { filter: drop-shadow(0 3px 5px rgba(107, 90, 205, 0.22)); }
+.duh .duh-face { opacity: 0; transition: opacity 130ms ease; }
+.duh .duh-face.on { opacity: 1; }
+@keyframes duhPlava {
+  0%, 100% { transform: translateY(1.5px) rotate(-1.4deg); }
+  50% { transform: translateY(-1.5px) rotate(1.4deg); }
+}
+
+/* Duhec, ki je zapustil gumb in se potika po platnu. Gibanje pise JS, zato
+   tu ni animacije -- samo plast in izhodisce vrtenja. */
+.duh-let {
+  position: fixed; left: 0; top: 0; width: 68px; height: 68px;
+  z-index: 250; pointer-events: none; transform-origin: 50% 50%;
+  will-change: transform; opacity: 0.8;
+}
+.duh-let .duh { width: 100%; height: 100%; animation: none; opacity: 1; filter: none; }
+/* Halo: duhec sveti, zato se loci od platna tudi tam, kjer je belo na belem. */
+.duh-let::before {
+  content: ""; position: absolute; inset: -30%; z-index: -1; border-radius: 50%;
+  background: radial-gradient(circle, rgba(219, 230, 255, 0.85) 0%,
+    rgba(198, 180, 255, 0.36) 44%, rgba(255, 255, 255, 0) 72%);
+  filter: blur(7px);
+  animation: haloDih 3.4s ease-in-out infinite;
+}
+@keyframes haloDih {
+  0%, 100% { transform: scale(0.93); opacity: 0.72; }
+  50% { transform: scale(1.07); opacity: 1; }
+}
+.viz-btn.leti .duh { opacity: 0; }
+
+/* Meni med odprto vizitko utihne: imena izginejo, ostane samo steklo. */
+.sidebar.viz-prazen > * {
+  opacity: 0; filter: blur(6px); transform: translateX(-8px); pointer-events: none;
+  transition: opacity 260ms var(--ease), filter 260ms var(--ease),
+    transform 260ms var(--ease);
+}
+:root.viz-open, :root.viz-open body { overflow: hidden; }
+
+/* List sam: meni, raztegnjen cez celo stran. Zato ni sence okrog - to ni
+   okno nad stranjo, ampak ista ploskev, ki je zrasla. */
+.viz-sheet {
+  position: fixed; inset: 0; z-index: 240; display: grid; place-items: center;
+  padding: clamp(20px, 4vw, 54px);
+  background:
+    radial-gradient(58% 46% at 78% 76%, rgba(196, 216, 255, 0.5), transparent 72%),
+    radial-gradient(46% 40% at 14% 16%, rgba(255, 214, 240, 0.4), transparent 74%),
+    rgba(255, 255, 255, 0.82);
+  backdrop-filter: saturate(1.5) blur(30px);
+  -webkit-backdrop-filter: saturate(1.5) blur(30px);
+}
+.viz-close {
+  position: absolute; top: 18px; right: 20px; z-index: 3;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 1px solid var(--hairline); background: rgba(255, 255, 255, 0.7);
+  color: var(--muted); cursor: pointer;
+  transition: transform var(--t-med) var(--spring), background var(--t-fast),
+    color var(--t-fast);
+}
+.viz-close svg { width: 18px; height: 18px; }
+.viz-close:hover { background: #fff; color: var(--ink); }
+.viz-close:active { transform: scale(0.9); }
+
+/* Zvezdice in mehurcki so na svoji plasti pod vsebino in brez zaznavanja
+   miske -- ozadje naj zivi, branja in klikanja pa naj ne moti. */
+.viz-okras { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.viz-iskra { position: absolute; pointer-events: none; opacity: 0;
+  animation: iskraSij 2.2s var(--ease) forwards; }
+.viz-iskra svg { width: 100%; height: 100%; display: block;
+  filter: drop-shadow(0 0 6px rgba(150, 180, 255, 0.75)); }
+.viz-iskra path { fill: rgba(206, 220, 255, 0.95); }
+@keyframes iskraSij {
+  0% { transform: scale(0.25) rotate(-18deg); opacity: 0; }
+  35% { transform: scale(1) rotate(0deg); opacity: 1; }
+  62% { transform: scale(0.94) rotate(7deg); opacity: 0.9; }
+  100% { transform: scale(0.4) rotate(22deg); opacity: 0; }
+}
+.viz-mehur {
+  position: absolute; bottom: -60px; border-radius: 50%; pointer-events: none;
+  opacity: 0; will-change: transform;
+  background: radial-gradient(circle at 32% 27%, rgba(255, 255, 255, 0.95),
+    rgba(214, 226, 255, 0.42) 46%, rgba(196, 210, 255, 0.16) 72%,
+    rgba(255, 255, 255, 0.05) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: 0 0 12px rgba(178, 200, 255, 0.34),
+    inset 0 -4px 8px rgba(255, 255, 255, 0.5);
+  animation: mehurGor 14s linear forwards;
+}
+@keyframes mehurGor {
+  0% { transform: translate3d(0, 0, 0) scale(0.85); opacity: 0; }
+  9% { opacity: var(--o, 0.7); }
+  50% { transform: translate3d(var(--dx, 0px), -52vh, 0) scale(1); }
+  88% { opacity: var(--o, 0.7); }
+  100% { transform: translate3d(calc(var(--dx, 0px) * -0.4), -104vh, 0) scale(1.06);
+    opacity: 0; }
+}
+
+.viz-card {
+  position: relative; z-index: 1; width: min(1180px, 100%); max-height: 100%;
+  display: flex; flex-direction: column; gap: clamp(10px, 3vh, 38px);
+  padding: clamp(16px, 3vw, 34px);
+}
+.viz-vrh {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 32px; flex-wrap: wrap;
+}
+/* Stik je bil najprej v zgornjem desnem kotu, dalec od imena, ki mu pripada,
+   potem pod znamko. Zdaj stoji v LEVEM SPODNJEM kotu: zgoraj ime in podatki o
+   programu, na sredini ilustraciji, spodaj levo pa, kdo je to naredil in kje
+   ga najdes -- kot na tiskani vizitki. */
+.viz-vrh-levo { flex-direction: column; align-items: flex-start; gap: 0; }
+/* Edino, kar se je premaknilo: stik gre v levi spodnji kot ZASLONA, ne
+   kartice. Zato je fiksen -- ce bi bil v toku kartice, bi ostal ob njenem
+   levem robu, ta pa je zaradi sredinske postavitve dalec od roba okna. Ker
+   je iz toka, se postavitev ostalih elementov ne premakne niti za piksel. */
+.viz-meta.viz-kot {
+  position: fixed; left: clamp(18px, 2.6vw, 46px); bottom: clamp(18px, 2.6vw, 46px);
+  min-width: 0; padding-top: 0; z-index: 2;
+}
+.viz-meta.viz-kot .viz-meta-t { margin-top: 14px; }
+.viz-meta.viz-kot .viz-pika.meta { right: auto; left: -16px; bottom: -20px; }
+.viz-beseda {
+  display: flex; align-items: baseline; gap: 0.42em;
+  font-size: clamp(34px, 5.4vw, 66px); font-weight: 300; letter-spacing: 0.15em;
+  line-height: 1; color: #1c2436; white-space: nowrap;
+}
+.viz-beseda .b { color: #5d8fff; }
+
+/* Napis "made by jureb": crke se odkrivajo od leve, konica pisala pa tece
+   po robu odkritega - zato deluje, kot da nekdo pise, in ne kot da se
+   besedilo pojavi. */
+.viz-roka {
+  position: relative; display: inline-flex; align-items: center; gap: 8px;
+  margin: clamp(8px, 1.6vh, 18px) 0 0 4px;
+}
+.viz-roka-txt {
+  font-family: "Ink Free", "Segoe Script", "Brush Script MT", "Segoe UI Variable Text", cursive;
+  font-size: clamp(26px, 3.4vw, 42px); font-weight: 400; font-style: italic;
+  color: #232a3a; letter-spacing: 0.01em; white-space: nowrap;
+  clip-path: inset(-25% -6% -35% 0);
+}
+.viz-srce { color: #5d8fff; font-size: clamp(18px, 2.2vw, 27px); }
+.viz-pero {
+  position: absolute; left: 0; bottom: 2px; width: 3px; height: 19px;
+  border-radius: 2px; opacity: 0; pointer-events: none;
+  background: linear-gradient(180deg, #2b3550, #5d8fff);
+  box-shadow: 0 0 8px rgba(93, 143, 255, 0.6);
+}
+
+.viz-meta { position: relative; min-width: 250px; padding-top: 6px; }
+.viz-meta-t { font-size: 15px; font-weight: 600; color: var(--ink); margin-top: 20px; }
+.viz-meta-s { font-size: 13.5px; color: var(--faint); margin-top: 2px; }
+.viz-links { display: flex; flex-direction: column; gap: 9px; }
+.viz-link {
+  display: flex; align-items: center; gap: 11px; text-decoration: none;
+  color: #2b3446; font-size: 14px; width: fit-content; border-radius: 8px;
+  padding: 3px 6px 3px 3px;
+  transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease),
+    transform var(--t-med) var(--spring);
+}
+.viz-link:hover { color: #3b6fe0; background: rgba(93, 143, 255, 0.09); }
+.viz-link:active { transform: scale(0.97); }
+.viz-ico { display: inline-flex; width: 22px; height: 22px; color: #5d8fff; }
+.viz-ico svg { width: 100%; height: 100%; }
+
+/* Drobni tisk o programu: na vizitki je to na svojem mestu, v svojem oknu
+   pa je bilo samo se eno okno vec. */
+.viz-opro {
+  display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: -6px;
+  font-size: 12px; color: var(--faint); line-height: 1.5;
+}
+.viz-opro span { display: inline-flex; gap: 7px; align-items: baseline; }
+.viz-opro b { font-weight: 600; color: #55617a; font-size: 11px;
+  letter-spacing: 0.03em; text-transform: uppercase; }
+
+.viz-dno {
+  position: relative; display: flex; align-items: flex-end;
+  justify-content: space-between; gap: 24px; min-height: 0; flex: 1;
+}
+.viz-ascii { position: relative; flex: 1 1 0; min-width: 0; align-self: center;
+  margin-left: -10px; }
+.viz-ascii canvas {
+  display: block; width: 100%; max-width: 780px; height: auto;
+  aspect-ratio: 5 / 4; max-height: min(54vh, 460px);
+}
+.viz-ascii-oznaka {
+  display: flex; align-items: center; gap: 8px; margin-top: -6px;
+  font: 600 9.5px/1.2 var(--mono); letter-spacing: 0.19em; text-transform: uppercase;
+  color: rgba(60, 74, 110, 0.42);
+}
+.viz-ascii-oznaka i {
+  width: 5px; height: 5px; border-radius: 99px; background: #5d8fff;
+  box-shadow: 0 0 10px rgba(93, 143, 255, 0.8);
+}
+
+.viz-epruveta {
+  position: relative; flex: none; display: grid; place-items: center;
+  width: clamp(150px, 22vw, 260px);
+}
+.viz-blob {
+  position: absolute; inset: -18% -22% -8% -30%; z-index: -1;
+  border-radius: 46% 54% 40% 60% / 52% 44% 56% 48%;
+  background: rgba(203, 219, 255, 0.5); filter: blur(2px);
+}
+.epr {
+  position: relative; width: 100%; height: auto; overflow: visible;
+  cursor: pointer; user-select: none;
+  filter: drop-shadow(0 18px 24px rgba(76, 121, 210, 0.16));
+}
+.epr-body { transform-box: fill-box; transform-origin: center bottom; }
+.epr-glass { fill: rgba(255, 255, 255, 0.88); stroke: url(#eprRob); stroke-width: 9;
+  stroke-linejoin: round; }
+.epr-inner { fill: none; stroke: rgba(255, 255, 255, 0.95); stroke-width: 4; }
+.epr-liquid { fill: url(#eprTek); }
+.epr-shine { fill: none; stroke: rgba(255, 255, 255, 0.95); stroke-width: 9;
+  stroke-linecap: round; }
+.epr-eyeball { fill: #111936; transform-box: fill-box; transform-origin: center; }
+.epr-shine2 { fill: #fff; }
+.epr-cheek { fill: #ffb9d0; opacity: 0.76; }
+.epr-mouth { fill: none; stroke: #111936; stroke-width: 5.5; stroke-linecap: round;
+  stroke-linejoin: round; }
+.epr-brow { fill: none; stroke: #111936; stroke-width: 5; stroke-linecap: round; opacity: 0; }
+.epr-bubble { fill: rgba(255, 255, 255, 0.62); stroke: #9bbaff; stroke-width: 4; opacity: 0; }
+.epr-sparkle { fill: none; stroke: #5d8fff; stroke-width: 4; stroke-linecap: round;
+  opacity: 0.85; }
+
+/* Okras s predloge: mrezice pik in dve zvezdici. */
+.viz-pika {
+  position: absolute; width: 96px; height: 76px; pointer-events: none;
+  background-image: radial-gradient(circle, rgba(120, 150, 230, 0.5) 1.6px, transparent 1.7px);
+  background-size: 16px 16px; opacity: 0.7;
+}
+.viz-pika.meta { right: -10px; bottom: -14px; z-index: -1; }
+.viz-pika.bl { bottom: 10px; left: 6px; width: 78px; height: 58px; }
+.viz-zvezda {
+  position: absolute; color: #7ea3ff; pointer-events: none;
+  animation: vizUtrip 3.6s ease-in-out infinite;
+}
+.viz-zvezda.a { top: 12%; left: 2%; font-size: 22px; }
+.viz-zvezda.b { top: 20%; left: 6.5%; font-size: 13px; animation-delay: 1.2s; }
+@keyframes vizUtrip {
+  0%, 100% { opacity: 0.35; transform: scale(0.9); }
+  50% { opacity: 0.9; transform: scale(1.06); }
+}
+
+:root[data-theme="dark"] .viz-sheet {
+  background:
+    radial-gradient(58% 46% at 78% 76%, rgba(80, 110, 190, 0.3), transparent 72%),
+    radial-gradient(46% 40% at 14% 16%, rgba(150, 100, 170, 0.24), transparent 74%),
+    rgba(245, 247, 255, 0.94);
+}
+:root[data-theme="dark"] .viz-btn { color: #1b1f27; }
+
+@media (max-width: 940px) {
+  .viz-dno { flex-direction: column-reverse; align-items: center; }
+  .viz-ascii canvas { max-width: 100%; }
+  .viz-epruveta { width: clamp(130px, 34vw, 190px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .duh, .viz-zvezda { animation: none; }
+  .viz-okras { display: none; }
+}
+
+/* Osvezitev ze videnega pogleda: stara vsebina ostane in se rahlo zamegli.
+   Skeleton je samo za prvi obisk -- sicer je vsaka menjava izgledala, kot da
+   se plosca nalaga od zacetka. */
+#main.nalaga { filter: blur(3px) saturate(0.9); opacity: 0.55;
+  transition: filter 260ms var(--ease), opacity 260ms var(--ease);
+  pointer-events: none; }
+
+/* Nalaganje: kolo se vrti, dokler ni vse pripravljeno. Skeleton je posnemal
+   postavitev, ki je se ni bilo, in je bilo videti, kot da se stran vsakic
+   gradi znova. */
+.nalaganje {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; min-height: 46vh; color: var(--faint); font-size: 12.5px;
+  letter-spacing: 0.04em;
+}
+/* Sled meritve namesto vrtecega kolesa: kolo je znak katerekoli aplikacije,
+   to pa je znak TE aplikacije. Val je iz pik (brajeve celice), ki se polnijo
+   od spodaj navzgor -- vsak stolpec je kupcek pik in ne stolpec grafa. */
+.nal-trak {
+  margin: 0; font-family: var(--mono); font-size: 15px; line-height: 1;
+  letter-spacing: 2px; color: var(--accent); white-space: pre;
+  filter: drop-shadow(0 0 10px var(--accent-soft));
+}
+body.no-anim .nal-trak { filter: none; }
+
+/* Nevarno dejanje: rdeca je sicer rezervirana za alarme, tu pa gre za enako
+   resno stvar -- nepovraten izbris. Gumb je zato rdec, kartica pa ima rdec
+   levi rob, da se loci od nastavitev nad njo. */
+.card.nevarno { border-color: rgba(217, 64, 58, 0.28); border-left: 3px solid var(--alert); }
+.btn.nevaren { background: var(--alert); border-color: var(--alert); color: #fff; }
+.btn.nevaren:hover { filter: brightness(1.06); }
+.btn.nevaren:disabled { opacity: 0.45; cursor: not-allowed; filter: none; }
+
+/* Izvoz in uvoz baze: gumba v isti vrsti, ime izbrane datoteke ob njiju. */
+.db-vrsta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.db-vrsta label.btn { cursor: pointer; }
+
+/* ---------- Namizno okno ---------- */
+/* Sistemska vrstica je bila edini del zaslona, ki ni bil nas. V namizni
+   aplikaciji je okno brez okvirja, glava pa prevzame njeno vlogo: za njo se
+   okno vlece, na desni so trije gumbi v nasem slogu. */
+:root[data-namizje] .topbar { -webkit-user-select: none; user-select: none; }
+.ok-gumbi { display: flex; align-items: center; gap: 2px; margin-left: 6px; }
+.ok-g {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 26px; border: 0; border-radius: 7px; background: none;
+  color: var(--muted); cursor: pointer;
+  transition: background var(--t-fast) var(--ease), color var(--t-fast) var(--ease);
+}
+.ok-g svg { width: 12px; height: 12px; }
+.ok-g:hover { background: rgba(20, 25, 35, 0.07); color: var(--ink); }
+.ok-g.close:hover { background: var(--alert); color: #fff; }
+:root[data-theme="dark"] .ok-g:hover { background: rgba(255, 255, 255, 0.1); }
+/* gumbi ne smejo vleci okna */
+.ok-gumbi, .ok-g { -webkit-app-region: no-drag; }
+
+/* ---------- Pripete meritve (pogled v preteklost) ---------- */
+.mini { position: relative; cursor: pointer; }
+/* Bucika caka pri robu in se pokaze sele ob hoverju: sicer bi sedemnajst
+   ikon vabilo na klik, ki ga nihce ni nameraval. */
+.mpin {
+  position: absolute; top: 8px; right: 8px; width: 13px; height: 13px;
+  color: var(--faint); opacity: 0; transform: rotate(-18deg) scale(0.8);
+  transition: opacity var(--t-fast) var(--ease), transform var(--t-med) var(--spring),
+              color var(--t-fast) var(--ease);
+  pointer-events: none;
+}
+.mini:hover .mpin { opacity: 0.75; transform: rotate(0deg) scale(1); }
+.mini:hover { border-color: var(--hairline-2); }
+
+.mini.pripeta .mpin { opacity: 1; color: var(--accent); transform: rotate(0deg) scale(1); }
+.mini.pripeta {
+  border-color: rgba(90, 143, 230, 0.34);
+  background:
+    linear-gradient(180deg, var(--accent-soft), transparent 60%),
+    var(--glass-heavy);
+  box-shadow: 0 0 0 1px rgba(90, 143, 230, 0.09), var(--shadow-1);
+}
+/* Pripete stojijo NAD panelom in v svoji vrsti -- menjava strani se jih ne
+   dotakne, ker niso v istem elementu, ki se animira. */
+.mini-grid.pripete { margin-bottom: 10px; }
+.mini-grid.pripete::after {
+  content: ""; grid-column: 1 / -1; height: 1px; margin-top: 2px;
+  background: linear-gradient(90deg, var(--hairline-2), transparent 65%);
+}
+.snap-stage[hidden] { display: none; }
+
+
+/* ================= Časovna os (Eventi) ================= */
+.tl-karta { padding: 0; overflow: visible; position: relative; }
+.tl-glava { display: flex; align-items: center; gap: 12px; padding: 14px 18px 11px; flex-wrap: wrap; }
+.tl-glava h3 { margin: 0; font-size: 15px; font-weight: 620; letter-spacing: -0.012em; }
+.tl-stevec { font-size: 12px; }
+.tl-gumbi { margin-left: auto; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.tl-gumbi .btn { padding: 5px 11px; font-size: 12px; }
+.tl-gumbi .dd-btn { padding: 5px 10px; font-size: 12px; }
+.tl-nazaj, .tl-naprej { font-size: 15px !important; padding: 3px 10px !important; line-height: 1.2; }
+.tl-isci-gumb { display: inline-flex; align-items: center; gap: 6px; }
+.tl-isci-gumb svg { width: 13px; height: 13px; }
+
+.tl-polje {
+  position: relative; height: 276px; overflow: hidden;
+  cursor: grab; touch-action: none;
+  border-top: 1px solid var(--hairline);
+  background:
+    linear-gradient(90deg, var(--glass-heavy), transparent 7%, transparent 93%, var(--glass-heavy)),
+    radial-gradient(130% 90% at 50% 0%, rgba(90, 143, 230, 0.055), transparent 72%);
+}
+.tl-polje.vlecem { cursor: grabbing; }
+.tl-trak { position: absolute; inset: 18px 0 50px 0; }
+.tl-crta {
+  position: absolute; left: 0; right: 0; bottom: 46px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--hairline-2) 6%,
+              var(--hairline-2) 94%, transparent);
+}
+.tl-os { position: absolute; left: 0; right: 0; bottom: 12px; height: 30px; }
+.tl-oznaka {
+  position: absolute; top: 6px; transform: translateX(-50%);
+  font: 500 11px/1 var(--mono); color: var(--faint); white-space: nowrap;
+}
+.tl-oznaka::before {
+  content: ""; position: absolute; left: 50%; top: -14px;
+  width: 1px; height: 9px; background: var(--hairline-2);
+}
+.tl-oznaka.dan { color: var(--muted); font-weight: 700; }
+.tl-oznaka.dan::before { height: 16px; top: -21px; }
+/* sedanjost: os se tu konča */
+.tl-zdaj-crta {
+  position: absolute; top: -196px; bottom: 8px; width: 1px;
+  background: linear-gradient(180deg, transparent, var(--accent) 14%, var(--accent) 86%, transparent);
+  opacity: 0.42;
+}
+.tl-zdaj-crta::after {
+  content: ""; position: absolute; left: -2.5px; top: 0; width: 6px; height: 6px;
+  border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent);
+}
+
+/* --- enota: kartica ali gruča --- */
+.tl-k, .tl-g {
+  position: absolute; top: 0; left: 0;
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 8px 11px; text-align: left;
+  border: 1px solid var(--hairline); border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.16)),
+    var(--glass-heavy);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-1);
+  color: inherit; font: inherit; cursor: pointer;
+  overflow: hidden; will-change: translate, scale;
+  transition: box-shadow var(--t-med) var(--ease), border-color var(--t-med) var(--ease),
+              width var(--t-slow) var(--spring), padding var(--t-med) var(--ease),
+              border-radius var(--t-med) var(--ease), opacity var(--t-med) var(--ease);
+}
+.tl-k { width: 168px; }
+.tl-k:hover, .tl-g:hover { box-shadow: var(--shadow-2); border-color: var(--hairline-2); z-index: 6; }
+.tl-k:focus-visible, .tl-g:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tl-val {
+  position: absolute; inset: -40%; margin: auto; width: 180%; aspect-ratio: 1;
+  border-radius: 50%; opacity: 0; pointer-events: none;
+  background: radial-gradient(circle, var(--accent-soft) 0%,
+              rgba(90, 143, 230, 0.06) 45%, transparent 70%);
+}
+.tl-pika { width: 7px; height: 7px; border-radius: 50%; flex: none; margin-top: 4px; background: var(--faint); }
+.warning .tl-pika { background: var(--warn); }
+.alert .tl-pika { background: var(--alert); }
+.tl-k.alert, .tl-g.alert { border-color: rgba(217, 64, 58, 0.32); }
+.tl-k.warning, .tl-g.warning { border-color: rgba(173, 104, 0, 0.28); }
+
+.tl-vsebina { min-width: 0; display: flex; flex-direction: column; gap: 1px;
+  transition: opacity var(--t-med) var(--ease); }
+.tl-ime { font-size: 12.5px; font-weight: 620; letter-spacing: -0.012em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tl-cas { font: 500 11px/1.35 var(--mono); color: var(--muted);
+  transition: max-height var(--t-med) var(--ease), opacity var(--t-med) var(--ease); }
+
+/* Podrobnosti pridejo na HOVER, ne šele na klik -- prej jih je bilo treba
+   iskati z drugim dejanjem. */
+.tl-vec {
+  max-height: 0; opacity: 0; overflow: hidden;
+  transition: max-height var(--t-slow) var(--ease), opacity var(--t-med) var(--ease),
+              margin-top var(--t-med) var(--ease);
+}
+.tl-vrstice { display: flex; flex-direction: column; gap: 2px; }
+.tl-vr { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; }
+.tl-vr b { font-weight: 500; color: var(--faint); }
+.tl-vr i { font-style: normal; font-family: var(--mono); color: var(--ink); }
+.tl-zakaj { display: block; margin-top: 5px; font-size: 11px; line-height: 1.45; color: var(--muted); }
+
+/* --- stopnje podrobnosti glede na bližino kazalca --- */
+.tl-k.st-pika, .tl-g.st-pika {
+  width: 14px; height: 14px; padding: 0; border-radius: 50%;
+  box-shadow: none; border-color: var(--hairline-2);
+}
+.tl-k.st-pika .tl-vsebina, .tl-g.st-pika .tl-g-sestava { opacity: 0; }
+.tl-k.st-pika .tl-pika { position: absolute; inset: 0; margin: auto; width: 6px; height: 6px; }
+.tl-k.st-pika.alert { background: var(--alert-bg); border-color: rgba(217, 64, 58, 0.45); }
+.tl-k.st-pika.warning { background: var(--warn-bg); border-color: rgba(173, 104, 0, 0.4); }
+.tl-k.st-ime { width: auto; max-width: 140px; padding: 5px 10px; border-radius: 11px; }
+.tl-k.st-ime .tl-cas { max-height: 0; opacity: 0; }
+.tl-k.st-ime .tl-ime { font-size: 11.5px; }
+.tl-k.st-polna:hover, .tl-k.odprt { width: 218px; z-index: 7; }
+.tl-k.st-polna:hover .tl-vec, .tl-k.odprt .tl-vec { max-height: 132px; opacity: 1; margin-top: 6px; }
+.tl-k.st-polna:hover .tl-ime, .tl-k.odprt .tl-ime { white-space: normal; }
+.tl-k.odprt { box-shadow: var(--shadow-2); border-color: var(--accent); }
+
+/* --- gruča: število -> sestava -> seznam --- */
+.tl-g { align-items: center; gap: 7px; border-radius: 999px; padding: 6px 12px 6px 8px; }
+.tl-g-st {
+  flex: none; min-width: 24px; height: 20px; padding: 0 7px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 999px; font: 700 11.5px/1 var(--font); color: #fff;
+  background: var(--faint);
+}
+.tl-g.warning .tl-g-st { background: var(--warn); }
+.tl-g.alert .tl-g-st { background: var(--alert); }
+.tl-g-sestava {
+  font-size: 11.5px; color: var(--muted); white-space: nowrap;
+  transition: opacity var(--t-med) var(--ease);
+}
+.tl-g.st-pika { width: 26px; height: 20px; border-radius: 999px; padding: 0; }
+.tl-g.st-pika .tl-g-st { position: absolute; inset: 0; margin: auto; min-width: 0; width: 100%; }
+.tl-g.st-ime, .tl-g.st-polna { width: auto; }
+
+.tl-g-plosca {
+  position: absolute; top: 14px; z-index: 20; width: 258px;
+  border: 1px solid var(--hairline-2); border-radius: 16px;
+  background: var(--glass-heavy);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-2); overflow: hidden;
+}
+.tl-g-glava { padding: 10px 13px; font-size: 11.5px; color: var(--muted);
+  border-bottom: 1px solid var(--hairline); font-family: var(--mono); }
+.tl-g-seznam { max-height: 168px; overflow-y: auto; }
+.tl-g-vr {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 7px 13px; border: 0; background: none; cursor: pointer;
+  font: inherit; color: inherit; text-align: left;
+  transition: background-color var(--t-fast) var(--ease);
+}
+.tl-g-vr:hover, .tl-g-vr.on { background: var(--accent-soft); }
+.tl-g-ime { flex: 1; font-size: 12px; font-weight: 550; }
+.tl-g-cas { font: 500 11px/1 var(--mono); color: var(--faint); }
+.tl-g-info { padding: 10px 13px; border-top: 1px solid var(--hairline); }
+
+/* --- pas odgovora --- */
+.tl-okno {
+  position: absolute; top: 0; bottom: 46px; z-index: 0; pointer-events: none;
+  border-left: 1px solid rgba(90, 143, 230, 0.42);
+  border-right: 1px solid rgba(90, 143, 230, 0.42);
+  background: linear-gradient(180deg, rgba(90, 143, 230, 0.1), rgba(90, 143, 230, 0.03));
+}
+
+/* --- paleta: čez OS, ne čez zaslon --- */
+.tl-paleta {
+  position: fixed; inset: 0; z-index: 60;
+  display: flex; justify-content: center;
+  padding-top: var(--tl-vrh, 120px);
+  background: rgba(238, 240, 244, 0.55);
+  -webkit-backdrop-filter: blur(9px) saturate(1.2); backdrop-filter: blur(9px) saturate(1.2);
+}
+.tl-p-okvir {
+  width: min(560px, calc(100% - 40px)); align-self: flex-start;
+  border: 1px solid var(--hairline-2); border-radius: 17px;
+  background: var(--glass-heavy);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-2); overflow: hidden;
+}
+.tl-p-vrh { display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+  border-bottom: 1px solid var(--hairline); }
+.tl-p-vrh svg { width: 15px; height: 15px; color: var(--faint); flex: none; }
+.tl-p-vrh input { flex: 1; min-width: 0; border: 0; background: none; outline: none;
+  font: inherit; font-size: 14px; color: var(--ink); }
+.tl-p-esc { font: 600 10px/1 var(--mono); color: var(--faint); cursor: pointer;
+  padding: 4px 6px; border: 1px solid var(--hairline-2); border-radius: 6px; }
+.tl-p-telo { padding: 13px 15px; }
+.tl-p-namig { font-size: 12px; color: var(--muted); }
+.tl-p-odg { display: flex; flex-direction: column; gap: 5px; padding-left: 11px;
+  border-left: 2px solid var(--hairline-2); }
+/* verdikt obarva rob, ne ozadja: rdeča ostane samo za alarme */
+.tl-p-odg.v-da { border-left-color: var(--warn); }
+.tl-p-odg.v-ne { border-left-color: var(--ok); }
+.tl-p-glava { font-size: 14px; font-weight: 620; letter-spacing: -0.012em; }
+.tl-p-vec { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+.tl-p-okno { font: 500 11px/1 var(--mono); color: var(--faint); }
+.tl-p-nasl { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+.tl-cip {
+  padding: 5px 11px; border-radius: 999px; font-size: 11.5px;
+  border: 1px solid var(--hairline-2); background: var(--glass-heavy);
+  color: var(--muted); cursor: pointer;
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
+              scale var(--t-med) var(--spring);
+}
+.tl-cip:hover { color: var(--ink); border-color: var(--accent); scale: 1.05; }
+
+.tl-namig { padding: 9px 18px 13px; font-size: 11.5px; border-top: 1px solid var(--hairline); }
+.tl-namig kbd { font: 600 10px/1 var(--mono); padding: 2px 5px; border-radius: 5px;
+  border: 1px solid var(--hairline-2); background: var(--glass-heavy); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tl-k, .tl-g, .tl-vec, .tl-cip { transition: none; }
+  .tl-val { display: none; }
+}
+
+/* zadetek iskanja: enota zasveti, ostalo ostane, kot je */
+.tl-k.zadetek, .tl-g.zadetek {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft), 0 0 22px rgba(90, 143, 230, 0.35), var(--shadow-2);
+  z-index: 8;
+}
+.tl-p-stevec { margin-left: auto; font: 500 11px/1 var(--mono); white-space: nowrap; }
+.tl-p-dokazi { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; }
+.tl-p-dokazi i { font-style: normal; font: 500 11px/1.5 var(--mono); color: var(--muted); }
+
+/* seznam VSEH zadetkov -- glava imenuje enega, tu so vsi */
+.tl-p-seznam {
+  margin-top: 11px; max-height: 190px; overflow-y: auto;
+  border: 1px solid var(--hairline); border-radius: 12px;
+}
+.tl-p-vr {
+  display: flex; align-items: center; gap: 9px; width: 100%;
+  padding: 7px 11px; border: 0; background: none; cursor: pointer;
+  font: inherit; color: inherit; text-align: left;
+  border-bottom: 1px solid var(--hairline);
+  transition: background-color var(--t-fast) var(--ease);
+}
+.tl-p-vr:last-child { border-bottom: 0; }
+.tl-p-vr:hover { background: var(--accent-soft); }
+.tl-p-vr .tl-pika { margin-top: 0; }
+.tl-p-vr .tl-pika.alert { background: var(--alert); }
+.tl-p-dan { font-size: 12px; font-weight: 600; min-width: 74px; }
+.tl-p-ura { font: 500 11.5px/1 var(--mono); color: var(--muted); }
+.tl-p-kaj { margin-left: auto; font-size: 11.5px; color: var(--faint); }
+.tl-p-nav { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+.tl-p-pusc {
+  border: 1px solid var(--hairline-2); background: var(--glass-heavy);
+  border-radius: 7px; width: 22px; height: 22px; line-height: 1;
+  color: var(--muted); cursor: pointer; font-size: 14px;
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.tl-p-pusc:hover { color: var(--ink); border-color: var(--accent); }
+.tl-p-vr.na-vrsti { background: var(--accent-soft); box-shadow: inset 2px 0 0 var(--accent); }
+
+/* --- paleta se po odgovoru umakne z osi --- */
+
+.tl-paleta.odgovor .tl-p-okvir {
+  pointer-events: auto; width: min(460px, calc(100% - 28px));
+  box-shadow: 0 10px 44px rgba(16, 24, 40, 0.2);
+}
+
+/* --- gruca: seznam <-> opis dogodka --- */
+.tl-g-glava.opis { display: flex; align-items: center; gap: 9px; padding: 9px 12px; }
+.tl-g-nazaj {
+  flex: none; width: 24px; height: 24px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--hairline-2); background: var(--glass-heavy);
+  color: var(--muted); cursor: pointer; padding: 0;
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease),
+              scale var(--t-med) var(--spring);
+}
+.tl-g-nazaj svg { width: 13px; height: 13px; }
+.tl-g-nazaj:hover { color: var(--ink); border-color: var(--accent); scale: 1.08; }
+.tl-g-naslov {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--font); font-size: 12.5px; font-weight: 620; color: var(--ink);
+}
+.tl-g-naslov .tl-pika { margin-top: 0; }
+.tl-g-glava.opis .tl-g-cas { margin-left: auto; }
+.tl-g-telo { padding: 11px 13px 12px; }
+.tl-g-vrni {
+  margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--hairline);
+  font-size: 11px; color: var(--faint);
+}
+
+/* --- gruca: pripenjanje in zapiranje --- */
+.tl-g-glava { display: flex; align-items: center; gap: 6px; }
+.tl-g-glava > span { flex: 1; min-width: 0; }
+.tl-g-pin, .tl-g-zapri {
+  flex: none; width: 21px; height: 21px; padding: 0; border-radius: 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid transparent; background: none; color: var(--faint);
+  cursor: pointer; font-size: 14px; line-height: 1;
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+.tl-g-pin svg { width: 11px; height: 11px; }
+.tl-g-pin:hover, .tl-g-zapri:hover { color: var(--ink); border-color: var(--hairline-2); }
+.tl-g-plosca[data-pin] { border-color: rgba(90, 143, 230, 0.4); }
+.tl-g-plosca[data-pin] .tl-g-pin, .tl-g-pin.on { color: var(--accent); }
+.tl-g-plosca[data-pin]::before {
+  content: ""; position: absolute; inset: 0; border-radius: 16px; pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(90, 143, 230, 0.18);
+}

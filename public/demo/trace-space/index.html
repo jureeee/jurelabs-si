@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="sl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Trace Space – demo</title>
+    <meta name="robots" content="noindex" />
+    <meta name="color-scheme" content="light dark" />
+    <link
+      rel="stylesheet"
+      href="static/v2/style.css"
+    />
+    <link rel="icon" href="static/v2/img/ikona-192.png" />
+    <link rel="apple-touch-icon" href="static/v2/img/ikona-192.png" />
+    <meta name="theme-color" content="#5a8fe6" />
+    <meta name="application-name" content="Trace Space" />
+    <script>
+      // Zgodnja uveljavitev teme/barve iz prefs -> brez utripa ob nalaganju.
+      try {
+        var p = JSON.parse(localStorage.getItem("halo-prefs") || "{}");
+        var t = p.theme || "light";
+        if (t === "auto") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        document.documentElement.dataset.theme = t;
+        var A = { blue: "#5a8fe6", indigo: "#7b7fe0", lavender: "#9782e8", rose: "#e37ba8", coral: "#ef8b74", apricot: "#e8934a", mint: "#48ae83", sage: "#86a97b", graphite: "#7c8598" };
+        if (p.accent && A[p.accent]) document.documentElement.style.setProperty("--accent", A[p.accent]);
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div class="bg-stage" aria-hidden="true"></div>
+    <div id="app" aria-busy="true">
+      <div class="boot">Nalagam…</div>
+    </div>
+    <script src="demo.js"></script>
+    <script
+      type="module"
+      src="static/v2/app.js"
+    ></script>
+    <!-- EKSPERIMENT: pravi liquid glass (refrakcija), izklopljen privzeto -->
+    <script src="static/v2/liquidglass.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#eef2fb"/><stop offset="1" stop-color="#e6e9f7"/></linearGradient>
+    <radialGradient id="s" cx=".5" cy=".42" r=".5"><stop offset="0" stop-color="#5a8fe6" stop-opacity=".35"/><stop offset="1" stop-color="#5a8fe6" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="640" height="360" rx="22" fill="url(#g)"/>
+  <circle cx="320" cy="150" r="120" fill="url(#s)"/>
+  <circle cx="320" cy="150" r="54" fill="#fff" stroke="#c9d3ea" stroke-width="2"/>
+  <circle cx="320" cy="150" r="30" fill="none" stroke="#5a8fe6" stroke-width="3" stroke-dasharray="4 7"/>
+  <circle cx="320" cy="150" r="8" fill="#5a8fe6"/>
+  <text x="320" y="258" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="19" font-weight="600" fill="#2b3350">HALO 3C · živi prikaz senzorja</text>
+  <text x="320" y="286" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="14" fill="#6b7390">V predstavitveni različici ni povezave z napravo.</text>
+</svg>
