@@ -27,6 +27,22 @@ const IKONA_OSEBA =
 const IKONA_MREZA =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>';
 
+const svg = (vsebina) =>
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${vsebina}</svg>`;
+const IKONA_OKNO = svg('<rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="M3.5 9h17M7 7h.01M9.5 7h.01"/>');
+const IKONA_SLIKA = svg('<rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="m20 16-4.5-4.5L7 19"/>');
+const IKONA_POSTA = svg('<rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="m4 7 8 6 8-6"/>');
+const IKONA_POVEZAVA = svg('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>');
+const IKONA_SVET = svg('<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.4 3.4 5.2 3.4 8.5s-1 6.1-3.4 8.5c-2.4-2.4-3.4-5.2-3.4-8.5s1-6.1 3.4-8.5z"/>');
+const IKONA_RAZSIRI = svg('<path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/>');
+const IKONA_SKRCI = svg('<path d="M9 4v4a1 1 0 0 1-1 1H4M20 9h-4a1 1 0 0 1-1-1V4M15 20v-4a1 1 0 0 1 1-1h4M4 15h4a1 1 0 0 1 1 1v4"/>');
+const IKONE_STRANI = {
+  arhiv: svg('<rect x="3.5" y="4.5" width="17" height="4.5" rx="1.2"/><path d="M5 9v9.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9M10 13h4"/>'),
+  delo: svg('<rect x="3.5" y="7.5" width="17" height="12" rx="2"/><path d="M9 7.5V6a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 6v1.5M3.5 12.5h17"/>'),
+  omeni: svg('<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/>'),
+  stik: svg('<path d="M20 15.5a2 2 0 0 1-2 2H8l-4 3.5V6.5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/>'),
+};
+
 /** @param {{odpri: () => void}} profil @param {{odpri: () => void}} plosca */
 export function installContextMenu(profil, plosca) {
   const meni = document.createElement("div");
@@ -36,24 +52,81 @@ export function installContextMenu(profil, plosca) {
   const vrstica = (ime, ikona, opravilo) => ({ ime, ikona, opravilo });
   const locnica = "locnica";
 
-  /** Vsebina se ravna po tem, kam si kliknil. */
-  function vrsticeZa(cilj) {
+  const kopiraj = (besedilo) => navigator.clipboard?.writeText(besedilo);
+  const celZaslon = () => !!document.fullscreenElement;
+
+  /** Dejanja za tisto, kar je pod kazalcem - pridejo na vrh menija. */
+  function vrsticeCilja(cilj) {
+    const izbrano = String(getSelection() ?? "").trim();
+    if (izbrano) {
+      return [vrstica(t("kmeni.kopirajBesedilo", "Kopiraj"), IKONA_KOPIRAJ, () => kopiraj(izbrano))];
+    }
+
     const polje = cilj?.closest?.(".prof-polje");
     if (polje) {
       const url = polje.dataset.url;
       return [
         vrstica(t("kmeni.novZavihek", "Odpri v novem zavihku"), IKONA_ZUNAJ, () => window.open(url, "_blank", "noopener")),
-        vrstica(t("kmeni.kopiraj", "Kopiraj naslov"), IKONA_KOPIRAJ, () =>
-          navigator.clipboard?.writeText(new URL(url, location.href).href)
-        ),
-        locnica,
-        vrstica(t("kmeni.nastavitve", "Nastavitve"), IKONA_ZOBNIK, () => plosca.odpri()),
+        vrstica(t("kmeni.kopiraj", "Kopiraj naslov"), IKONA_KOPIRAJ, () => kopiraj(new URL(url, location.href).href)),
       ];
     }
+
+    const aplikacija = cilj?.closest?.(".zapis-odpri");
+    if (aplikacija) {
+      return [
+        vrstica(t("zapis.odpri", "Odpri aplikacijo"), IKONA_OKNO, () => aplikacija.click()),
+        vrstica(t("kmeni.novZavihek", "Odpri v novem zavihku"), IKONA_ZUNAJ, () =>
+          window.open(aplikacija.dataset.aplikacija, "_blank", "noopener")
+        ),
+      ];
+    }
+
+    const slika = cilj?.closest?.(".zapis-slika")?.querySelector("img");
+    if (slika) {
+      return [
+        vrstica(t("kmeni.odpriSliko", "Odpri sliko"), IKONA_SLIKA, () => slika.click()),
+        vrstica(t("kmeni.kopirajSliko", "Kopiraj naslov slike"), IKONA_KOPIRAJ, () => kopiraj(slika.currentSrc || slika.src)),
+      ];
+    }
+
+    const povezava = cilj?.closest?.("a[href]");
+    if (povezava) {
+      if (povezava.href.startsWith("mailto:")) {
+        const naslov = decodeURIComponent(povezava.href.slice(7).split("?")[0]);
+        return [vrstica(t("kmeni.kopirajEposto", "Kopiraj e-poštni naslov"), IKONA_POSTA, () => kopiraj(naslov))];
+      }
+      return [
+        vrstica(t("kmeni.novZavihek", "Odpri v novem zavihku"), IKONA_ZUNAJ, () => window.open(povezava.href, "_blank", "noopener")),
+        vrstica(t("kmeni.kopirajPovezavo", "Kopiraj povezavo"), IKONA_POVEZAVA, () => kopiraj(povezava.href)),
+      ];
+    }
+    return [];
+  }
+
+  /** Vsebina se ravna po tem, kam si kliknil. */
+  function vrsticeZa(cilj) {
+    const zgoraj = vrsticeCilja(cilj);
+
+    // Strani po zavihkih v meniju - napis vzamemo z gumba, da je ze preveden.
+    const strani = [...document.querySelectorAll('.nav [role="tab"][data-stran]')].map((z) =>
+      vrstica(z.textContent.trim(), IKONE_STRANI[z.dataset.stran] ?? IKONA_MREZA, () => z.click())
+    );
+
     return [
+      ...zgoraj,
+      ...(zgoraj.length ? [locnica] : []),
+      ...strani,
+      locnica,
       vrstica(t("kmeni.profil", "Profil"), IKONA_OSEBA, () => profil.odpri()),
       vrstica(t("kmeni.nastavitve", "Nastavitve"), IKONA_ZOBNIK, () => plosca.odpri()),
+      vrstica(t("kmeni.jezik", "Jezik"), IKONA_SVET, () => document.querySelector(".jez")?.click()),
       locnica,
+      vrstica(t("kmeni.kopirajStran", "Kopiraj povezavo do strani"), IKONA_POVEZAVA, () => kopiraj(location.href)),
+      celZaslon()
+        ? vrstica(t("kmeni.izhodCelozaslonsko", "Zapusti celozaslonski način"), IKONA_SKRCI, () => document.exitFullscreen?.())
+        : vrstica(t("kmeni.celozaslonsko", "Celozaslonski način"), IKONA_RAZSIRI, () =>
+            document.documentElement.requestFullscreen?.()
+          ),
       vrstica(t("kmeni.ponastavi", "Ponastavi pogled"), IKONA_MREZA, () => {
         nastavitve.ozadje = "galaksija";
         document.dispatchEvent(new CustomEvent("nast-sprememba", { bubbles: true }));
@@ -101,9 +174,9 @@ export function installContextMenu(profil, plosca) {
     const navzgor = e.clientY + v + 14 > window.innerHeight && e.clientY > v + 14;
     const levo = e.clientX + s + 14 > window.innerWidth;
 
-    const prostor = navzgor ? e.clientY - 14 : window.innerHeight - e.clientY - 14;
-    meni.style.maxHeight = `${Math.max(140, Math.min(v, prostor))}px`;
-    meni.style.top = `${navzgor ? Math.max(12, e.clientY - v) : e.clientY}px`;
+    // Ce ne gre ne gor ne dol, ga potisnemo navzgor, kolikor je treba, da ostane ves na zaslonu.
+    const zgoraj = navzgor ? e.clientY - v : Math.min(e.clientY, window.innerHeight - v - 12);
+    meni.style.top = `${Math.max(12, zgoraj)}px`;
     meni.style.left = `${levo ? Math.max(12, e.clientX - s) : e.clientX}px`;
     meni.style.transformOrigin = `${navzgor ? "bottom" : "top"} ${levo ? "right" : "left"}`;
     meni.style.visibility = "";
