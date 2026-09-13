@@ -48,6 +48,7 @@ export default {
   "zapis.prejsnja": "Forrige",
   "zapis.naslednja": "Neste",
   "zapis.odpri": "Åpne appen",
+  "zapis.seVec": "og mer",
   "aplikacija.demo": "Demoversjon · dataene er oppdiktet",
   "aplikacija.zavihek": "Åpne i ny fane",
   "aplikacija.zapri": "Lukk appen",

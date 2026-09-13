@@ -54,10 +54,18 @@ export function sprostiOdprto(api) {
   if (odprta === api) odprta = null;
 }
 
-const znacke = (seznam) =>
+/**
+ * Znacke. Pri skupinah orodij je na koncu se znacka s tremi pikami - seznam ni
+ * popoln in naj ne izgleda, kot da je.
+ */
+const znacke = (seznam, seVec = false) =>
   `<div class="zapis-znacke">${seznam
     .map((z) => `<span class="zapis-znacka dg">${z}</span>`)
-    .join("")}</div>`;
+    .join("")}${
+    seVec
+      ? `<span class="zapis-znacka zapis-vec dg" role="img" aria-label="${t("zapis.seVec", "in še več")}" title="${t("zapis.seVec", "in še več")}"><i></i><i></i><i></i></span>`
+      : ""
+  }</div>`;
 
 /** Naslovi lomijo vrstico z \n, ker je to v vsebini berljivejse od <br>. */
 const naslovHtml = (t) => t.replace(/\n/g, "<br>");
@@ -114,7 +122,7 @@ function odsekHtml(o, slika) {
 
   if (o.tip === "skupine") {
     const stolpci = Object.entries(o.skupine)
-      .map(([ime, seznam]) => `<div class="zapis-skupina"><h3>${ime}</h3>${znacke(seznam)}</div>`)
+      .map(([ime, seznam]) => `<div class="zapis-skupina"><h3>${ime}</h3>${znacke(seznam, true)}</div>`)
       .join("");
     return `<section class="odsek zapis-orodja">${oznaka}
       <div class="zapis-stolpci">${stolpci}</div></section>`;

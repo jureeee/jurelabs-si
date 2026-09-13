@@ -48,6 +48,7 @@ export default {
   "zapis.prejsnja": "السابقة",
   "zapis.naslednja": "التالية",
   "zapis.odpri": "فتح التطبيق",
+  "zapis.seVec": "والمزيد",
   "aplikacija.demo": "نسخة تجريبية · البيانات مختلقة",
   "aplikacija.zavihek": "فتح في علامة تبويب جديدة",
   "aplikacija.zapri": "إغلاق التطبيق",

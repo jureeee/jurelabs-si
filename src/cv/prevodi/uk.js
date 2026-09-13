@@ -48,6 +48,7 @@ export default {
   "zapis.prejsnja": "Попередня",
   "zapis.naslednja": "Наступна",
   "zapis.odpri": "Відкрити застосунок",
+  "zapis.seVec": "та інше",
   "aplikacija.demo": "Демоверсія · дані вигадані",
   "aplikacija.zavihek": "Відкрити в новій вкладці",
   "aplikacija.zapri": "Закрити застосунок",

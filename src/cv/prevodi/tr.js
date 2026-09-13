@@ -48,6 +48,7 @@ export default {
   "zapis.prejsnja": "Önceki",
   "zapis.naslednja": "Sonraki",
   "zapis.odpri": "Uygulamayı aç",
+  "zapis.seVec": "ve dahası",
   "aplikacija.demo": "Demo sürümü · veriler uydurmadır",
   "aplikacija.zavihek": "Yeni sekmede aç",
   "aplikacija.zapri": "Uygulamayı kapat",

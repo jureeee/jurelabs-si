@@ -48,6 +48,7 @@ export default {
   "zapis.prejsnja": "Anterior",
   "zapis.naslednja": "Próxima",
   "zapis.odpri": "Abrir app",
+  "zapis.seVec": "e mais",
   "aplikacija.demo": "Versão demo · os dados são fictícios",
   "aplikacija.zavihek": "Abrir num novo separador",
   "aplikacija.zapri": "Fechar app",

@@ -48,6 +48,7 @@ export default {
   "zapis.prejsnja": "Föregående",
   "zapis.naslednja": "Nästa",
   "zapis.odpri": "Öppna appen",
+  "zapis.seVec": "och mer",
   "aplikacija.demo": "Demoversion · uppgifterna är påhittade",
   "aplikacija.zavihek": "Öppna i ny flik",
   "aplikacija.zapri": "Stäng appen",

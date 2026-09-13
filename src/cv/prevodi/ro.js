@@ -48,6 +48,7 @@ export default {
   "zapis.prejsnja": "Anterioara",
   "zapis.naslednja": "Următoarea",
   "zapis.odpri": "Deschide aplicația",
+  "zapis.seVec": "și altele",
   "aplikacija.demo": "Versiune demo · datele sunt inventate",
   "aplikacija.zavihek": "Deschide într-o filă nouă",
   "aplikacija.zapri": "Închide aplicația",

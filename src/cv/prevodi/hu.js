@@ -48,6 +48,7 @@ export default {
   "zapis.prejsnja": "Előző",
   "zapis.naslednja": "Következő",
   "zapis.odpri": "Alkalmazás megnyitása",
+  "zapis.seVec": "és még több",
   "aplikacija.demo": "Bemutató verzió · az adatok kitaláltak",
   "aplikacija.zavihek": "Megnyitás új lapon",
   "aplikacija.zapri": "Alkalmazás bezárása",

@@ -48,6 +48,7 @@ export default {
   "zapis.prejsnja": "前へ",
   "zapis.naslednja": "次へ",
   "zapis.odpri": "アプリを開く",
+  "zapis.seVec": "など",
   "aplikacija.demo": "デモ版 · データは架空です",
   "aplikacija.zavihek": "新しいタブで開く",
   "aplikacija.zapri": "アプリを閉じる",

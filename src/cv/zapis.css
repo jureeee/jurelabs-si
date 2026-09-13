@@ -136,6 +136,35 @@
 .odsek.vidno .zapis-znacka:nth-child(6) { transition-delay: 590ms; }
 .odsek.vidno .zapis-znacka:nth-child(7) { transition-delay: 640ms; }
 .odsek.vidno .zapis-znacka:nth-child(8) { transition-delay: 690ms; }
+.odsek.vidno .zapis-znacka:nth-child(9) { transition-delay: 740ms; }
+.odsek.vidno .zapis-znacka:nth-child(10) { transition-delay: 790ms; }
+
+/* "In se vec": tri pike, ki od casa do casa valovito poskocijo. */
+.zapis-vec {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: default;
+}
+/* Nevidna crka drzi visino vrstice, sicer bi bila znacka brez besedila nizja od sosed. */
+.zapis-vec::before { content: "\200b"; margin-right: -4px; }
+.zapis-vec i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.75;
+}
+.odsek.vidno .zapis-vec i { animation: zapisPika 2.8s var(--ease) 1.2s infinite; }
+.odsek.vidno .zapis-vec i:nth-child(2) { animation-delay: 1.32s; }
+.odsek.vidno .zapis-vec i:nth-child(3) { animation-delay: 1.44s; }
+@keyframes zapisPika {
+  0%, 30%, 100% { transform: none; opacity: 0.75; }
+  12% { transform: translateY(-3px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zapis-vec i { animation: none !important; }
+}
 
 .zapis-oznaka {
   font-size: 11.5px;

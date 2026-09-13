@@ -48,6 +48,7 @@ export default {
   "zapis.prejsnja": "הקודמת",
   "zapis.naslednja": "הבאה",
   "zapis.odpri": "פתיחת האפליקציה",
+  "zapis.seVec": "ועוד",
   "aplikacija.demo": "גרסת הדגמה · הנתונים בדויים",
   "aplikacija.zavihek": "פתיחה בכרטיסייה חדשה",
   "aplikacija.zapri": "סגירת האפליקציה",

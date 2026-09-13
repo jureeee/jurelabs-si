@@ -48,6 +48,7 @@ export default {
   "zapis.prejsnja": "Edellinen",
   "zapis.naslednja": "Seuraava",
   "zapis.odpri": "Avaa sovellus",
+  "zapis.seVec": "ja muuta",
   "aplikacija.demo": "Esittelyversio · tiedot ovat keksittyjä",
   "aplikacija.zavihek": "Avaa uudessa välilehdessä",
   "aplikacija.zapri": "Sulje sovellus",

@@ -48,6 +48,7 @@ export default {
   "zapis.prejsnja": "Προηγούμενη",
   "zapis.naslednja": "Επόμενη",
   "zapis.odpri": "Άνοιγμα εφαρμογής",
+  "zapis.seVec": "και άλλα",
   "aplikacija.demo": "Έκδοση επίδειξης · τα δεδομένα είναι επινοημένα",
   "aplikacija.zavihek": "Άνοιγμα σε νέα καρτέλα",
   "aplikacija.zapri": "Κλείσιμο εφαρμογής",

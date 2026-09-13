@@ -48,6 +48,7 @@ export default {
   "zapis.prejsnja": "이전",
   "zapis.naslednja": "다음",
   "zapis.odpri": "앱 열기",
+  "zapis.seVec": "그 외",
   "aplikacija.demo": "데모 버전 · 데이터는 가상입니다",
   "aplikacija.zavihek": "새 탭에서 열기",
   "aplikacija.zapri": "앱 닫기",
