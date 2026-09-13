@@ -196,7 +196,7 @@ export function installZapis(vsebina, kljuc) {
           : ""
       }
 
-      <footer class="odsek zapis-konec"><p>${v.konec}</p></footer>`;
+      <footer class="odsek zapis-konec">${v.konec ? `<p>${v.konec}</p>` : ""}</footer>`;
   }
 
   const koren = document.createElement("div");

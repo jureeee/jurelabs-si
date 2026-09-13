@@ -212,7 +212,6 @@ export default {
         },
       ],
     },
-    konec: "Still building.",
   },
 
   "vsebina.omeni": {
