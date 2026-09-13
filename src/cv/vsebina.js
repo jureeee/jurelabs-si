@@ -132,6 +132,7 @@ export const DELO = {
       },
     ],
   },
+  konec: "Vedno gradim.",
 };
 
 /** O meni: kaj me zanima, ko me za to nihce ne placuje. */
