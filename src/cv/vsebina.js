@@ -1,5 +1,6 @@
 import strojnaSlika from "../assets/zapis/strojna-programska.webp";
 import traceSpaceSlika from "../assets/zapis/trace-space.webp";
+import vantageSlika from "../assets/zapis/vantage.webp";
 
 /**
  * Besedilo strani Delo, O meni in Arhiv.
@@ -72,7 +73,9 @@ export const DELO = {
       znacke: ["Python", "React", "TypeScript", "ONVIF", "PTZ", "SSE"],
       // Pravi vmesnik aplikacije, streznik nadomescajo izmisljeni podatki.
       aplikacija: { pot: "demo/vantage/index.html", ime: "Vantage" },
-      slika: 7,
+      slika: vantageSlika,
+      // Plakat je lezec, kot pri Trace Space.
+      razmerje: "3 / 2",
     },
     {
       tip: "sirok",
