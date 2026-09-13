@@ -336,6 +336,8 @@
 }
 
 .zapis-tir {
+  /* Kartice merijo svoj offsetLeft od tira. */
+  position: relative;
   display: flex;
   gap: 26px;
   /* Zaloga na obeh straneh je pol okna minus pol kartice, zato je izbrana
@@ -436,6 +438,28 @@
 
 .zapis-konec { padding: 40px 0 min(20vh, 180px); }
 .zapis-konec p { font-size: 19px !important; color: var(--faint); }
+
+/* Pokoncen zaslon: 30vw je tu ozek trak, kartica pa postane visok stolp z
+   besedo ali dvema v vrstici. Sredinska zasede vecino sirine, sosedi le
+   pokukata z robov. */
+@media (max-aspect-ratio: 1/1), (max-width: 860px) {
+  .zapis-vrtiljak { --kartica: min(460px, 74vw); }
+  .zapis-tir { gap: 16px; }
+  .zapis-kartica {
+    min-height: 0;
+    aspect-ratio: 4 / 3;
+    padding: clamp(22px, 5vw, 32px);
+    border-radius: 24px;
+  }
+  .zapis-kartica.stran-leva,
+  .zapis-kartica.stran-leva:hover { transform: translateX(-10px) scale(0.92); }
+  .zapis-kartica.stran-desna,
+  .zapis-kartica.stran-desna:hover { transform: translateX(10px) scale(0.92); }
+}
+@media (max-width: 480px) {
+  .zapis-kartica { aspect-ratio: auto; min-height: 220px; }
+  .zapis-naslov { font-size: 20px !important; }
+}
 
 @media (max-width: 860px) {
   .zapis-par { grid-template-columns: 1fr; gap: 28px; }

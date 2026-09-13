@@ -228,12 +228,11 @@ export default {
           "responds. A screen that shows something says more than terminal output.",
       },
       {
-        oznaka: "Outside work",
-        naslov: "This site is\none of those projects too.",
+        oznaka: "What I do in my free time",
+        naslov: "I built this site\nmyself too.",
         telo:
-          "The galaxy in the background isn't an image. It's points the graphics card draws again " +
-          "every frame, with its own shader and its own glow. It started with the question of " +
-          "whether I could.",
+          "The stars in the background aren't a video. The browser draws them live from tens of " +
+          "thousands of points, so they react to your mouse. I made it to see whether I could.",
         znacke: ["Three.js", "WebGL", "Shaders", "Blender"],
       },
       {
@@ -275,24 +274,24 @@ export default {
         },
         {
           oznaka: "Patience",
-          naslov: "The eighth version.",
+          naslov: "The first version\nisn't the last.",
           telo:
-            "The first version only proves it can be done. It gets interesting once I start " +
-            "taking things away.",
+            "First I make it work. Then I keep fixing and simplifying the same thing until it's " +
+            "really good.",
         },
         {
-          oznaka: "Taste",
-          naslov: "The detail\nnobody notices.",
+          oznaka: "Precision",
+          naslov: "I care about\nthe small things.",
           telo:
-            "An animation delay, the width of a border, how something behaves at the edge of the " +
-            "screen. Together you can tell; one by one you can't.",
+            "Animation speed, border width, how the site behaves on a phone. Nobody notices them " +
+            "one by one, but together you can see the difference.",
         },
         {
           oznaka: "Measure",
-          naslov: "Done isn't\nperfect.",
+          naslov: "I know when\nit's enough.",
           telo:
-            "At some point you have to stop and show it. Otherwise you never find out whether " +
-            "it's good.",
+            "It will never be perfect. At some point I stop and show it – only then do I find out " +
+            "whether it's really good.",
         },
       ],
     },

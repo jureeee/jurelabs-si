@@ -363,7 +363,8 @@ const KAZALEC_MOC = 2.6;
  *
  * Ce se umakne vsak znak zase, crka pod kazalcem razpade in se sesuje sama
  * vase; ko se umakne crka kot celota, ostane berljiva in gib je videti kot
- * odriv predmeta. Crka ima zato svojo vzmet: kazalec ji da pospesek stran,
+ * odriv predmeta. Kazalec odrine po tri sosednje crke hkrati, da gib zajame
+ * kos besede in ne le ene crke. Crka ima svojo vzmet: kazalec ji da pospesek stran,
  * vzmet jo vlece nazaj, dusenje pa poskrbi, da se ne trese.
  */
 const CRKA_R = 120;
@@ -878,29 +879,56 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
       c.zgoraj = Math.min(c.zgoraj, d.ciljY);
       c.spodaj = Math.max(c.spodaj, d.ciljY);
     }
-    for (const c of crkeNapisa) {
-      if (!c) continue;
+    const vrsta = crkeNapisa.filter(Boolean);
+    for (const c of vrsta) {
       c.cx = c.sx / c.n;
       c.cy = c.sy / c.n;
       c.r = Math.max(c.desno - c.levo, c.spodaj - c.zgoraj) * 0.5;
+      c.fx = 0;
+      c.fy = 0;
     }
+    // Soseda sta prejsnja in naslednja crka v isti vrstici.
+    vrsta.forEach((c, i) => {
+      const ista = (d) => d && Math.abs(d.cy - c.cy) < Math.max(c.r, d.r);
+      c.sosedi = [vrsta[i - 1], vrsta[i + 1]].filter(ista);
+    });
   }
 
-  /** Kazalec odrine celo crko; vzmet jo prinese nazaj. */
+  /**
+   * Kazalec odrine skupino treh crk; vzmet jih prinese nazaj.
+   *
+   * Vsaka crka izracuna, s kaksno silo bi jo kazalec odrinil sama. Nato vzame
+   * najmocnejso silo med sabo in sosedoma - crka pod kazalcem tako potisne
+   * obe sosedi z isto silo in v isto smer, trojica se premakne kot en kos.
+   */
   function korakCrk(lok) {
     for (const c of crkeNapisa) {
       if (!c) continue;
-      if (lok.ziv) {
-        const dx = c.cx + c.ox - lok.x;
-        const dy = c.cy + c.oy - lok.y;
-        const r = Math.hypot(dx, dy);
-        const doseg = c.r + CRKA_R;
-        if (r < doseg && r > 0.01) {
-          const moc = (1 - r / doseg) * CRKA_MOC;
-          c.vx += (dx / r) * moc;
-          c.vy += (dy / r) * moc;
+      c.fx = 0;
+      c.fy = 0;
+      if (!lok.ziv) continue;
+      const dx = c.cx + c.ox - lok.x;
+      const dy = c.cy + c.oy - lok.y;
+      const r = Math.hypot(dx, dy);
+      const doseg = c.r + CRKA_R;
+      if (r < doseg && r > 0.01) {
+        const moc = (1 - r / doseg) * CRKA_MOC;
+        c.fx = (dx / r) * moc;
+        c.fy = (dy / r) * moc;
+      }
+    }
+    for (const c of crkeNapisa) {
+      if (!c) continue;
+      let fx = c.fx;
+      let fy = c.fy;
+      for (const s of c.sosedi ?? []) {
+        if (s.fx * s.fx + s.fy * s.fy > fx * fx + fy * fy) {
+          fx = s.fx;
+          fy = s.fy;
         }
       }
+      c.vx += fx;
+      c.vy += fy;
       c.vx = (c.vx - c.ox * CRKA_VZMET) * CRKA_DUSENJE;
       c.vy = (c.vy - c.oy * CRKA_VZMET) * CRKA_DUSENJE;
       c.ox = Math.max(-CRKA_NAJVEC, Math.min(CRKA_NAJVEC, c.ox + c.vx));

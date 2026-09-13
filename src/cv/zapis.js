@@ -298,9 +298,19 @@ export function installZapis(vsebina, kljuc) {
     let cakalec = null;
     let gib = null;
 
-    const korak = () => {
-      const k = kartice[0];
-      return k ? k.getBoundingClientRect().width + 26 : 380;
+    /**
+     * Odmik tira, pri katerem je kartica tocno na sredini vidnega tira.
+     *
+     * Iz postavitve (offsetLeft/offsetWidth), ne iz getBoundingClientRect:
+     * ta vraca sirino po transformaciji, stranske kartice pa so pomanjsane -
+     * korak je bil zato prekratek in vsaka naslednja kartica je bila bolj
+     * zamaknjena od sredine.
+     */
+    const odmikZa = (i) => {
+      const k = kartice[i];
+      if (!k) return 0;
+      const najvec = tir.scrollWidth - tir.clientWidth;
+      return Math.max(0, Math.min(najvec, k.offsetLeft + k.offsetWidth / 2 - tir.clientWidth / 2));
     };
 
     /**
@@ -334,7 +344,7 @@ export function installZapis(vsebina, kljuc) {
       const meja = kartice.length - 1;
       const nova = Math.max(0, Math.min(nacilj, meja));
       const zacetek = tir.scrollLeft;
-      const konec = nova * korak();
+      const konec = odmikZa(nova);
       const razdalja = konec - zacetek;
       if (Math.abs(razdalja) < 1) {
         kje = nova;
@@ -433,6 +443,34 @@ export function installZapis(vsebina, kljuc) {
       },
       { passive: false }
     );
+
+    /**
+     * Poteg s prstom (telefon, sledilna ploscica): tir drsi sam, po koncu pa
+     * ga pripeljemo na najblizjo kartico, da ne obstane med dvema.
+     */
+    let mirovanje = null;
+    tir.addEventListener(
+      "scroll",
+      () => {
+        if (gib) return;
+        clearTimeout(mirovanje);
+        mirovanje = setTimeout(() => {
+          if (gib) return;
+          let najblizja = 0;
+          kartice.forEach((_, i) => {
+            if (Math.abs(odmikZa(i) - tir.scrollLeft) < Math.abs(odmikZa(najblizja) - tir.scrollLeft)) najblizja = i;
+          });
+          pojdi(najblizja);
+        }, 140);
+      },
+      { passive: true }
+    );
+
+    // Ob spremembi velikosti okna (tudi obrat telefona) ostane izbrana na sredini.
+    addEventListener("resize", () => {
+      if (!tir.isConnected || gib) return;
+      tir.scrollLeft = odmikZa(kje);
+    });
 
     return () => {
       kje = 0;

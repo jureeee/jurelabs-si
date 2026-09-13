@@ -158,12 +158,12 @@ export const OMENI = {
     {
       tip: "par",
       obrnjen: true,
-      oznaka: "Zunaj službe",
-      naslov: "Tudi ta stran\nje eden takih projektov.",
+      oznaka: "Kaj počnem v prostem času",
+      naslov: "Tudi to stran\nsem naredil sam.",
       telo:
-        "Galaksija v ozadju ni slika. So točke, ki jih grafična kartica " +
-        "izriše znova ob vsaki sličici, s svojim senčilnikom in svojim " +
-        "sijem. Nastala je iz vprašanja, ali znam.",
+        "Zvezde v ozadju niso video. Brskalnik jih v živo izriše iz " +
+        "desettisočih točk, zato se odzivajo na miško. Naredil sem jo, da " +
+        "preverim, ali mi uspe.",
       znacke: ["Three.js", "WebGL", "Senčilniki", "Blender"],
       slika: 11,
     },
@@ -211,24 +211,24 @@ export const OMENI = {
       },
       {
         oznaka: "Potrpljenje",
-        naslov: "Osma različica.",
+        naslov: "Prva različica\nni zadnja.",
         telo:
-          "Prva različica je le dokaz, da je izvedljivo. Zanimivo postane " +
-          "šele, ko ji začnem odvzemati.",
+          "Najprej poskrbim, da deluje. Potem isto stvar popravljam in " +
+          "poenostavljam, dokler ni res dobra.",
       },
       {
-        oznaka: "Okus",
-        naslov: "Detajl, ki ga\nnihče ne opazi.",
+        oznaka: "Natančnost",
+        naslov: "Pazim na\nmalenkosti.",
         telo:
-          "Zamik animacije, širina roba, obnašanje ob robu zaslona. Skupaj " +
-          "se pozna, posamič ne.",
+          "Hitrost animacije, širina roba, kako se stran obnaša na telefonu. " +
+          "Posamezno jih nihče ne opazi, skupaj pa se vidi razlika.",
       },
       {
         oznaka: "Mera",
-        naslov: "Konec ni\npopolnost.",
+        naslov: "Vem, kdaj je\ndovolj.",
         telo:
-          "Nekje je treba nehati in stvar pokazati. Sicer nikoli ne izve, " +
-          "ali je dobra.",
+          "Popolno ne bo nikoli. Nekje se ustavim in stvar pokažem – šele " +
+          "takrat izvem, ali je res dobra.",
       },
     ],
   },
