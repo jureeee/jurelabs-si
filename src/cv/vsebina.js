@@ -111,7 +111,7 @@ export const DELO = {
       },
       {
         oznaka: "Metoda",
-        naslov: "Učim se z gradnjo.",
+        naslov: "Raziskujem nove meje.",
         telo:
           "Nova tehnologija postane moja šele, ko z njo nekaj nastane. " +
           "Dokumentacija je začetek, ne konec.",

@@ -193,7 +193,7 @@ export default {
         },
         {
           oznaka: "Method",
-          naslov: "I learn by building.",
+          naslov: "Exploring new frontiers.",
           telo:
             "A new technology only becomes mine once something exists because of it. " +
             "Documentation is the start, not the end.",
