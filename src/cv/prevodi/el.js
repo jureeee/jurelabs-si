@@ -46,6 +46,10 @@ export default {
   "zapis.zapri": "Κλείσιμο",
   "zapis.prejsnja": "Προηγούμενη",
   "zapis.naslednja": "Επόμενη",
+  "zapis.odpri": "Άνοιγμα εφαρμογής",
+  "aplikacija.demo": "Έκδοση επίδειξης · τα δεδομένα είναι επινοημένα",
+  "aplikacija.zavihek": "Άνοιγμα σε νέα καρτέλα",
+  "aplikacija.zapri": "Κλείσιμο εφαρμογής",
 
   "viz.stran": "ΙΣΤΟΤΟΠΟΣ",
   "viz.prizor": "ΣΚΗΝΗ",

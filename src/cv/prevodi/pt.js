@@ -46,6 +46,10 @@ export default {
   "zapis.zapri": "Fechar",
   "zapis.prejsnja": "Anterior",
   "zapis.naslednja": "Próxima",
+  "zapis.odpri": "Abrir app",
+  "aplikacija.demo": "Versão demo · os dados são fictícios",
+  "aplikacija.zavihek": "Abrir num novo separador",
+  "aplikacija.zapri": "Fechar app",
 
   "viz.stran": "SITE",
   "viz.prizor": "CENA",

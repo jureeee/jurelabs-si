@@ -47,6 +47,10 @@ export default {
   "zapis.zapri": "Close",
   "zapis.prejsnja": "Previous",
   "zapis.naslednja": "Next",
+  "zapis.odpri": "Open app",
+  "aplikacija.demo": "Demo version · the data is made up",
+  "aplikacija.zavihek": "Open in new tab",
+  "aplikacija.zapri": "Close app",
 
   "stik.oznaka": "Contact",
   "stik.glavni": "Email is easiest.",

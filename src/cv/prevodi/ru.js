@@ -46,6 +46,10 @@ export default {
   "zapis.zapri": "Закрыть",
   "zapis.prejsnja": "Предыдущая",
   "zapis.naslednja": "Следующая",
+  "zapis.odpri": "Открыть приложение",
+  "aplikacija.demo": "Демоверсия · данные вымышлены",
+  "aplikacija.zavihek": "Открыть в новой вкладке",
+  "aplikacija.zapri": "Закрыть приложение",
 
   "viz.stran": "САЙТ",
   "viz.prizor": "СЦЕНА",

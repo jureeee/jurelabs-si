@@ -92,6 +92,17 @@ const IKONE = {
     </svg>`,
 };
 
+const IKONA_APLIKACIJA =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M7 6.5h.01M10 6.5h.01"/></svg>';
+
+/**
+ * Gumb, ki odpre pravi vmesnik projekta. Pot je relativna na koren strani,
+ * zato deluje tudi, ce stran ne tece na korenu domene.
+ */
+const gumbAplikacije = (a) =>
+  `<button class="zapis-odpri dg" type="button" data-aplikacija="${import.meta.env.BASE_URL}${a.pot}" data-ime="${a.ime}">` +
+  `${IKONA_APLIKACIJA}<span>${t("zapis.odpri", "Odpri aplikacijo")}</span></button>`;
+
 /**
  * Izris enega razdelka.
  *
@@ -121,6 +132,7 @@ function odsekHtml(o, slika) {
         <h2>${naslovHtml(o.naslov)}</h2>
         <p>${o.telo}</p>
         ${o.znacke ? znacke(o.znacke) : ""}
+        ${o.aplikacija ? gumbAplikacije(o.aplikacija) : ""}
       </div>
       <figure class="zapis-slika"${o.razmerje ? ` style="aspect-ratio:${o.razmerje}"` : ""}>
         <div class="zapis-sij" style="background-image:url(${slika(o.slika)})" aria-hidden="true"></div>
@@ -205,6 +217,14 @@ export function installZapis(vsebina, kljuc) {
    * kliku. Kdor je gibanje izklopil, ostane brez njega, tako kot v galeriji.
    */
   const mirnoGibanje = matchMedia("(prefers-reduced-motion: reduce)");
+  // Gumb projekta odpre njegovo aplikacijo v oknu cez stran.
+  tok.addEventListener("click", (e) => {
+    const gumb = e.target instanceof Element ? e.target.closest(".zapis-odpri") : null;
+    if (!gumb) return;
+    import("./aplikacija.js")
+      .then((m) => m.odpri(gumb.dataset.aplikacija, gumb.dataset.ime))
+      .catch(() => null);
+  });
   tok.addEventListener("click", (e) => {
     const slika = e.target instanceof Element ? e.target.closest(".zapis-slika img") : null;
     if (!slika || mirnoGibanje.matches) return;

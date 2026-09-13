@@ -46,6 +46,10 @@ export default {
   "zapis.zapri": "Затвори",
   "zapis.prejsnja": "Претходна",
   "zapis.naslednja": "Следећа",
+  "zapis.odpri": "Отвори апликацију",
+  "aplikacija.demo": "Демо верзија · подаци су измишљени",
+  "aplikacija.zavihek": "Отвори у новој картици",
+  "aplikacija.zapri": "Затвори апликацију",
 
   "viz.stran": "САЈТ",
   "viz.prizor": "ПРИЗОР",

@@ -46,6 +46,10 @@ export default {
   "zapis.zapri": "Sluiten",
   "zapis.prejsnja": "Vorige",
   "zapis.naslednja": "Volgende",
+  "zapis.odpri": "App openen",
+  "aplikacija.demo": "Demoversie · de gegevens zijn verzonnen",
+  "aplikacija.zavihek": "Openen in nieuw tabblad",
+  "aplikacija.zapri": "App sluiten",
 
   "viz.stran": "SITE",
   "viz.prizor": "SCÈNE",

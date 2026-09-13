@@ -46,6 +46,10 @@ export default {
   "zapis.zapri": "关闭",
   "zapis.prejsnja": "上一张",
   "zapis.naslednja": "下一张",
+  "zapis.odpri": "打开应用",
+  "aplikacija.demo": "演示版 · 数据为虚构",
+  "aplikacija.zavihek": "在新标签页中打开",
+  "aplikacija.zapri": "关闭应用",
 
   "viz.stran": "网站",
   "viz.prizor": "场景",

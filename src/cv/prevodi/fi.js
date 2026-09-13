@@ -46,6 +46,10 @@ export default {
   "zapis.zapri": "Sulje",
   "zapis.prejsnja": "Edellinen",
   "zapis.naslednja": "Seuraava",
+  "zapis.odpri": "Avaa sovellus",
+  "aplikacija.demo": "Esittelyversio · tiedot ovat keksittyjä",
+  "aplikacija.zavihek": "Avaa uudessa välilehdessä",
+  "aplikacija.zapri": "Sulje sovellus",
 
   "viz.stran": "SIVUSTO",
   "viz.prizor": "NÄKYMÄ",

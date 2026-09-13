@@ -46,6 +46,10 @@ export default {
   "zapis.zapri": "Fermer",
   "zapis.prejsnja": "Précédente",
   "zapis.naslednja": "Suivante",
+  "zapis.odpri": "Ouvrir l'app",
+  "aplikacija.demo": "Version démo · les données sont fictives",
+  "aplikacija.zavihek": "Ouvrir dans un nouvel onglet",
+  "aplikacija.zapri": "Fermer l'app",
 
   "viz.stran": "SITE",
   "viz.prizor": "SCÈNE",

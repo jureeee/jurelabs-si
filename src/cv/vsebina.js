@@ -70,6 +70,8 @@ export const DELO = {
         "klikom vrnejo natanko tja, kamor morajo gledati. Namesto desetih " +
         "ločenih vmesnikov ena površina, ki jih zna vse.",
       znacke: ["Python", "React", "TypeScript", "ONVIF", "PTZ", "SSE"],
+      // Pravi vmesnik aplikacije, streznik nadomescajo izmisljeni podatki.
+      aplikacija: { pot: "demo/vantage/index.html", ime: "Vantage" },
       slika: 7,
     },
     {

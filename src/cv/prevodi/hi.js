@@ -46,6 +46,10 @@ export default {
   "zapis.zapri": "बंद करें",
   "zapis.prejsnja": "पिछली",
   "zapis.naslednja": "अगली",
+  "zapis.odpri": "ऐप खोलें",
+  "aplikacija.demo": "डेमो संस्करण · डेटा काल्पनिक है",
+  "aplikacija.zavihek": "नए टैब में खोलें",
+  "aplikacija.zapri": "ऐप बंद करें",
 
   "viz.stran": "साइट",
   "viz.prizor": "दृश्य",

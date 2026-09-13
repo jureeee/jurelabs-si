@@ -46,6 +46,10 @@ export default {
   "zapis.zapri": "Bezárás",
   "zapis.prejsnja": "Előző",
   "zapis.naslednja": "Következő",
+  "zapis.odpri": "Alkalmazás megnyitása",
+  "aplikacija.demo": "Bemutató verzió · az adatok kitaláltak",
+  "aplikacija.zavihek": "Megnyitás új lapon",
+  "aplikacija.zapri": "Alkalmazás bezárása",
 
   "viz.stran": "OLDAL",
   "viz.prizor": "JELENET",

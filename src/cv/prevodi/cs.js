@@ -46,6 +46,10 @@ export default {
   "zapis.zapri": "Zavřít",
   "zapis.prejsnja": "Předchozí",
   "zapis.naslednja": "Další",
+  "zapis.odpri": "Otevřít aplikaci",
+  "aplikacija.demo": "Ukázková verze · data jsou smyšlená",
+  "aplikacija.zavihek": "Otevřít v nové kartě",
+  "aplikacija.zapri": "Zavřít aplikaci",
 
   "viz.stran": "WEB",
   "viz.prizor": "SCÉNA",

@@ -46,6 +46,10 @@ export default {
   "zapis.zapri": "Lukk",
   "zapis.prejsnja": "Forrige",
   "zapis.naslednja": "Neste",
+  "zapis.odpri": "Åpne appen",
+  "aplikacija.demo": "Demoversjon · dataene er oppdiktet",
+  "aplikacija.zavihek": "Åpne i ny fane",
+  "aplikacija.zapri": "Lukk appen",
 
   "viz.stran": "NETTSTED",
   "viz.prizor": "SCENE",

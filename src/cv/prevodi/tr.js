@@ -46,6 +46,10 @@ export default {
   "zapis.zapri": "Kapat",
   "zapis.prejsnja": "Önceki",
   "zapis.naslednja": "Sonraki",
+  "zapis.odpri": "Uygulamayı aç",
+  "aplikacija.demo": "Demo sürümü · veriler uydurmadır",
+  "aplikacija.zavihek": "Yeni sekmede aç",
+  "aplikacija.zapri": "Uygulamayı kapat",
 
   "viz.stran": "SİTE",
   "viz.prizor": "SAHNE",
