@@ -57,6 +57,8 @@ export const DELO = {
         "meritve, prepozna vzorce in opozori, preden postane težava.",
       znacke: ["Python", "Flask", "SQLite", "Nadzorne plošče"],
       slika: traceSpaceSlika,
+      // Vmesnik je lezec; v pokoncnem okvirju bi se mu odrezala polovica.
+      razmerje: "3 / 2",
     },
     {
       tip: "par",

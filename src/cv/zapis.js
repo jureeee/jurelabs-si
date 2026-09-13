@@ -122,7 +122,7 @@ function odsekHtml(o, slika) {
         <p>${o.telo}</p>
         ${o.znacke ? znacke(o.znacke) : ""}
       </div>
-      <figure class="zapis-slika">
+      <figure class="zapis-slika"${o.razmerje ? ` style="aspect-ratio:${o.razmerje}"` : ""}>
         <div class="zapis-sij" style="background-image:url(${slika(o.slika)})" aria-hidden="true"></div>
         <div class="zapis-okvir"><img alt="" loading="lazy" src="${slika(o.slika)}" /></div>
       </figure>
