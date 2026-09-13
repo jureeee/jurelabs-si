@@ -1,4 +1,5 @@
 import strojnaSlika from "../assets/zapis/strojna-programska.webp";
+import traceSpaceSlika from "../assets/zapis/trace-space.webp";
 
 /**
  * Besedilo strani Delo, O meni in Arhiv.
@@ -55,7 +56,7 @@ export const DELO = {
         "Nadzorna plošča za senzorje kakovosti zraka in varnosti. Zbira " +
         "meritve, prepozna vzorce in opozori, preden postane težava.",
       znacke: ["Python", "Flask", "SQLite", "Nadzorne plošče"],
-      slika: 4,
+      slika: traceSpaceSlika,
     },
     {
       tip: "par",
