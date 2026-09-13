@@ -186,7 +186,7 @@ export default {
       seznam: [
         {
           oznaka: "Approach",
-          naslov: "Understand,\nnot just use.",
+          naslov: "Understand\nand use.",
           telo:
             "A system I don't understand below the surface is one I can only operate. " +
             "I want to know why it works.",

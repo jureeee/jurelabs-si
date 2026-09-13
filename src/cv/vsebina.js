@@ -104,7 +104,7 @@ export const DELO = {
     seznam: [
       {
         oznaka: "Pristop",
-        naslov: "Razumeti,\nne le uporabiti.",
+        naslov: "Razumeti\nin uporabljati.",
         telo:
           "Sistem, ki ga ne razumem pod površjem, znam le upravljati. " +
           "Zanima me, zakaj deluje.",
