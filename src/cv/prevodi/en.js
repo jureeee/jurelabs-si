@@ -195,8 +195,8 @@ export default {
           oznaka: "Method",
           naslov: "Exploring new frontiers.",
           telo:
-            "A new technology only becomes mine once something exists because of it. " +
-            "Documentation is the start, not the end.",
+            "A new technology becomes mine when I create something with it. " +
+            "Documentation is the start; the finished product is the art.",
         },
         {
           oznaka: "Measure",

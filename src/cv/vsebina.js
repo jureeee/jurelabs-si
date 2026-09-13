@@ -113,8 +113,8 @@ export const DELO = {
         oznaka: "Metoda",
         naslov: "Raziskujem nove meje.",
         telo:
-          "Nova tehnologija postane moja šele, ko z njo nekaj nastane. " +
-          "Dokumentacija je začetek, ne konec.",
+          "Nova tehnologija postane moja, ko z njo nekaj ustvarim. " +
+          "Dokumentacija je začetek, izdelek je umetnost.",
       },
       {
         oznaka: "Merilo",
