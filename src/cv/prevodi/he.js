@@ -10,6 +10,7 @@ export default {
   "orodja.aria": "כלים",
   "orodja.iskanje": "חיפוש",
   "orodja.nastavitve": "הגדרות",
+  "orodja.arkada": "ארקייד",
 
   "nast.naslov": "הגדרות",
   "nast.nazaj": "חזרה",
@@ -80,6 +81,9 @@ export default {
   "kmeni.kopirajStran": "העתק קישור לדף",
   "kmeni.celozaslonsko": "מסך מלא",
   "kmeni.izhodCelozaslonsko": "צא ממסך מלא",
+  "arkada.naslov": "ארקייד",
+  "arkada.kmalu": "בקרוב",
+  "arkada.opis": "משחקי המיני בדרך. בקרוב תוכל לשחק בהם כאן.",
 
   "ogled.zapri": "סגירת התמונה",
   "zemlja.slovenija": "סלובניה",

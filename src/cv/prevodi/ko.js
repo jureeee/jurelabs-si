@@ -10,6 +10,7 @@ export default {
   "orodja.aria": "도구",
   "orodja.iskanje": "검색",
   "orodja.nastavitve": "설정",
+  "orodja.arkada": "아케이드",
 
   "nast.naslov": "설정",
   "nast.nazaj": "뒤로",
@@ -80,6 +81,9 @@ export default {
   "kmeni.kopirajStran": "페이지 링크 복사",
   "kmeni.celozaslonsko": "전체 화면",
   "kmeni.izhodCelozaslonsko": "전체 화면 종료",
+  "arkada.naslov": "아케이드",
+  "arkada.kmalu": "곧 공개",
+  "arkada.opis": "미니 게임이 준비 중입니다. 곧 여기에서 바로 즐길 수 있어요.",
 
   "ogled.zapri": "이미지 닫기",
   "zemlja.slovenija": "슬로베니아",

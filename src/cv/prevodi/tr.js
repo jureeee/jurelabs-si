@@ -10,6 +10,7 @@ export default {
   "orodja.aria": "Araçlar",
   "orodja.iskanje": "Ara",
   "orodja.nastavitve": "Ayarlar",
+  "orodja.arkada": "Oyun salonu",
 
   "nast.naslov": "Ayarlar",
   "nast.nazaj": "Geri",
@@ -80,6 +81,9 @@ export default {
   "kmeni.kopirajStran": "Sayfa bağlantısını kopyala",
   "kmeni.celozaslonsko": "Tam ekran",
   "kmeni.izhodCelozaslonsko": "Tam ekrandan çık",
+  "arkada.naslov": "Oyun salonu",
+  "arkada.kmalu": "Çok yakında",
+  "arkada.opis": "Mini oyunlar yolda. Yakında onları burada oynayabileceksin.",
 
   "ogled.zapri": "Görseli kapat",
   "zemlja.slovenija": "Slovenya",

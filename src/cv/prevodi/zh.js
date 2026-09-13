@@ -10,6 +10,7 @@ export default {
   "orodja.aria": "工具",
   "orodja.iskanje": "搜索",
   "orodja.nastavitve": "设置",
+  "orodja.arkada": "游戏厅",
 
   "nast.naslov": "设置",
   "nast.nazaj": "返回",
@@ -80,6 +81,9 @@ export default {
   "kmeni.kopirajStran": "复制页面链接",
   "kmeni.celozaslonsko": "全屏",
   "kmeni.izhodCelozaslonsko": "退出全屏",
+  "arkada.naslov": "游戏厅",
+  "arkada.kmalu": "即将推出",
+  "arkada.opis": "小游戏正在制作中，很快就能在这里玩了。",
 
   "ogled.zapri": "关闭图片",
   "zemlja.slovenija": "斯洛文尼亚",

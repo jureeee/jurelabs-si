@@ -10,6 +10,7 @@ export default {
   "orodja.aria": "Hulpmiddelen",
   "orodja.iskanje": "Zoeken",
   "orodja.nastavitve": "Instellingen",
+  "orodja.arkada": "Arcade",
 
   "nast.naslov": "Instellingen",
   "nast.nazaj": "Terug",
@@ -80,6 +81,9 @@ export default {
   "kmeni.kopirajStran": "Paginalink kopiëren",
   "kmeni.celozaslonsko": "Volledig scherm",
   "kmeni.izhodCelozaslonsko": "Volledig scherm afsluiten",
+  "arkada.naslov": "Arcade",
+  "arkada.kmalu": "Binnenkort",
+  "arkada.opis": "Minigames komen eraan. Binnenkort kun je ze hier spelen.",
 
   "ogled.zapri": "Afbeelding sluiten",
   "zemlja.slovenija": "Slovenië",

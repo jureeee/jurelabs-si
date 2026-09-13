@@ -11,6 +11,7 @@ export default {
   "orodja.aria": "Tools",
   "orodja.iskanje": "Search",
   "orodja.nastavitve": "Settings",
+  "orodja.arkada": "Arcade",
 
   "nast.naslov": "Settings",
   "nast.nazaj": "Back",
@@ -90,6 +91,9 @@ export default {
   "kmeni.kopirajStran": "Copy page link",
   "kmeni.celozaslonsko": "Full screen",
   "kmeni.izhodCelozaslonsko": "Exit full screen",
+  "arkada.naslov": "Arcade",
+  "arkada.kmalu": "Coming soon",
+  "arkada.opis": "Mini games are on the way. Soon you'll be able to play them right here.",
 
   "ogled.zapri": "Close image",
   "zemlja.slovenija": "Slovenia",

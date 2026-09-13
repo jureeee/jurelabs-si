@@ -30,6 +30,7 @@ import { installCursor, installMagnetic } from "./cursor.js";
 import { installSelectionGlow } from "./selection.js";
 import { zacniJezik, obJeziku, t as tr } from "./jezik.js";
 import { installIzbirnikJezika } from "./izbirnik-jezika.js";
+import { installArkada } from "./arkada.js";
 
 // --- nastavitve --------------------------------------------------------------
 /**
@@ -617,7 +618,7 @@ obJeziku(prevediStatiko);
 zacniJezik();
 // Gumbi se nagnejo mocneje, kapsule okoli njih sibkeje - ucinek se sesteje.
 const magnetGumbi = installMagnetic(
-  ".nav button, .dock-icon, .prof-gumb, .prof-zavihek, .prof-zapri, .nast-zapri, .nast-nazaj, .spust-gumb",
+  ".nav button, .dock-icon, .arkada, .prof-gumb, .prof-zavihek, .prof-zapri, .nast-zapri, .nast-nazaj, .spust-gumb",
   0.22
 );
 const magnetKapsule = installMagnetic(".nav, .dock, .profil, .prof-zgodba", 0.09);
@@ -669,6 +670,7 @@ nav?.querySelectorAll('[role="tab"]').forEach((zavihek) => {
 });
 
 installContextMenu(profil, plosca);
+installArkada();
 
 /**
  * Prenese nastavitve na prizor.

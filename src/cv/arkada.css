@@ -1,0 +1,120 @@
+/* ---------------------------------------------------------------------------
+   ARKADA — krog levo od kapsule z orodji
+
+   Iste mere kot kapsula (42 + 2 x 7), zato stojita v isti vrsti in na isti
+   visini. Odmik od desnega roba je odmik kapsule plus njena sirina (dve ikoni,
+   vmesni razmik in blazinjenje) in se 10 pik zraka.
+--------------------------------------------------------------------------- */
+.arkada {
+  --arkada-desno: calc(max(34px, calc(env(safe-area-inset-right) + 18px)) + 101px + 10px);
+
+  position: fixed;
+  right: var(--arkada-desno);
+  bottom: max(34px, calc(env(safe-area-inset-bottom) + 18px));
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  color: var(--muted);
+  cursor: pointer;
+
+  /* Pride tik pred kapsulo, da se vrsta sestavi od leve proti desni. */
+  opacity: 0;
+  animation: dockVstop 720ms var(--spring) 380ms both;
+  transition:
+    color var(--t-fast) var(--ease),
+    transform var(--t-med) var(--spring);
+}
+.arkada.vstopil { animation: none; opacity: 1; }
+.arkada svg { width: 22px; height: 22px; display: block; }
+.arkada:hover,
+.arkada[aria-expanded="true"] { color: var(--ink); }
+.arkada:active { transform: scale(0.93); }
+
+/* Ob prehodu rocica malo zaniha, kot bi jo kdo potegnil. */
+.arkada svg path:nth-child(2),
+.arkada svg circle { transform-origin: 12px 13.8px; transition: transform 520ms var(--spring); }
+.arkada:hover svg path:nth-child(2),
+.arkada:hover svg circle { transform: rotate(-14deg); }
+
+/* --- plosca "kmalu" -------------------------------------------------------- */
+.arkada-plosca {
+  position: fixed;
+  right: var(--arkada-desno, 145px);
+  bottom: calc(max(34px, calc(env(safe-area-inset-bottom) + 18px)) + 56px + 12px);
+  z-index: 21;
+  width: min(280px, calc(100vw - 36px));
+  padding: 22px 22px 20px;
+  border-radius: 24px;
+  text-align: center;
+  color: var(--ink);
+
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px) scale(0.96);
+  transform-origin: bottom right;
+  filter: blur(8px);
+  transition:
+    opacity 260ms var(--ease),
+    transform 520ms var(--spring),
+    filter 320ms var(--ease),
+    visibility 0s linear 320ms;
+}
+.arkada-plosca.odprta {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  filter: blur(0);
+  transition:
+    opacity 260ms var(--ease),
+    transform 520ms var(--spring),
+    filter 320ms var(--ease),
+    visibility 0s;
+}
+
+.arkada-slika {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin: 2px auto 14px;
+  border-radius: 50%;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.arkada-slika svg { width: 32px; height: 32px; }
+.arkada-plosca.odprta .arkada-slika svg { animation: arkadaNihaj 1.8s var(--ease) 200ms both; }
+@keyframes arkadaNihaj {
+  0%, 100% { transform: none; }
+  25% { transform: rotate(-9deg); }
+  60% { transform: rotate(6deg); }
+}
+
+.arkada-oznaka {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.arkada-naslov {
+  margin: 6px 0 0;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+.arkada-opis {
+  margin: 8px 0 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+@media (max-width: 560px) {
+  .arkada-plosca { right: 18px; transform-origin: bottom center; }
+}

@@ -10,6 +10,7 @@ export default {
   "orodja.aria": "Työkalut",
   "orodja.iskanje": "Haku",
   "orodja.nastavitve": "Asetukset",
+  "orodja.arkada": "Pelihalli",
 
   "nast.naslov": "Asetukset",
   "nast.nazaj": "Takaisin",
@@ -80,6 +81,9 @@ export default {
   "kmeni.kopirajStran": "Kopioi sivun linkki",
   "kmeni.celozaslonsko": "Koko näyttö",
   "kmeni.izhodCelozaslonsko": "Poistu koko näytöstä",
+  "arkada.naslov": "Pelihalli",
+  "arkada.kmalu": "Tulossa pian",
+  "arkada.opis": "Minipelit ovat tulossa. Pian voit pelata niitä täällä.",
 
   "ogled.zapri": "Sulje kuva",
   "zemlja.slovenija": "Slovenia",

@@ -141,7 +141,7 @@ export function obJeziku(fn) {
 }
 
 /** Kaj se ob menjavi jezika zamegli - ploskve, na katerih so napisi. */
-const ZAMEGLI = ".nav, .dock, .jez, .zapis-tok, .prof-vsebina, .nast-plosca";
+const ZAMEGLI = ".nav, .dock, .arkada, .arkada-plosca, .jez, .zapis-tok, .prof-vsebina, .nast-plosca";
 const KRIVULJA_JEZIK = "cubic-bezier(0.22, 1, 0.36, 1)";
 /** Tece zameglitev; drzimo jo, da jo znamo prekiniti ob vrnitvi. */
 let megla = [];

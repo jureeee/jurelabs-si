@@ -10,6 +10,7 @@ export default {
   "orodja.aria": "Werkzeuge",
   "orodja.iskanje": "Suche",
   "orodja.nastavitve": "Einstellungen",
+  "orodja.arkada": "Arcade",
 
   "nast.naslov": "Einstellungen",
   "nast.nazaj": "Zurück",
@@ -80,6 +81,9 @@ export default {
   "kmeni.kopirajStran": "Seitenlink kopieren",
   "kmeni.celozaslonsko": "Vollbild",
   "kmeni.izhodCelozaslonsko": "Vollbild beenden",
+  "arkada.naslov": "Arcade",
+  "arkada.kmalu": "Bald verfügbar",
+  "arkada.opis": "Minispiele sind in Arbeit. Bald kannst du sie direkt hier spielen.",
 
   "ogled.zapri": "Bild schließen",
   "zemlja.slovenija": "Slowenien",

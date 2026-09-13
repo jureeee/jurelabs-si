@@ -10,6 +10,7 @@ export default {
   "orodja.aria": "Verktyg",
   "orodja.iskanje": "Sök",
   "orodja.nastavitve": "Inställningar",
+  "orodja.arkada": "Arkad",
 
   "nast.naslov": "Inställningar",
   "nast.nazaj": "Tillbaka",
@@ -80,6 +81,9 @@ export default {
   "kmeni.kopirajStran": "Kopiera sidlänk",
   "kmeni.celozaslonsko": "Helskärm",
   "kmeni.izhodCelozaslonsko": "Avsluta helskärm",
+  "arkada.naslov": "Arkad",
+  "arkada.kmalu": "Kommer snart",
+  "arkada.opis": "Minispelen är på väg. Snart kan du spela dem här.",
 
   "ogled.zapri": "Stäng bilden",
   "zemlja.slovenija": "Slovenien",

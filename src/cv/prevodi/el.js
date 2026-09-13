@@ -10,6 +10,7 @@ export default {
   "orodja.aria": "Εργαλεία",
   "orodja.iskanje": "Αναζήτηση",
   "orodja.nastavitve": "Ρυθμίσεις",
+  "orodja.arkada": "Arcade",
 
   "nast.naslov": "Ρυθμίσεις",
   "nast.nazaj": "Πίσω",
@@ -80,6 +81,9 @@ export default {
   "kmeni.kopirajStran": "Αντιγραφή συνδέσμου σελίδας",
   "kmeni.celozaslonsko": "Πλήρης οθόνη",
   "kmeni.izhodCelozaslonsko": "Έξοδος από πλήρη οθόνη",
+  "arkada.naslov": "Arcade",
+  "arkada.kmalu": "Έρχεται σύντομα",
+  "arkada.opis": "Τα μίνι παιχνίδια έρχονται. Σύντομα θα τα παίζεις εδώ.",
 
   "ogled.zapri": "Κλείσιμο εικόνας",
   "zemlja.slovenija": "Σλοβενία",

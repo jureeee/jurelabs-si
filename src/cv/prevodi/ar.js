@@ -10,6 +10,7 @@ export default {
   "orodja.aria": "الأدوات",
   "orodja.iskanje": "بحث",
   "orodja.nastavitve": "الإعدادات",
+  "orodja.arkada": "الألعاب",
 
   "nast.naslov": "الإعدادات",
   "nast.nazaj": "رجوع",
@@ -80,6 +81,9 @@ export default {
   "kmeni.kopirajStran": "نسخ رابط الصفحة",
   "kmeni.celozaslonsko": "ملء الشاشة",
   "kmeni.izhodCelozaslonsko": "الخروج من ملء الشاشة",
+  "arkada.naslov": "الألعاب",
+  "arkada.kmalu": "قريبًا",
+  "arkada.opis": "الألعاب المصغّرة في الطريق. قريبًا ستتمكن من لعبها هنا.",
 
   "ogled.zapri": "إغلاق الصورة",
   "zemlja.slovenija": "سلوفينيا",

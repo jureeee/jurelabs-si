@@ -10,6 +10,7 @@ export default {
   "orodja.aria": "टूल",
   "orodja.iskanje": "खोज",
   "orodja.nastavitve": "सेटिंग्स",
+  "orodja.arkada": "आर्केड",
 
   "nast.naslov": "सेटिंग्स",
   "nast.nazaj": "वापस",
@@ -80,6 +81,9 @@ export default {
   "kmeni.kopirajStran": "पेज का लिंक कॉपी करें",
   "kmeni.celozaslonsko": "पूर्ण स्क्रीन",
   "kmeni.izhodCelozaslonsko": "पूर्ण स्क्रीन से बाहर निकलें",
+  "arkada.naslov": "आर्केड",
+  "arkada.kmalu": "जल्द आ रहा है",
+  "arkada.opis": "मिनी गेम्स आने वाले हैं। जल्द ही आप इन्हें यहीं खेल सकेंगे।",
 
   "ogled.zapri": "चित्र बंद करें",
   "zemlja.slovenija": "स्लोवेनिया",

@@ -10,6 +10,7 @@ export default {
   "orodja.aria": "Narzędzia",
   "orodja.iskanje": "Szukaj",
   "orodja.nastavitve": "Ustawienia",
+  "orodja.arkada": "Salon gier",
 
   "nast.naslov": "Ustawienia",
   "nast.nazaj": "Wstecz",
@@ -80,6 +81,9 @@ export default {
   "kmeni.kopirajStran": "Kopiuj link do strony",
   "kmeni.celozaslonsko": "Pełny ekran",
   "kmeni.izhodCelozaslonsko": "Zamknij pełny ekran",
+  "arkada.naslov": "Salon gier",
+  "arkada.kmalu": "Wkrótce",
+  "arkada.opis": "Minigry są w drodze. Wkrótce zagrasz w nie właśnie tutaj.",
 
   "ogled.zapri": "Zamknij obraz",
   "zemlja.slovenija": "Słowenia",

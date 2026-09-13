@@ -10,6 +10,7 @@ export default {
   "orodja.aria": "Eszközök",
   "orodja.iskanje": "Keresés",
   "orodja.nastavitve": "Beállítások",
+  "orodja.arkada": "Játékterem",
 
   "nast.naslov": "Beállítások",
   "nast.nazaj": "Vissza",
@@ -80,6 +81,9 @@ export default {
   "kmeni.kopirajStran": "Oldal hivatkozásának másolása",
   "kmeni.celozaslonsko": "Teljes képernyő",
   "kmeni.izhodCelozaslonsko": "Kilépés a teljes képernyőből",
+  "arkada.naslov": "Játékterem",
+  "arkada.kmalu": "Hamarosan",
+  "arkada.opis": "A minijátékok úton vannak. Hamarosan itt játszhatsz velük.",
 
   "ogled.zapri": "Kép bezárása",
   "zemlja.slovenija": "Szlovénia",

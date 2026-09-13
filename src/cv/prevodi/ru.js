@@ -10,6 +10,7 @@ export default {
   "orodja.aria": "Инструменты",
   "orodja.iskanje": "Поиск",
   "orodja.nastavitve": "Настройки",
+  "orodja.arkada": "Аркада",
 
   "nast.naslov": "Настройки",
   "nast.nazaj": "Назад",
@@ -80,6 +81,9 @@ export default {
   "kmeni.kopirajStran": "Копировать ссылку на страницу",
   "kmeni.celozaslonsko": "Полноэкранный режим",
   "kmeni.izhodCelozaslonsko": "Выйти из полноэкранного режима",
+  "arkada.naslov": "Аркада",
+  "arkada.kmalu": "Скоро",
+  "arkada.opis": "Мини-игры уже в пути. Скоро в них можно будет играть прямо здесь.",
 
   "ogled.zapri": "Закрыть изображение",
   "zemlja.slovenija": "Словения",

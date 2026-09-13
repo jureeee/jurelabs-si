@@ -10,6 +10,7 @@ export default {
   "orodja.aria": "Nástroje",
   "orodja.iskanje": "Hľadať",
   "orodja.nastavitve": "Nastavenia",
+  "orodja.arkada": "Herňa",
 
   "nast.naslov": "Nastavenia",
   "nast.nazaj": "Späť",
@@ -80,6 +81,9 @@ export default {
   "kmeni.kopirajStran": "Kopírovať odkaz na stránku",
   "kmeni.celozaslonsko": "Celá obrazovka",
   "kmeni.izhodCelozaslonsko": "Ukončiť celú obrazovku",
+  "arkada.naslov": "Herňa",
+  "arkada.kmalu": "Už čoskoro",
+  "arkada.opis": "Minihry sú na ceste. Čoskoro si ich zahráš priamo tu.",
 
   "ogled.zapri": "Zavrieť obrázok",
   "zemlja.slovenija": "Slovinsko",
