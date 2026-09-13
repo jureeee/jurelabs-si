@@ -290,14 +290,7 @@
   dynamic-range-limit: standard;
   /* Slika se odpre cez stran, zato naj bo videti, da je za klik. */
   cursor: pointer;
-  transition: transform 620ms var(--ease);
 }
-.zapis-slika:hover img { transform: scale(1.03); }
-/* Med valom povecave ob prehodu miske ni: platno kaze sliko v mirni legi in
-   ob koncu bi slika poskocila iz nje v povecano. */
-.zapis-slika:hover .val-caka img,
-.zapis-slika:hover .val-tece img { transform: none; }
-.zapis-slika img { transition: transform 620ms var(--ease); }
 
 .zapis-sirok h2 { max-width: 20ch; }
 
@@ -453,4 +446,32 @@
 
 @media (prefers-reduced-motion: reduce) {
   .odsek { transition-duration: 0.001ms !important; }
+}
+
+/* ---------------------------------------------------------------------------
+   PREHOD MISKE CEZ SLIKO
+
+   Premika se cel okvir kot ena plast in ne slika v njem: okvir ima masko in
+   odreze robove, zato bi ju brskalnik ob povecavi slike prerisoval vsako
+   slicico - gib se je zatikal. Plast pa se samo premakne. Platno vala je v
+   okvirju, zato se tudi med valom giblje skupaj s sliko in nic ne poskoci.
+--------------------------------------------------------------------------- */
+.zapis-okvir,
+.zapis-sij {
+  transition:
+    transform 900ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 900ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+.zapis-slika:hover .zapis-okvir {
+  transform: translateY(-6px) scale(1.018);
+}
+/* Sij se okrepi in razsiri, kot bi se slika priblizala svetlobi. */
+.zapis-slika:hover .zapis-sij {
+  transform: translateY(-4px) scale(1.05);
+  opacity: 0.72;
+}
+@media (prefers-reduced-motion: reduce) {
+  .zapis-slika:hover .zapis-okvir,
+  .zapis-slika:hover .zapis-sij { transform: none; }
 }
