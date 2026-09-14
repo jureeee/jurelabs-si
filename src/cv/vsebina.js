@@ -41,9 +41,9 @@ export const DELO = {
     {
       tip: "par",
       oznaka: "Kaj delam",
-      naslov: "Strojna in programska oprema,\nne eno ali drugo.",
+      naslov: "Strojna in programska oprema",
       telo:
-        "Strežniško okolje, omrežja in tehnični sistemi na eni strani, poln " +
+        "Strežniško okolje, omrežja in tehnični sistemi na eni strani, celovit " +
         "razvoj aplikacij na drugi. Obojega ne ločujem – večina problemov " +
         "stoji ravno na meji med njima.",
       slika: strojnaSlika,
@@ -139,7 +139,7 @@ export const DELO = {
 export const OMENI = {
   uvod: {
     oznaka: "O meni",
-    naslov: "Preden je bil to poklic,\nje bila radovednost.",
+    naslov: "Ni samo poklic.\nJe radovednost brez mej.",
     vodilo:
       "Kaj rad delam, kaj me potegne in zakaj večino stvari razstavim, " +
       "preden jih začnem uporabljati.",
@@ -279,4 +279,110 @@ export const ARHIV = {
     },
   ],
   konec: "Kar je tu, je končano. Kar nastaja, je pod Delo.",
+};
+
+/**
+ * Zacetna stran: predstavitev pod galaksijo, ko se pomaknes navzdol.
+ *
+ * Napisana po zivljenjepisu, a z besedami, s katerimi bi se predstavil v zivo.
+ * Namenoma brez telefona, naslova in datuma rojstva - ti so v zivljenjepisu,
+ * ne na javni strani. {starost} se izracuna sproti, da ne zastari.
+ */
+export const DOMOV = {
+  namig: "Pomakni se navzdol",
+  uvod: {
+    pozdrav: "Živjo, jaz sem Jure.",
+    vodilo:
+      "Star sem {starost} let, živim v Ljubljani in večino dneva preživim med " +
+      "strežniki, kabli in kodo. Tukaj je malo več o meni – brez uradnega " +
+      "jezika iz življenjepisa.",
+  },
+  poglavja: [
+    {
+      oznaka: "Kako se je začelo",
+      naslov: "Najprej šola,\npotem prava IT pisarna.",
+      telo: [
+        "Na Srednji šoli tehniških strok Šiška sem se izšolal za tehnika " +
+          "računalništva in jo končal z nadpovprečnim uspehom. Programiranje, " +
+          "baze, omrežja – tam sem prvič ugotovil, da me to res vleče.",
+        "Še med šolanjem sem bil na praksi v IT oddelku Telekoma Slovenije. " +
+          "Postavljal sem računalnike, pripravljal delovna mesta za nove " +
+          "sodelavce, prenašal opremo in hodil na teren. Ni bilo glamurozno, " +
+          "sem pa videl, kako IT deluje, ko se nanj zanaša na stotine ljudi.",
+      ],
+    },
+    {
+      oznaka: "Ovinek",
+      naslov: "Ekonomija ni bila zame.\nIn to je čisto v redu.",
+      telo: [
+        "Po srednji šoli sem se vpisal na Ekonomsko fakulteto. Naučil sem se " +
+          "veliko o tem, kako delujejo podjetja in poslovni procesi – in " +
+          "ugotovil, da se v ekonomiji ne vidim. Zato sem se vrnil tja, kjer " +
+          "mi čas mine, ne da bi opazil.",
+      ],
+    },
+    {
+      oznaka: "Danes",
+      naslov: "IT tehnik v podjetju VTZ,\nod decembra 2025.",
+      telo: [
+        "Moj dan je redko dvakrat enak. Enkrat pripravljam strežnik in urejam " +
+          "domeno v Active Directoryju, drugič nastavljam Cisco stikala ali " +
+          "vlečem kable in montiram opremo.",
+        "Delam z videonadzorom na Avigilon Unity 8 – zanj imam tudi certifikat –, " +
+          "s kontrolo dostopa, požarnimi centralami, senzorji in mikrokontrolerji. " +
+          "Za podjetje sem razvil tudi interno aplikacijo. Tam se strojna in " +
+          "programska oprema srečata in tam se počutim najbolj doma.",
+      ],
+    },
+  ],
+  pot: {
+    oznaka: "Moja pot",
+    koraki: [
+      { cas: "2019 – 2024", naslov: "SŠTS Šiška", opis: "Tehnik računalništva" },
+      { cas: "2021 – 2022", naslov: "Telekom Slovenije", opis: "Praksa v IT oddelku" },
+      { cas: "2024", naslov: "Šolski pulover", opis: "Moj dizajn je zmagal na natečaju." },
+      { cas: "2024", naslov: "Ekonomska fakulteta", opis: "Poskusil sem in izvedel, kaj nočem." },
+      { cas: "2025 –", naslov: "VTZ d.o.o.", opis: "IT tehnik" },
+    ],
+  },
+  prosti: {
+    oznaka: "Ko ne delam",
+    naslov: "Žoga, hribi\nin Blender.",
+    telo: [
+      "Igram košarko in odbojko, pozimi smučam in drsam, poleti plavam, ko je " +
+        "le priložnost, pa grem v hribe ali kam na pot. Šport mi vrne energijo, " +
+        "ki jo pojedo zasloni.",
+      "Rad tudi ustvarjam – fotografiram, oblikujem in montiram video. Sledim " +
+        "novim procesorjem, telefonom in umetni inteligenci. Dve moji animaciji:",
+    ],
+    dela: [
+      {
+        ime: "Očala",
+        opis: "Animacija na eno samo besedo. Izbral sem virtualna očala.",
+        url: "https://youtu.be/QfAUvNHwMSI",
+      },
+      {
+        ime: "Snežak",
+        opis: "3D animacija v Blenderju, moja maturitetna naloga, dodelana v Premieru.",
+        url: "https://youtu.be/Fm_bdeKcgGg",
+      },
+    ],
+  },
+  znanja: {
+    oznaka: "Kaj znam",
+    vodilo:
+      "Sem zanesljiv, novih stvari se hitro naučim in dobro delam v ekipi – ali " +
+      "sam, če je treba.",
+    skupine: {
+      Programiranje: ["Python", "C", "PHP", "TypeScript", "HTML5", "CSS", "Vite"],
+      "Sistemi in omrežja": ["Active Directory", "Cisco", "Windows 10 / 11", "Omrežja", "Strojna oprema", "Baze podatkov"],
+      Ustvarjanje: ["Blender", "Premiere Pro", "After Effects", "Photoshop"],
+      Pisarna: ["Word", "Excel", "PowerPoint", "Access"],
+    },
+  },
+  konec: {
+    naslov: "Prišel si do konca?\nPotem se slišiva.",
+    telo: "Najlažje me dobiš po e-pošti.",
+    gumb: "Piši mi",
+  },
 };

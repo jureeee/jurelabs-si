@@ -31,6 +31,7 @@ import { installSelectionGlow } from "./selection.js";
 import { zacniJezik, obJeziku, t as tr } from "./jezik.js";
 import { installIzbirnikJezika } from "./izbirnik-jezika.js";
 import { installArkada } from "./arkada.js";
+import { installDomov } from "./domov.js";
 
 // --- nastavitve --------------------------------------------------------------
 /**
@@ -176,6 +177,22 @@ let velikostMul = 1;    // mnozitelj velikosti zvezd iz nastavitev
 let restDistance = 60;
 let startDistance = 60;
 let orbitPhase = 0;
+
+/**
+ * Odziv na drsenje po zacetni strani.
+ *
+ * Globina: bolj ko beres navzdol, blizje in nizje je kamera - galaksija pride
+ * od zgoraj v profil, kot bi se spuscal vanjo. Sunek: vsak zasuk kolescka
+ * zavrti galaksijo malo naprej (navzgor nazaj) in jo za hip potisne proti tebi
+ * ali stran. Oba gresta skozi dusenje, zato ni trzanja pri posameznih zobnikih.
+ */
+const DRS_BLIZE = 0.3;
+const DRS_NIZJE = 0.16;
+const DRS_VRTENJE = 1.4;
+const DRS_SUNEK_RAZDALJA = 0.08;
+const drs = { delez: 0, sunek: 0 };
+let drsDelez = 0;
+let drsSunek = 0;
 let startMs = 0;
 let lastMs = 0;
 let ready = false;
@@ -552,11 +569,18 @@ function tick(ts) {
     (Math.hypot(misX, misY) - 0.5) * PARALLAX_ZOOM * misVklop + nihanje * ZOOM_DRIFT;
   distance *= 1 + odmik * e;
 
+  // Drsenje: sunek pojenja sam, delez mu sledi mehko.
+  drs.sunek *= Math.exp(-dt / 0.22);
+  drsSunek += (drs.sunek - drsSunek) * (1 - Math.exp(-dt / 0.12));
+  drsDelez += (drs.delez - drsDelez) * (1 - Math.exp(-dt / 0.45));
+  orbitPhase += dt * drsSunek * DRS_VRTENJE * e;
+  distance *= 1 - (drsDelez * DRS_BLIZE + drsSunek * DRS_SUNEK_RAZDALJA) * e;
+
   // Med priletom odziva na misko se ni - vklopi se sele, ko kamera obmiruje.
   placeCamera(
     orbitPhase + misX * PARALLAX_ANGLE * e * misVklop,
     distance,
-    ORBIT_HEIGHT_MUL + misY * PARALLAX_HEIGHT * e * misVklop
+    ORBIT_HEIGHT_MUL + misY * PARALLAX_HEIGHT * e * misVklop - drsDelez * DRS_NIZJE * e
   );
 
 
@@ -671,6 +695,13 @@ nav?.querySelectorAll('[role="tab"]').forEach((zavihek) => {
 
 installContextMenu(profil, plosca);
 installArkada();
+installDomov({
+  obDrsenju(delez, sunek) {
+    drs.delez = delez;
+    // Sunek se sesteva, a omejeno - hiter poteg po sledilni ploscici ne sme zavrteti kot vihar.
+    drs.sunek = Math.max(-1.2, Math.min(1.2, drs.sunek + sunek * 6));
+  },
+});
 
 /**
  * Prenese nastavitve na prizor.
