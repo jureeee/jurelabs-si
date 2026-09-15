@@ -11,7 +11,7 @@
 
 import "./zapis.css";
 import "./domov.css";
-import { t, tPredmet, obJeziku, prevediVsebino } from "./jezik.js";
+import { tPredmet, obJeziku, prevediVsebino } from "./jezik.js";
 import { oziviBesedilo } from "./crke.js";
 import { DOMOV } from "./vsebina.js";
 
@@ -26,33 +26,32 @@ function starost() {
 
 const naslov = (s) => s.replace(/\n/g, "<br>");
 
-const PUSCICA_ZUNAJ =
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h10v10M18 6 6 18"/></svg>';
-const PREDVAJAJ =
-  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7.2v9.6a.6.6 0 0 0 .9.5l7.6-4.8a.6.6 0 0 0 0-1L9.9 6.7a.6.6 0 0 0-.9.5z" fill="currentColor"/></svg>';
 
-function znacke(seznam) {
-  return `<div class="zapis-znacke">${seznam.map((z) => `<span class="zapis-znacka dg">${z}</span>`).join("")}` +
-    `<span class="zapis-znacka zapis-vec dg" role="img" aria-label="${t("zapis.seVec", "in še več")}"><i></i><i></i><i></i></span></div>`;
-}
+const odstavki = (seznam) => seznam.map((o) => `<p>${o}</p>`).join("");
+const znackeVrsta = (seznam) =>
+  `<div class="zapis-znacke">${seznam.map((z) => `<span class="zapis-znacka dg">${z}</span>`).join("")}</div>`;
+const gumb = (g, glavni = false) =>
+  `<button type="button" class="domov-gumb dg${glavni ? " glavni" : ""}" data-stran="${g.stran}">${g.besedilo}</button>`;
 
 function html(v) {
-  const poglavje = (p, i) => `
-    <section class="odsek domov-poglavje${i % 2 ? " desno" : ""}">
-      <div class="zapis-oznaka">${p.oznaka}</div>
-      <h2>${naslov(p.naslov)}</h2>
-      ${p.telo.map((o) => `<p>${o}</p>`).join("")}
-    </section>`;
-
+  const u = v.uvod;
   return `
     <div class="domov-zacetek" aria-hidden="true"></div>
 
     <section class="odsek domov-uvod">
-      <h1 class="domov-pozdrav">${v.uvod.pozdrav}</h1>
-      <p class="domov-vodilo">${v.uvod.vodilo.replace("{starost}", starost())}</p>
+      <div class="zapis-oznaka domov-ime">${u.ime}</div>
+      <h1 class="domov-pozdrav">${naslov(u.naslov)}</h1>
+      <div class="domov-podrocja">${u.podrocja}</div>
+      <div class="domov-uvod-telo">${odstavki(u.telo)}</div>
+      <div class="domov-kraj"><span class="domov-pika" aria-hidden="true"></span>${u.kraj.replace("{starost}", starost())}</div>
+      <div class="domov-gumbi">${u.gumbi.map((g, i) => gumb(g, i === 0)).join("")}</div>
     </section>
 
-    ${v.poglavja.map(poglavje).join("")}
+    <section class="odsek domov-razdelek">
+      <div class="zapis-oznaka">${v.omeni.oznaka}</div>
+      <h2>${naslov(v.omeni.naslov)}</h2>
+      <div class="domov-dva">${odstavki(v.omeni.telo)}</div>
+    </section>
 
     <section class="odsek domov-pot">
       <div class="zapis-oznaka">${v.pot.oznaka}</div>
@@ -71,38 +70,86 @@ function html(v) {
       </ol>
     </section>
 
-    <section class="odsek domov-poglavje">
-      <div class="zapis-oznaka">${v.prosti.oznaka}</div>
-      <h2>${naslov(v.prosti.naslov)}</h2>
-      ${v.prosti.telo.map((o) => `<p>${o}</p>`).join("")}
-      <div class="domov-dela">
-        ${v.prosti.dela
+    <section class="odsek domov-razdelek">
+      <div class="zapis-oznaka">${v.izkusnje.oznaka}</div>
+      ${v.izkusnje.seznam
+        .map(
+          (x) => `
+        <article class="domov-izkusnja">
+          <header>
+            <h2>${x.podjetje}</h2>
+            <div class="domov-vloga">${x.vloga}</div>
+            <div class="domov-cas">${x.cas}</div>
+          </header>
+          <div class="domov-izkusnja-telo">
+            ${odstavki(x.telo)}
+            ${x.certifikat ? `<div class="domov-certifikat dg"><span aria-hidden="true">✦</span>${x.certifikat}</div>` : ""}
+            ${x.znacke ? znackeVrsta(x.znacke) : ""}
+          </div>
+        </article>`
+        )
+        .join("")}
+    </section>
+
+    <section class="odsek domov-razdelek">
+      <div class="zapis-oznaka">${v.dela.oznaka}</div>
+      <div class="domov-kartice">
+        ${v.dela.seznam
           .map(
-            (d) => `
-          <a class="domov-delo dg" href="${d.url}" target="_blank" rel="noopener">
-            <span class="domov-predvajaj">${PREDVAJAJ}</span>
-            <span class="domov-delo-besedilo"><strong>${d.ime}</strong><span>${d.opis}</span></span>
-            <span class="domov-zunaj">${PUSCICA_ZUNAJ}</span>
-          </a>`
+            (d, i) => `
+          <article class="domov-kartica dg">
+            <span class="domov-stevilka">0${i + 1}</span>
+            <h3>${d.naslov}</h3>
+            ${odstavki(d.telo)}
+            <div class="domov-podrocja malo">${d.podrocja}</div>
+          </article>`
           )
           .join("")}
       </div>
     </section>
 
-    <section class="odsek zapis-orodja domov-znanja">
+    <section class="odsek domov-razdelek domov-lab">
+      <div class="zapis-oznaka">${v.lab.oznaka}</div>
+      <h2>${naslov(v.lab.naslov)}</h2>
+      ${odstavki(v.lab.telo)}
+      <div class="domov-poudarki">${v.lab.poudarki.map((x) => `<p>${x}</p>`).join("")}</div>
+      <div class="domov-gumbi">${gumb(v.lab.gumb)}</div>
+    </section>
+
+    <section class="odsek zapis-orodja domov-razdelek">
       <div class="zapis-oznaka">${v.znanja.oznaka}</div>
-      <p class="domov-vodilo-malo">${v.znanja.vodilo}</p>
-      <div class="zapis-stolpci">
+      <div class="zapis-stolpci domov-znanja">
         ${Object.entries(v.znanja.skupine)
-          .map(([ime, s]) => `<div class="zapis-skupina"><h3>${ime}</h3>${znacke(s)}</div>`)
+          .map(([ime, s]) => `<div class="zapis-skupina"><h3>${ime}</h3>${znackeVrsta(s)}</div>`)
           .join("")}
       </div>
     </section>
 
+    <section class="odsek domov-razdelek domov-par">
+      <div>
+        <div class="zapis-oznaka">${v.izobrazba.oznaka}</div>
+        <h2>${naslov(v.izobrazba.naslov)}</h2>
+        <div class="domov-vloga">${v.izobrazba.kraj}</div>
+        <p>${v.izobrazba.telo}</p>
+      </div>
+      <div>
+        <div class="zapis-oznaka">${v.druga.oznaka}</div>
+        <h2>${naslov(v.druga.naslov)}</h2>
+        ${odstavki(v.druga.telo)}
+      </div>
+    </section>
+
     <section class="odsek domov-konec">
-      <h2>${naslov(v.konec.naslov)}</h2>
-      <p>${v.konec.telo}</p>
-      <button type="button" class="domov-gumb dg">${v.konec.gumb}</button>
+      <div class="zapis-oznaka">${v.stik.oznaka}</div>
+      <h2>${naslov(v.stik.naslov)}</h2>
+      <p class="domov-kraj-konec">${v.stik.kraj}</p>
+      <a class="domov-eposta" href="mailto:${v.stik.eposta}">${v.stik.eposta}</a>
+      <div class="domov-gumbi sredina">
+        ${v.stik.povezave
+          .filter((x) => x.url)
+          .map((x) => `<a class="domov-gumb dg" href="${x.url}"${x.url.startsWith("mailto:") ? "" : ' target="_blank" rel="noopener"'}>${x.ime}</a>`)
+          .join("")}
+      </div>
     </section>`;
 }
 
@@ -142,14 +189,16 @@ export function installDomov({ obDrsenju }) {
       if (bili.has(i)) o.classList.add("vidno");
       opazovalec.observe(o);
     });
-    oziviBesedilo(tok, { tok: koren, izbor: "h1, h2, p, .zapis-oznaka, strong" });
+    oziviBesedilo(tok, { tok: koren, izbor: "h1, h2, h3, p, .zapis-oznaka, .domov-vloga, .domov-podrocja" });
   }
   zgradi();
   obJeziku(zgradi);
 
+  // Gumbi z data-stran odprejo stran iz menija; povezave (e-posta ...) ostanejo povezave.
   tok.addEventListener("click", (e) => {
-    if (!(e.target instanceof Element) || !e.target.closest(".domov-gumb")) return;
-    document.querySelector('.nav [role="tab"][data-stran="stik"]')?.click();
+    const g = e.target instanceof Element ? e.target.closest(".domov-gumb[data-stran]") : null;
+    if (!g) return;
+    document.querySelector(`.nav [role="tab"][data-stran="${g.dataset.stran}"]`)?.click();
   });
   namig.addEventListener("click", () => {
     koren.scrollTo({ top: koren.clientHeight * 0.9, behavior: "smooth" });

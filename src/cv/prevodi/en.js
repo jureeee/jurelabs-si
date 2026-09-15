@@ -337,89 +337,98 @@ export default {
   "vsebina.domov": {
     namig: "Scroll down",
     uvod: {
-      pozdrav: "Hi, I'm Jure.",
-      vodilo:
-        "I'm {starost}, I live in Ljubljana and spend most of my day between servers, cables " +
-        "and code. Here's a bit more about me – without the formal CV language.",
+      telo: [
+        "What interests me most is how new technology develops and where computing is heading " +
+          "— from AI and new software to advanced systems, devices and infrastructure.",
+        "I'm drawn most to hard problems, where the solution isn't obvious and you really have " +
+          "to think.",
+      ],
     },
-    poglavja: [
-      {
-        oznaka: "How it started",
-        naslov: "School first,\nthen a real IT office.",
-        telo: [
-          "I trained as a computer technician at the Šiška Secondary School of Technical " +
-            "Professions and finished with above-average grades. Programming, databases, " +
-            "networks – that's where I first realised this is what pulls me in.",
-          "While still at school I did my placement in the IT department of Telekom Slovenije. " +
-            "I set up computers, prepared desks for new colleagues, carried equipment and went " +
-            "out into the field. It wasn't glamorous, but I saw how IT works when hundreds of " +
-            "people rely on it.",
-        ],
-      },
-      {
-        oznaka: "A detour",
-        naslov: "Economics wasn't for me.\nAnd that's fine.",
-        telo: [
-          "After secondary school I enrolled at the Faculty of Economics. I learned a lot about " +
-            "how companies and business processes work – and realised I don't see myself in " +
-            "economics. So I went back to where time flies without me noticing.",
-        ],
-      },
-      {
-        oznaka: "Today",
-        naslov: "IT technician at VTZ,\nsince December 2025.",
-        telo: [
-          "My day is rarely the same twice. One day I'm preparing a server and managing the " +
-            "domain in Active Directory, the next I'm configuring Cisco switches or pulling " +
-            "cables and mounting equipment.",
-          "I work with video surveillance on Avigilon Unity 8 – I'm certified for it – access " +
-            "control, fire alarm panels, sensors and microcontrollers. I also built an internal " +
-            "app for the company. That's where hardware meets software, and that's where I feel " +
-            "most at home.",
-        ],
-      },
-    ],
+    omeni: {
+      telo: [
+        "I'm a computer technician with a strongly hands-on approach.",
+        "My work ranges from building applications and configuring networks to servers, video " +
+          "surveillance, sensors, microcontrollers and other infrastructure.",
+        "I'm pulled towards demanding projects with no obvious answer, where I can turn a new " +
+          "idea into something technically advanced and visually polished.",
+        "I like to understand the whole system — how it's built, how it communicates, why it " +
+          "fails and how to make it better.",
+      ],
+    },
     pot: {
       oznaka: "My path",
       koraki: [
-        { naslov: "SŠTS Šiška", opis: "Computer technician" },
-        { naslov: "Telekom Slovenije", opis: "IT department placement" },
-        { naslov: "School hoodie", opis: "My design won the contest." },
-        { naslov: "Faculty of Economics", opis: "I tried it and found out what I don't want." },
-        { naslov: "VTZ d.o.o.", opis: "IT technician" },
+        { opis: "My first real IT environment – a placement in the IT department." },
+        { opis: "Computer technician." },
+        { naslov: "Winning design", opis: "My design became the school hoodie." },
+        { naslov: "Faculty of Economics", opis: "I tried it and realised technology is what pulls me." },
+        { cas: "2025 – present", opis: "IT technician, Avigilon Unity 8 certified." },
       ],
     },
-    prosti: {
-      oznaka: "When I'm not working",
-      naslov: "Hoops, mountains\nand Blender.",
+    izkusnje: {
+      seznam: [
+        {
+          telo: [
+            "I work where IT infrastructure, networking, security systems and development meet.",
+            "My work includes configuring and diagnosing servers, Active Directory environments, " +
+              "network infrastructure and Cisco equipment, and deploying technical systems.",
+            "I also help integrate CCTV, access control, sensors, microcontrollers and other " +
+              "connected infrastructure.",
+            "I built an internal software tool for the company, which became part of my " +
+              "hands-on growth in software engineering.",
+          ],
+        },
+        {
+          telo: [
+            "My first professional IT environment.",
+            "During my work placement I helped deploy computer equipment, prepare workstations " +
+              "and support IT infrastructure.",
+            "It showed me for the first time how IT works in a large company and pointed me " +
+              "towards hands-on work with computer systems.",
+          ],
+        },
+      ],
+    },
+    dela: {
+      seznam: [
+        {
+          telo: [
+            "An internal application built for the company's needs.",
+            "From the idea and the user's problem to a real solution used in a live environment.",
+          ],
+        },
+        {
+          telo: [
+            "Work with networks, servers, video surveillance, access control and the integration " +
+              "of physical and digital systems.",
+          ],
+        },
+        {
+          telo: [
+            "Integrating devices, sensors and microcontrollers, and testing how the different " +
+              "parts of a system communicate.",
+          ],
+        },
+      ],
+    },
+    lab: {
       telo: [
-        "I play basketball and volleyball, ski and skate in winter, swim in summer, and head " +
-          "to the mountains or somewhere new whenever I can. Sport gives back the energy " +
-          "screens take.",
-        "I also like making things – photography, design and video editing. I follow new " +
-          "processors, phones and AI. Two of my animations:",
+        "Much of what I know, I learned by simply starting to build it.",
+        "I experiment with apps, AI systems, 3D environments, computer visualisation and " +
+          "interactive web projects.",
       ],
-      dela: [
-        { ime: "Glasses", opis: "An animation built on a single word. I chose virtual glasses." },
-        { ime: "Snowman", opis: "A 3D animation in Blender, my final-year project, polished in Premiere." },
+      poudarki: ["Some become serious projects.", "Others stay experiments.", "Both teach me something new."],
+    },
+    izobrazba: {
+      telo: "Education in software development, databases, computer networks and information systems.",
+    },
+    druga: {
+      naslov: "Technology isn't my only field.",
+      telo: [
+        "I also do design, 3D graphics, photography and video production.",
+        "In secondary school my design was chosen as the winning school hoodie design.",
+        "That mix of technical and visual thinking shapes a lot of how I build my projects.",
       ],
-    },
-    znanja: {
-      oznaka: "What I know",
-      vodilo:
-        "I'm reliable, I pick up new things quickly and work well in a team – or on my own " +
-        "when needed.",
-      skupine: {
-        Programming: ["Python", "C", "PHP", "TypeScript", "HTML5", "CSS", "Vite"],
-        "Systems and networks": ["Active Directory", "Cisco", "Windows 10 / 11", "Networking", "Hardware", "Databases"],
-        Creative: ["Blender", "Premiere Pro", "After Effects", "Photoshop"],
-        Office: ["Word", "Excel", "PowerPoint", "Access"],
-      },
-    },
-    konec: {
-      naslov: "Made it to the end?\nThen let's talk.",
-      telo: "Email is the easiest way to reach me.",
-      gumb: "Write to me",
     },
   },
 };

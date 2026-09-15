@@ -284,105 +284,164 @@ export const ARHIV = {
 /**
  * Zacetna stran: predstavitev pod galaksijo, ko se pomaknes navzdol.
  *
- * Napisana po zivljenjepisu, a z besedami, s katerimi bi se predstavil v zivo.
- * Namenoma brez telefona, naslova in datuma rojstva - ti so v zivljenjepisu,
- * ne na javni strani. {starost} se izracuna sproti, da ne zastari.
+ * Besedilo je lastnikovo. Naslovi so namenoma v anglescini, telo v
+ * slovenscini. {starost} se izracuna sproti, da ne zastari. Povezava brez
+ * naslova (url: "") se ne izrise - tako GitHub in LinkedIn cakata na pravi
+ * naslov in ne vodita v prazno.
  */
 export const DOMOV = {
   namig: "Pomakni se navzdol",
   uvod: {
-    pozdrav: "Živjo, jaz sem Jure.",
-    vodilo:
-      "Star sem {starost} let, živim v Ljubljani in večino dneva preživim med " +
-      "strežniki, kabli in kodo. Tukaj je malo več o meni – brez uradnega " +
-      "jezika iz življenjepisa.",
+    ime: "Jure Blatnik",
+    naslov: "I build things\nthat work.",
+    podrocja: "IT Systems · Infrastructure · Software · Security",
+    telo: [
+      "Najbolj me zanima razvoj novih tehnologij in smer, v katero se računalništvo " +
+        "premika — od AI in novih programskih rešitev do naprednih sistemov, naprav in " +
+        "infrastrukture.",
+      "Najbolj me pritegnejo zahtevne naloge, kjer rešitev ni očitna in je treba res " +
+        "razmišljati.",
+    ],
+    kraj: "{starost} · Ljubljana, Slovenia",
+    gumbi: [
+      { besedilo: "Explore my work", stran: "delo" },
+      { besedilo: "Contact", stran: "stik" },
+    ],
   },
-  poglavja: [
-    {
-      oznaka: "Kako se je začelo",
-      naslov: "Najprej šola,\npotem prava IT pisarna.",
-      telo: [
-        "Na Srednji šoli tehniških strok Šiška sem se izšolal za tehnika " +
-          "računalništva in jo končal z nadpovprečnim uspehom. Programiranje, " +
-          "baze, omrežja – tam sem prvič ugotovil, da me to res vleče.",
-        "Še med šolanjem sem bil na praksi v IT oddelku Telekoma Slovenije. " +
-          "Postavljal sem računalnike, pripravljal delovna mesta za nove " +
-          "sodelavce, prenašal opremo in hodil na teren. Ni bilo glamurozno, " +
-          "sem pa videl, kako IT deluje, ko se nanj zanaša na stotine ljudi.",
-      ],
-    },
-    {
-      oznaka: "Ovinek",
-      naslov: "Ekonomija ni bila zame.\nIn to je čisto v redu.",
-      telo: [
-        "Po srednji šoli sem se vpisal na Ekonomsko fakulteto. Naučil sem se " +
-          "veliko o tem, kako delujejo podjetja in poslovni procesi – in " +
-          "ugotovil, da se v ekonomiji ne vidim. Zato sem se vrnil tja, kjer " +
-          "mi čas mine, ne da bi opazil.",
-      ],
-    },
-    {
-      oznaka: "Danes",
-      naslov: "IT tehnik v podjetju VTZ,\nod decembra 2025.",
-      telo: [
-        "Moj dan je redko dvakrat enak. Enkrat pripravljam strežnik in urejam " +
-          "domeno v Active Directoryju, drugič nastavljam Cisco stikala ali " +
-          "vlečem kable in montiram opremo.",
-        "Delam z videonadzorom na Avigilon Unity 8 – zanj imam tudi certifikat –, " +
-          "s kontrolo dostopa, požarnimi centralami, senzorji in mikrokontrolerji. " +
-          "Za podjetje sem razvil tudi interno aplikacijo. Tam se strojna in " +
-          "programska oprema srečata in tam se počutim najbolj doma.",
-      ],
-    },
-  ],
+  omeni: {
+    oznaka: "About",
+    naslov: "How I work.",
+    telo: [
+      "Sem tehnik računalništva z močnim praktičnim pristopom.",
+      "Moje delo sega od razvoja aplikacij in konfiguracije omrežij do strežnikov, video " +
+        "nadzornih sistemov, senzorjev, mikrokontrolerjev in druge infrastrukture.",
+      "Najbolj me vlečejo zahtevni projekti brez očitne rešitve, kjer lahko iz nove ideje " +
+        "zgradim nekaj tehnično naprednega in vizualno dovršenega.",
+      "Rad razumem celoten sistem — kako je zgrajen, kako komunicira, zakaj odpove in kako " +
+        "ga izboljšati.",
+    ],
+  },
   pot: {
     oznaka: "Moja pot",
     koraki: [
-      { cas: "2019 – 2024", naslov: "SŠTS Šiška", opis: "Tehnik računalništva" },
-      { cas: "2021 – 2022", naslov: "Telekom Slovenije", opis: "Praksa v IT oddelku" },
-      { cas: "2024", naslov: "Šolski pulover", opis: "Moj dizajn je zmagal na natečaju." },
-      { cas: "2024", naslov: "Ekonomska fakulteta", opis: "Poskusil sem in izvedel, kaj nočem." },
-      { cas: "2025 –", naslov: "VTZ d.o.o.", opis: "IT tehnik" },
+      { cas: "2021 – 2022", naslov: "Telekom Slovenije", opis: "Prvo pravo IT okolje – praksa v IT oddelku." },
+      { cas: "2022 – 2024", naslov: "SŠTS Šiška", opis: "Tehnik računalništva." },
+      { cas: "2024", naslov: "Zmagovalni dizajn", opis: "Moj dizajn je postal šolski pulover." },
+      { cas: "2024", naslov: "Ekonomska fakulteta", opis: "Poskusil sem in ugotovil, da me vleče tehnika." },
+      { cas: "2025 – danes", naslov: "VTZ d.o.o.", opis: "IT tehnik, certifikat Avigilon Unity 8." },
     ],
   },
-  prosti: {
-    oznaka: "Ko ne delam",
-    naslov: "Žoga, hribi\nin Blender.",
+  izkusnje: {
+    oznaka: "Experience",
+    seznam: [
+      {
+        podjetje: "VTZ",
+        vloga: "IT Technician",
+        cas: "2025 — Present",
+        telo: [
+          "Delam na presečišču IT infrastrukture, omrežij, varnostnih sistemov in razvoja.",
+          "Moje delo vključuje konfiguracijo in diagnostiko strežnikov, delo z Active " +
+            "Directory okolji, omrežno infrastrukturo in Cisco opremo ter deployment " +
+            "tehničnih sistemov.",
+          "Sodelujem tudi pri integraciji CCTV sistemov, kontrole dostopa, senzorjev, " +
+            "mikrokontrolerjev in druge povezane infrastrukture.",
+          "Za potrebe podjetja sem razvil tudi interno programsko rešitev, ki je postala del " +
+            "mojega praktičnega razvoja na področju software engineeringa.",
+        ],
+        certifikat: "Avigilon Unity 8 Certified",
+        znacke: ["Servers", "Networking", "Active Directory", "Cisco", "CCTV", "Access Control", "IoT", "Software"],
+      },
+      {
+        podjetje: "Telekom Slovenije",
+        vloga: "IT Department",
+        cas: "2021 — 2022",
+        telo: [
+          "Moje prvo profesionalno IT okolje.",
+          "Med praktičnim usposabljanjem sem sodeloval pri deploymentu računalniške opreme, " +
+            "pripravi delovnih mest in podpori IT infrastrukture.",
+          "Izkušnja mi je prvič pokazala, kako deluje IT v velikem poslovnem okolju in me " +
+            "usmerila v praktično delo z računalniškimi sistemi.",
+        ],
+      },
+    ],
+  },
+  dela: {
+    oznaka: "Selected work",
+    seznam: [
+      {
+        naslov: "Internal Software",
+        telo: [
+          "Razvoj interne aplikacije za potrebe podjetja.",
+          "Od ideje in uporabniškega problema do dejanske rešitve, uporabljene v realnem okolju.",
+        ],
+        podrocja: "Software · UI · Workflow Automation",
+      },
+      {
+        naslov: "Infrastructure & Security Systems",
+        telo: [
+          "Delo z omrežji, strežniki, video nadzorom, kontrolo dostopa ter integracijo " +
+            "fizičnih in digitalnih sistemov.",
+        ],
+        podrocja: "Networking · Servers · CCTV · Access Control",
+      },
+      {
+        naslov: "Connected Systems",
+        telo: [
+          "Integracija naprav, senzorjev in mikrokontrolerjev ter testiranje komunikacije med " +
+            "različnimi deli sistema.",
+        ],
+        podrocja: "Sensors · Microcontrollers · IoT",
+      },
+    ],
+  },
+  lab: {
+    oznaka: "Lab",
+    naslov: "Building beyond work.",
     telo: [
-      "Igram košarko in odbojko, pozimi smučam in drsam, poleti plavam, ko je " +
-        "le priložnost, pa grem v hribe ali kam na pot. Šport mi vrne energijo, " +
-        "ki jo pojedo zasloni.",
-      "Rad tudi ustvarjam – fotografiram, oblikujem in montiram video. Sledim " +
-        "novim procesorjem, telefonom in umetni inteligenci. Dve moji animaciji:",
+      "Velik del stvari, ki jih znam, sem se naučil tako, da sem jih preprosto začel graditi.",
+      "Eksperimentiram z aplikacijami, AI sistemi, 3D okolji, računalniško vizualizacijo in " +
+        "interaktivnimi spletnimi projekti.",
     ],
-    dela: [
-      {
-        ime: "Očala",
-        opis: "Animacija na eno samo besedo. Izbral sem virtualna očala.",
-        url: "https://youtu.be/QfAUvNHwMSI",
-      },
-      {
-        ime: "Snežak",
-        opis: "3D animacija v Blenderju, moja maturitetna naloga, dodelana v Premieru.",
-        url: "https://youtu.be/Fm_bdeKcgGg",
-      },
-    ],
+    poudarki: ["Nekateri postanejo resni projekti.", "Drugi ostanejo eksperimenti.", "Oboji me naučijo nekaj novega."],
+    gumb: { besedilo: "Enter the Lab →", stran: "arhiv" },
   },
   znanja: {
-    oznaka: "Kaj znam",
-    vodilo:
-      "Sem zanesljiv, novih stvari se hitro naučim in dobro delam v ekipi – ali " +
-      "sam, če je treba.",
+    oznaka: "Capabilities",
     skupine: {
-      Programiranje: ["Python", "C", "PHP", "TypeScript", "HTML5", "CSS", "Vite"],
-      "Sistemi in omrežja": ["Active Directory", "Cisco", "Windows 10 / 11", "Omrežja", "Strojna oprema", "Baze podatkov"],
-      Ustvarjanje: ["Blender", "Premiere Pro", "After Effects", "Photoshop"],
-      Pisarna: ["Word", "Excel", "PowerPoint", "Access"],
+      Development: ["Python", "TypeScript", "JavaScript", "HTML / CSS", "PHP", "C", "Vite", "Databases"],
+      Systems: ["Windows", "Active Directory", "Servers", "Hardware", "Deployment", "Diagnostics"],
+      Networking: ["Cisco", "TCP/IP", "Network configuration", "Switching", "Device integration"],
+      "Security & Connected Systems": ["Avigilon Unity", "CCTV", "Access Control", "Sensors", "Microcontrollers"],
+      Creative: ["Blender", "Photoshop", "Premiere Pro", "After Effects", "3D", "Motion Design"],
     },
   },
-  konec: {
-    naslov: "Prišel si do konca?\nPotem se slišiva.",
-    telo: "Najlažje me dobiš po e-pošti.",
-    gumb: "Piši mi",
+  izobrazba: {
+    oznaka: "Education",
+    naslov: "Computer Science Technician",
+    kraj: "SŠTS Šiška · Ljubljana",
+    telo:
+      "Izobraževanje na področju razvoja programske opreme, podatkovnih baz, računalniških " +
+      "omrežij in informacijskih sistemov.",
+  },
+  druga: {
+    oznaka: "Another side",
+    naslov: "Tehnologija ni moje edino področje.",
+    telo: [
+      "Ukvarjam se tudi z oblikovanjem, 3D grafiko, fotografijo in video produkcijo.",
+      "V srednji šoli je bil moj dizajn izbran kot zmagovalni dizajn šolskega puloverja.",
+      "Ta kombinacija tehničnega in vizualnega razmišljanja precej vpliva tudi na način, kako " +
+        "gradim svoje projekte.",
+    ],
+  },
+  stik: {
+    oznaka: "Contact",
+    naslov: "Let's build\nsomething.",
+    kraj: "Ljubljana, Slovenia",
+    eposta: "jure.blatnik10@gmail.com",
+    povezave: [
+      { ime: "GitHub", url: "" },
+      { ime: "LinkedIn", url: "" },
+      { ime: "Email", url: "mailto:jure.blatnik10@gmail.com" },
+    ],
   },
 };
