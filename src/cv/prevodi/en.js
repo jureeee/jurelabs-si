@@ -140,7 +140,7 @@ export default {
       naslov: "I build software\nand look after the systems beneath it.",
       vodilo:
         "When I have time, I build my own ideas. I don't run out of them, and every next one " +
-        "is better.",
+        "is better. I look for projects with a lot still left to find out.",
     },
     odseki: [
       {
