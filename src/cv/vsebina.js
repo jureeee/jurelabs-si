@@ -34,8 +34,9 @@ export const DELO = {
     oznaka: "Delo",
     naslov: "Gradim programsko opremo\nin skrbim za sisteme pod njo.",
     vodilo:
-      "Večina tega, kar sem zgradil, je nastala iz dejanske potrebe pri " +
-      "delu – ne kot vaja.",
+      "Marsikaterega projekta, ki sem se ga lotil, nisem dokončal – " +
+      "radovednost me je odnesla k naslednji stvari. Prav ta me žene naprej " +
+      "in zato sem vedno odprt za nove ideje.",
   },
   odseki: [
     {

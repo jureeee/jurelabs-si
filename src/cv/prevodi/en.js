@@ -138,7 +138,9 @@ export default {
     uvod: {
       oznaka: "Work",
       naslov: "I build software\nand look after the systems beneath it.",
-      vodilo: "Most of what I've built came from a real need at work – not as an exercise.",
+      vodilo:
+        "I haven't finished every project I started – curiosity pulled me on to the next " +
+        "thing. That's exactly what keeps me going, so I'm always open to new ideas.",
     },
     odseki: [
       {
