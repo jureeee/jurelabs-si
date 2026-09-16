@@ -172,10 +172,11 @@ export const OMENI = {
     {
       tip: "par",
       oznaka: "Kako se učim",
-      naslov: "Dokler ne dela,\nnisem razumel.",
+      naslov: "Dokler ne dela,\nse ne ustavim.",
       telo:
-        "Dokumentacijo preberem, potem pa jo zaprem in poskusim po spominu. " +
-        "Razlaga, ki je ne znam sestaviti sam, ni razumevanje, ampak citat.",
+        "Dokumentacija je pomembna, ni pa dovolj. Reševanje problema je " +
+        "analiza, odločitve med samimi slabimi možnostmi, poskušanje in " +
+        "vztrajnost – dokler stvar ne stoji.",
       slika: 17,
     },
     {

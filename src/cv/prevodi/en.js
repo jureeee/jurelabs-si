@@ -244,10 +244,10 @@ export default {
       },
       {
         oznaka: "How I learn",
-        naslov: "Until it works,\nI haven't understood.",
+        naslov: "Until it works,\nI don't stop.",
         telo:
-          "I read the documentation, then close it and try from memory. An explanation I can't " +
-          "put together myself isn't understanding – it's a quote.",
+          "Documentation matters, but it isn't enough. Solving a problem is analysis, choices " +
+          "between bad options, trying things and staying with it – until it stands.",
       },
       {
         oznaka: "Where I'm drawn",
