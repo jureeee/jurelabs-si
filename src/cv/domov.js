@@ -199,7 +199,12 @@ export function installDomov({ obDrsenju }) {
       if (bili.has(i)) o.classList.add("vidno");
       opazovalec.observe(o);
     });
-    oziviBesedilo(tok, { tok: koren, izbor: "h1, h2, h3, p, .zapis-oznaka, .domov-vloga, .domov-podrocja" });
+    oziviBesedilo(tok, {
+      tok: koren,
+      izbor: "h1, h2, h3, p, .zapis-oznaka, .domov-vloga, .domov-podrocja",
+      // Prebrano besedilo odide na levo in se vrne, ce se pomaknes nazaj gor.
+      odhod: true,
+    });
   }
   zgradi();
   obJeziku(zgradi);
