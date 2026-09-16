@@ -175,8 +175,8 @@ export const OMENI = {
       naslov: "Dokler ne dela,\nse ne ustavim.",
       telo:
         "Dokumentacija je pomembna, ni pa dovolj. Reševanje problema je " +
-        "analiza, odločitve med samimi slabimi možnostmi, poskušanje in " +
-        "vztrajnost – dokler stvar ne stoji.",
+        "analiza in odločanje med samimi slabimi možnostmi. Ena dobra vedno " +
+        "obstaja – čar je v tem, da jo najdeš.",
       slika: 17,
     },
     {
