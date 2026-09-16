@@ -221,7 +221,7 @@ export default {
   "vsebina.omeni": {
     uvod: {
       oznaka: "About",
-      naslov: "Before it was a job,\nit was curiosity.",
+      naslov: "Not just a job.\nCuriosity without borders.",
       vodilo:
         "What I like doing, what pulls me in, and why I take most things apart before I start " +
         "using them.",
