@@ -315,6 +315,24 @@ export default {
     },
     odseki: [
       {
+        oznaka: "2024 · finished",
+        naslov: "Real-time detection\nand tracking",
+        telo:
+          "YOLO models, written in C and shipped as a standalone application. It recognises " +
+          "objects in the image, follows them between frames and keeps their identity even when " +
+          "they briefly disappear behind something else.",
+        znacke: ["C", "YOLO", "Computer vision", "Real time"],
+      },
+      {
+        oznaka: "Older · finished",
+        naslov: "Roulette simulation",
+        telo:
+          "A simulator that plays millions of spins and tests strategies that sound logical on " +
+          "paper. The result is the same every time: the house has its edge, and no system wears " +
+          "it down.",
+        znacke: ["Probability", "Simulation"],
+      },
+      {
         oznaka: "2026 · in use",
         naslov: "Trace Space",
         telo:
@@ -339,25 +357,7 @@ export default {
           "without a framework.",
         znacke: ["Three.js", "WebGL", "Shaders", "Vite"],
       },
-      {
-        oznaka: "2024 · finished",
-        naslov: "Real-time detection\nand tracking",
-        telo:
-          "YOLO models, written in C and shipped as a standalone application. It recognises " +
-          "objects in the image, follows them between frames and keeps their identity even when " +
-          "they briefly disappear behind something else.",
-        znacke: ["C", "YOLO", "Computer vision", "Real time"],
-      },
-      {
-        oznaka: "Older · finished",
-        naslov: "Roulette simulation",
-        telo:
-          "A simulator that plays millions of spins and tests strategies that sound logical on " +
-          "paper. The result is the same every time: the house has its edge, and no system wears " +
-          "it down.",
-        znacke: ["Probability", "Simulation"],
-      },
-    ],
+        ],
     konec: "The list keeps growing. What's under Work is what I use most right now.",
   },
 

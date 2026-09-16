@@ -258,6 +258,33 @@ export const ARHIV = {
   odseki: [
     {
       tip: "par",
+      oznaka: "2024 · končano",
+      naslov: "Zaznavanje in sledenje\nv realnem času",
+      telo:
+        "Modeli YOLO, napisano v C in razposlano kot samostojna aplikacija. " +
+        "Prepozna predmete v sliki, jim sledi med sličicami in obdrži " +
+        "identiteto, tudi ko za trenutek izginejo za nečim drugim.",
+      znacke: ["C", "YOLO", "Računalniški vid", "Realni čas"],
+      slika: yoloSlika,
+      // Posnetek je pokoncen, tak kot pride iz telefona.
+      razmerje: "3 / 4",
+    },
+    {
+      obrnjen: true,
+      tip: "par",
+      oznaka: "Starejše · končano",
+      naslov: "Simulacija rulete",
+      telo:
+        "Simulator, ki odigra milijone vrtljajev in preveri strategije, ki na " +
+        "papirju zvenijo logično. Rezultat je vsakič isti: hiša ima svoj " +
+        "odstotek in ta se z nobenim sistemom ne obrabi.",
+      znacke: ["Verjetnost", "Simulacija"],
+      slika: ruletaSlika,
+      // Slika je lezeca; v pokoncnem okvirju bi ostala polovica mize zunaj.
+      razmerje: "16 / 9",
+    },
+    {
+      tip: "par",
       oznaka: "2026 · v uporabi",
       naslov: "Trace Space",
       telo:
@@ -269,8 +296,8 @@ export const ARHIV = {
       razmerje: "3 / 2",
     },
     {
-      tip: "par",
       obrnjen: true,
+      tip: "par",
       oznaka: "2026 · v uporabi",
       naslov: "Vantage",
       telo:
@@ -293,34 +320,7 @@ export const ARHIV = {
       znacke: ["Three.js", "WebGL", "Senčilniki", "Vite"],
       slika: 11,
     },
-    {
-      tip: "par",
-      obrnjen: true,
-      oznaka: "2024 · končano",
-      naslov: "Zaznavanje in sledenje\nv realnem času",
-      telo:
-        "Modeli YOLO, napisano v C in razposlano kot samostojna aplikacija. " +
-        "Prepozna predmete v sliki, jim sledi med sličicami in obdrži " +
-        "identiteto, tudi ko za trenutek izginejo za nečim drugim.",
-      znacke: ["C", "YOLO", "Računalniški vid", "Realni čas"],
-      slika: yoloSlika,
-      // Posnetek je pokoncen, tak kot pride iz telefona.
-      razmerje: "3 / 4",
-    },
-    {
-      tip: "par",
-      oznaka: "Starejše · končano",
-      naslov: "Simulacija rulete",
-      telo:
-        "Simulator, ki odigra milijone vrtljajev in preveri strategije, ki na " +
-        "papirju zvenijo logično. Rezultat je vsakič isti: hiša ima svoj " +
-        "odstotek in ta se z nobenim sistemom ne obrabi.",
-      znacke: ["Verjetnost", "Simulacija"],
-      slika: ruletaSlika,
-      // Slika je lezeca; v pokoncnem okvirju bi ostala polovica mize zunaj.
-      razmerje: "16 / 9",
-    },
-  ],
+    ],
   konec: "Seznam raste. Kar je pod Delo, je tisto, kar zdaj največ uporabljam.",
 };
 
