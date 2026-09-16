@@ -132,9 +132,9 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
           <div class="prof-ime">${PODATKI.ime}</div>
           <div class="prof-pravo">${PODATKI.pravo}</div>
           <div class="prof-stevci">
-            <span><b>${mediji.length}</b>objav</span>
-            <span><b>${PODATKI.sledilcev}</b>sledilcev</span>
-            <span><b>${PODATKI.sledi}</b>sledi</span>
+            <span class="prof-stevec"><b>${mediji.length}</b><span class="prof-beseda">objav</span></span>
+            <span class="prof-stevec"><b>${PODATKI.sledilcev}</b><span class="prof-beseda">sledilcev</span></span>
+            <span class="prof-stevec"><b>${PODATKI.sledi}</b><span class="prof-beseda">sledi</span></span>
           </div>
           <div class="prof-bio">${PODATKI.bio}</div>
           <div class="prof-gumbi">
@@ -164,7 +164,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
   const oziviProfil = () =>
     oziviBesedilo(koren, {
       tok: koren,
-      izbor: ".prof-ime, .prof-pravo, .prof-bio, .prof-stevci span, .prof-gumb, .prof-zavihek",
+      izbor: ".prof-ime, .prof-pravo, .prof-bio, .prof-stevec, .prof-gumb, .prof-zavihek",
     });
   oziviProfil();
 
@@ -561,9 +561,10 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
   /**
    * Napisi profila v izbranem jeziku.
    *
-   * Oznake so ze postavljene; zamenja se le besedilo. Pri stevcih je stevilo
-   * v <b> in beseda za njim, zato menjamo le zadnje besedilo - postavitev
-   * stevca ostane nedotaknjena.
+   * Oznake so ze postavljene; zamenja se le besedilo. Beseda ob stevcu ima
+   * svojo skatlo (.prof-beseda): ko besedilo razbijemo na znake, se pod
+   * stevcem pojavijo novi span-i in iskanje "span" bi zadelo nje, ne besede -
+   * prav to je stevcu objav pisalo "sledi" pred stevilko.
    */
   function prevediProfil() {
     const besede = [
@@ -571,8 +572,8 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
       ["prof.sledilcev", "sledilcev"],
       ["prof.sledi", "sledi"],
     ];
-    koren.querySelectorAll(".prof-stevci span").forEach((el, i) => {
-      if (besede[i] && el.lastChild) el.lastChild.nodeValue = t(...besede[i]);
+    koren.querySelectorAll(".prof-stevci .prof-beseda").forEach((el, i) => {
+      if (besede[i]) el.textContent = t(...besede[i]);
     });
     const bio = koren.querySelector(".prof-bio");
     if (bio) bio.textContent = t("prof.bio", PODATKI.bio);
