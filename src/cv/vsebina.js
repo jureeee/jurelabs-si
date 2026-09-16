@@ -1,6 +1,7 @@
 import strojnaSlika from "../assets/zapis/strojna-programska.webp";
 import traceSpaceSlika from "../assets/zapis/trace-space.webp";
 import vantageSlika from "../assets/zapis/vantage.webp";
+import ruletaSlika from "../assets/zapis/ruleta.webp";
 
 /**
  * Besedilo strani Delo, O meni in Arhiv.
@@ -276,7 +277,9 @@ export const ARHIV = {
         "papirju zvenijo logično. Rezultat je vsakič isti: hiša ima svoj " +
         "odstotek in ta se z nobenim sistemom ne obrabi.",
       znacke: ["Verjetnost", "Simulacija"],
-      slika: 31,
+      slika: ruletaSlika,
+      // Slika je lezeca; v pokoncnem okvirju bi ostala polovica mize zunaj.
+      razmerje: "16 / 9",
     },
   ],
   konec: "Kar je tu, je končano. Kar nastaja, je pod Delo.",
