@@ -34,8 +34,9 @@ export const DELO = {
     oznaka: "Delo",
     naslov: "Gradim programsko opremo\nin skrbim za sisteme pod njo.",
     vodilo:
-      "Vedno imam v rokah več stvari hkrati. Vsaka mi nekaj pusti in to " +
-      "nesem v naslednjo – zato me najbolj mika tisto, česar še ne znam.",
+      "Ko imam čas, se usedem in gradim svoje. Idej mi ne zmanjka in vsaka " +
+      "naslednja je boljša od prejšnje. Iščem projekte, kjer je še veliko " +
+      "neodkritega.",
   },
   odseki: [
     {
