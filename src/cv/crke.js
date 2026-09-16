@@ -171,17 +171,19 @@ export function oziviBesedilo(koren, moznosti = {}) {
           continue;
         }
         if (!odhod || v.target.classList.contains("crke-caka")) continue;
-        // Nad zaslonom: prebrano besedilo odide na levo. Pod njim: vrne se tja,
-        // od koder je prislo.
-        const vrh = v.rootBounds ? v.rootBounds.top : 0;
-        const nova = v.boundingClientRect.bottom <= vrh ? -1 : 1;
+        // Nad sredino zaslona: prebrano besedilo odide na levo. Pod njo: vrne se
+        // tja, od koder je prislo. Merimo proti sredini in ne proti robu, ker je
+        // besedilo ob odhodu tik ob robu in bi odlocitev viselo na pol pike.
+        const r = v.rootBounds;
+        const sredina = r ? r.top + r.height / 2 : innerHeight / 2;
+        const nova = v.boundingClientRect.bottom <= sredina ? -1 : 1;
         stran.set(v.target, nova);
         pozeni(v.target, { korak, trajanje, zamik: 0, smer: nova, odhod: true });
       }
     },
-    // Zgornji rob je pritegnjen navznoter, da se odhod zacne, preden besedilo
-    // zdrsne z zaslona, in ga se vidis.
-    { root: tok, rootMargin: odhod ? "-9% 0px -5% 0px" : "0px 0px -5% 0px", threshold: 0.01 }
+    // Zgornji rob je mocno pritegnjen navznoter: odhod se zacne, ko je besedilo
+    // se dobro v zgornji tretjini zaslona, zato ga med odhajanjem se vidis.
+    { root: tok, rootMargin: odhod ? "-28% 0px -5% 0px" : "0px 0px -5% 0px", threshold: 0.01 }
   );
 
   for (const el of koren.querySelectorAll(izbor)) {
