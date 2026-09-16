@@ -139,9 +139,8 @@ export default {
       oznaka: "Work",
       naslov: "I build software\nand look after the systems beneath it.",
       vodilo:
-        "When I have time, I sit down and build my own things. I don't run out of ideas, and " +
-        "every next one is better than the last. I look for projects with a lot still left to " +
-        "find out.",
+        "When I have time, I build my own ideas. I don't run out of them, and every next one " +
+        "is better.",
     },
     odseki: [
       {
