@@ -308,14 +308,39 @@ export default {
   "vsebina.arhiv": {
     uvod: {
       oznaka: "Archive",
-      naslov: "Welcome to the archive.",
+      naslov: "Every project\nin one place.",
       vodilo:
-        "Things that are finished and no longer in development. They're here because I learned " +
-        "something from them, and because it's only fair to show where I started.",
+        "From the latest to the first. Some are still alive and growing, others are finished – " +
+        "each one taught me something.",
     },
     odseki: [
       {
-        oznaka: "2024",
+        oznaka: "2026 · in use",
+        naslov: "Trace Space",
+        telo:
+          "A dashboard for air-quality and safety sensors. It collects measurements, recognises " +
+          "patterns and warns before something becomes a problem.",
+        znacke: ["Python", "Flask", "SQLite", "Dashboards"],
+      },
+      {
+        oznaka: "2026 · in use",
+        naslov: "Vantage",
+        telo:
+          "An app for discovering, configuring and controlling network cameras. It stores preset " +
+          "positions for PTZ cameras, so a single click sends them back exactly where they need " +
+          "to look.",
+      },
+      {
+        oznaka: "2026 · live",
+        naslov: "This site",
+        telo:
+          "The galaxy in the background isn't a video. The browser draws it live from tens of " +
+          "thousands of points, with its own shader and glow. Everything you see is built " +
+          "without a framework.",
+        znacke: ["Three.js", "WebGL", "Shaders", "Vite"],
+      },
+      {
+        oznaka: "2024 · finished",
         naslov: "Real-time detection\nand tracking",
         telo:
           "YOLO models, written in C and shipped as a standalone application. It recognises " +
@@ -324,7 +349,7 @@ export default {
         znacke: ["C", "YOLO", "Computer vision", "Real time"],
       },
       {
-        oznaka: "Older",
+        oznaka: "Older · finished",
         naslov: "Roulette simulation",
         telo:
           "A simulator that plays millions of spins and tests strategies that sound logical on " +
@@ -333,8 +358,9 @@ export default {
         znacke: ["Probability", "Simulation"],
       },
     ],
-    konec: "What's here is finished. What's in progress is under Work.",
+    konec: "The list keeps growing. What's under Work is what I use most right now.",
   },
+
 
   "vsebina.domov": {
     namig: "Scroll down",

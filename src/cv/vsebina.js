@@ -2,6 +2,7 @@ import strojnaSlika from "../assets/zapis/strojna-programska.webp";
 import traceSpaceSlika from "../assets/zapis/trace-space.webp";
 import vantageSlika from "../assets/zapis/vantage.webp";
 import ruletaSlika from "../assets/zapis/ruleta.webp";
+import yoloSlika from "../assets/zapis/yolo.webp";
 
 /**
  * Besedilo strani Delo, O meni in Arhiv.
@@ -249,27 +250,66 @@ export const ARHIV = {
   uvod: {
     oznaka: "Arhiv",
     ikona: "arhiv",
-    naslov: "Dobrodošel v arhivu.",
+    naslov: "Vsi projekti\nna enem mestu.",
     vodilo:
-      "Stvari, ki so končane in jih ne razvijam naprej. Tu so, ker sem se ob " +
-      "njih nekaj naučil in ker je pošteno pokazati tudi, kje sem začel.",
+      "Od zadnjega do prvega. Nekateri še živijo in rastejo, drugi so " +
+      "končani – vsak me je nekaj naučil.",
   },
   odseki: [
     {
       tip: "par",
-      oznaka: "2024",
+      oznaka: "2026 · v uporabi",
+      naslov: "Trace Space",
+      telo:
+        "Nadzorna plošča za senzorje kakovosti zraka in varnosti. Zbira " +
+        "meritve, prepozna vzorce in opozori, preden postane težava.",
+      znacke: ["Python", "Flask", "SQLite", "Nadzorne plošče"],
+      aplikacija: { pot: "demo/trace-space/index.html", ime: "Trace Space" },
+      slika: traceSpaceSlika,
+      razmerje: "3 / 2",
+    },
+    {
+      tip: "par",
+      obrnjen: true,
+      oznaka: "2026 · v uporabi",
+      naslov: "Vantage",
+      telo:
+        "Aplikacija za odkrivanje, nastavljanje in vodenje omrežnih kamer. " +
+        "Premičnim kameram hrani prednastavljene lege, tako da se z enim " +
+        "klikom vrnejo natanko tja, kamor morajo gledati.",
+      znacke: ["Python", "React", "TypeScript", "ONVIF", "PTZ", "SSE"],
+      aplikacija: { pot: "demo/vantage/index.html", ime: "Vantage" },
+      slika: vantageSlika,
+      razmerje: "3 / 2",
+    },
+    {
+      tip: "par",
+      oznaka: "2026 · živo",
+      naslov: "Ta stran",
+      telo:
+        "Galaksija v ozadju ni video. Brskalnik jo izriše v živo iz " +
+        "desettisočih točk, z lastnim senčilnikom in sijem. Vse, kar vidiš, " +
+        "je narejeno brez ogrodja.",
+      znacke: ["Three.js", "WebGL", "Senčilniki", "Vite"],
+      slika: 11,
+    },
+    {
+      tip: "par",
+      obrnjen: true,
+      oznaka: "2024 · končano",
       naslov: "Zaznavanje in sledenje\nv realnem času",
       telo:
         "Modeli YOLO, napisano v C in razposlano kot samostojna aplikacija. " +
         "Prepozna predmete v sliki, jim sledi med sličicami in obdrži " +
         "identiteto, tudi ko za trenutek izginejo za nečim drugim.",
       znacke: ["C", "YOLO", "Računalniški vid", "Realni čas"],
-      slika: 23,
+      slika: yoloSlika,
+      // Posnetek je pokoncen, tak kot pride iz telefona.
+      razmerje: "3 / 4",
     },
     {
       tip: "par",
-      obrnjen: true,
-      oznaka: "Starejše",
+      oznaka: "Starejše · končano",
       naslov: "Simulacija rulete",
       telo:
         "Simulator, ki odigra milijone vrtljajev in preveri strategije, ki na " +
@@ -281,8 +321,9 @@ export const ARHIV = {
       razmerje: "16 / 9",
     },
   ],
-  konec: "Kar je tu, je končano. Kar nastaja, je pod Delo.",
+  konec: "Seznam raste. Kar je pod Delo, je tisto, kar zdaj največ uporabljam.",
 };
+
 
 /**
  * Zacetna stran: predstavitev pod galaksijo, ko se pomaknes navzdol.
