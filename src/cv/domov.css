@@ -2,8 +2,9 @@
    ZACETNA STRAN - predstavitev pod galaksijo
 
    Plast drsi cez pritrjeno platno. Prvi zaslon je prazen: najprej galaksija,
-   sele ko se pomaknes, pride besedilo. Pod besedilom se zbira temnejsa tancica
-   (--domov-tema), da je berljivo tudi cez najsvetlejsi del diska.
+   sele ko se pomaknes, pride besedilo. Vsak razdelek ima pod sabo mehko
+   zabrisano liso, ki se proti robovom zlije v nic - zato je besedilo berljivo
+   tudi cez najsvetlejsi del diska, brez vidnega roba ucinka.
    =========================================================================== */
 
 .domov {
@@ -14,21 +15,63 @@
   overflow-x: hidden;
   overscroll-behavior: contain;
   scrollbar-width: none;
-  --domov-tema: 0;
-  /* Besedilo zbledi, preden zdrsne pod zgornji meni in spodnje kapsule. */
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, transparent 70px, #000 150px, #000 calc(100% - 110px), transparent calc(100% - 20px));
-  mask-image: linear-gradient(to bottom, transparent 0, transparent 70px, #000 150px, #000 calc(100% - 110px), transparent calc(100% - 20px));
+  /* Brez maske in brez prosojnosti: oboje bi naredilo svojo plast in lisam pod
+     besedilom vzelo podlago, ki jo zabrisujejo (ista past kot pri steklu). */
 }
 .domov::-webkit-scrollbar { display: none; }
 
-.domov-tema {
-  position: fixed;
-  inset: 0;
+/* Mehka lisa pod besedilom: zabrise in potemni galaksijo tik za crkami, proti
+   robovom pa se zlije v nic - zato nikjer ni roba, na katerem bi se videlo, kje
+   se ucinek konca. Lezi pod vsebino razdelka, ne nad njo. */
+.domov .odsek { position: relative; }
+/* Razdelki drugod koncajo prihod s filter: blur(0). Lastnost, ki ostane, naredi
+   svojo plast in lisi pod besedilom vzame podlago - tu je zato ne pustimo. */
+.domov .odsek,
+.domov .odsek.vidno { filter: none; }
+.domov .odsek > * { position: relative; z-index: 1; }
+.domov .odsek::before {
+  content: "";
+  position: absolute;
+  inset: -6% -10%;
+  /* Brez z-index: -1. Tam brskalnik lise ne zabrise cez platno galaksije -
+     vsebino razdelka zato raje dvignemo nadnjo. */
   pointer-events: none;
-  opacity: var(--domov-tema);
-  background:
-    radial-gradient(120% 90% at 50% 50%, rgba(3, 4, 8, 0.38), rgba(3, 4, 8, 0.7)),
-    linear-gradient(to bottom, rgba(3, 4, 8, 0.1), rgba(3, 4, 8, 0.35));
+  backdrop-filter: blur(16px) saturate(0.85) brightness(0.5);
+  -webkit-backdrop-filter: blur(16px) saturate(0.85) brightness(0.5);
+  -webkit-mask-image: radial-gradient(115% 105% at 38% 50%, #000 26%, rgba(0, 0, 0, 0.5) 56%, transparent 78%);
+  mask-image: radial-gradient(115% 105% at 38% 50%, #000 26%, rgba(0, 0, 0, 0.5) 56%, transparent 78%);
+}
+.domov .domov-konec::before,
+.domov .domov-pot::before {
+  -webkit-mask-image: radial-gradient(110% 105% at 50% 50%, #000 26%, rgba(0, 0, 0, 0.5) 56%, transparent 80%);
+  mask-image: radial-gradient(110% 105% at 50% 50%, #000 26%, rgba(0, 0, 0, 0.5) 56%, transparent 80%);
+}
+/* Prazen prvi zaslon nima besedila in zato tudi lise ne. */
+.domov .domov-zacetek::before { display: none; }
+
+/* Rob ob zgornjem in spodnjem robu zaslona: zabrise vse pod sabo, tudi
+   besedilo, ki gre proti meniju in kapsulam. Stoji zunaj drsece plasti, sicer
+   bi ji vzel podlago. */
+.domov-rob {
+  position: fixed;
+  left: 0;
+  right: 0;
+  z-index: 6;
+  pointer-events: none;
+  backdrop-filter: blur(9px);
+  -webkit-backdrop-filter: blur(9px);
+}
+.domov-rob.gor {
+  top: 0;
+  height: 130px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
+}
+.domov-rob.dol {
+  bottom: 0;
+  height: 110px;
+  -webkit-mask-image: linear-gradient(to top, #000 25%, transparent 100%);
+  mask-image: linear-gradient(to top, #000 25%, transparent 100%);
 }
 
 .domov-tok { position: relative; padding-bottom: 140px; }

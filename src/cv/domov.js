@@ -5,6 +5,10 @@
  * javlja dvoje: kako dalec si (0 na vrhu, 1 na koncu) in sunek - kako hitro in
  * v katero smer si pravkar zavrtel. Prizor iz tega sam naredi gib kamere.
  *
+ * Berljivost dela vsak razdelek zase: pod besedilom ima mehko zabrisano liso,
+ * ki se na robovih zlije v nic. Ena tancica cez cel zaslon je puscala vidno
+ * elipso in crto tam, kjer se je koncala.
+ *
  * Razdelki uporabljajo iste razrede kot strani Delo in O meni (odsek, oznaka,
  * znacke), zato pridejo v pogled na isti nacin in stran ostane en slog.
  */
@@ -161,7 +165,6 @@ export function installDomov({ obDrsenju }) {
   const koren = document.createElement("div");
   koren.className = "domov";
   koren.innerHTML = `
-    <div class="domov-tema" aria-hidden="true"></div>
     <div class="domov-tok"></div>
     <button type="button" class="domov-namig" aria-hidden="true" tabindex="-1">
       <span class="domov-namig-besedilo"></span>
@@ -170,9 +173,16 @@ export function installDomov({ obDrsenju }) {
   document.body.insertBefore(koren, document.querySelector(".nav"));
 
   const tok = koren.querySelector(".domov-tok");
-  // Namig zivi zunaj plasti, sicer bi ga maska ob spodnjem robu zabrisala.
   const namig = koren.querySelector(".domov-namig");
   document.body.insertBefore(namig, koren.nextSibling);
+
+  // Zabrisana robova zaslona: zunaj drsece plasti, da imata kaj zabrisati.
+  for (const kje of ["gor", "dol"]) {
+    const rob = document.createElement("div");
+    rob.className = `domov-rob ${kje}`;
+    rob.setAttribute("aria-hidden", "true");
+    document.body.insertBefore(rob, koren.nextSibling);
+  }
 
   const opazovalec = new IntersectionObserver(
     (vnosi) => vnosi.forEach((v) => v.isIntersecting && v.target.classList.add("vidno")),
@@ -212,9 +222,6 @@ export function installDomov({ obDrsenju }) {
     const delez = Math.min(1, Math.max(0, vrh / najvec));
     const sunek = (vrh - zadnji) / Math.max(1, koren.clientHeight);
     zadnji = vrh;
-    // Prvi zaslon je prazen - tam se tema sele zacne nabirati.
-    const zatemni = Math.min(1, vrh / (koren.clientHeight * 0.85));
-    koren.style.setProperty("--domov-tema", zatemni.toFixed(3));
     namig.classList.toggle("skrit", vrh > 40);
     obDrsenju(delez, sunek);
   };
