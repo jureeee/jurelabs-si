@@ -32,19 +32,18 @@
 .domov .odsek::before {
   content: "";
   position: absolute;
-  inset: -6% -10%;
+  /* Lisa sega precej cez razdelek, zato ima prehod kje zbledeti. */
+  inset: -16% -14%;
   /* Brez z-index: -1. Tam brskalnik lise ne zabrise cez platno galaksije -
      vsebino razdelka zato raje dvignemo nadnjo. */
   pointer-events: none;
   backdrop-filter: blur(16px) saturate(0.85) brightness(0.5);
   -webkit-backdrop-filter: blur(16px) saturate(0.85) brightness(0.5);
-  -webkit-mask-image: radial-gradient(115% 105% at 38% 50%, #000 26%, rgba(0, 0, 0, 0.5) 56%, transparent 78%);
-  mask-image: radial-gradient(115% 105% at 38% 50%, #000 26%, rgba(0, 0, 0, 0.5) 56%, transparent 78%);
-}
-.domov .domov-konec::before,
-.domov .domov-pot::before {
-  -webkit-mask-image: radial-gradient(110% 105% at 50% 50%, #000 26%, rgba(0, 0, 0, 0.5) 56%, transparent 80%);
-  mask-image: radial-gradient(110% 105% at 50% 50%, #000 26%, rgba(0, 0, 0, 0.5) 56%, transparent 80%);
+  /* Elipsa je na sredini in ima polmer natanko pol okvira, zato je ob vseh
+     styirih robovih ze prosojna. Kadar sega cez rob, ostane tam raven rez -
+     prav to je delalo liso kvadratno. Vmesne postaje mehcajo prehod. */
+  -webkit-mask-image: radial-gradient(50% 50% at 50% 50%, #000 0%, rgba(0, 0, 0, 0.92) 30%, rgba(0, 0, 0, 0.6) 54%, rgba(0, 0, 0, 0.26) 74%, rgba(0, 0, 0, 0.07) 88%, transparent 100%);
+  mask-image: radial-gradient(50% 50% at 50% 50%, #000 0%, rgba(0, 0, 0, 0.92) 30%, rgba(0, 0, 0, 0.6) 54%, rgba(0, 0, 0, 0.26) 74%, rgba(0, 0, 0, 0.07) 88%, transparent 100%);
 }
 /* Prazen prvi zaslon nima besedila in zato tudi lise ne. */
 .domov .domov-zacetek::before { display: none; }
