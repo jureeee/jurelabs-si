@@ -521,11 +521,11 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     { kljuc: "cez", ime: "Čez sredino" },
     { kljuc: "sredina", ime: "Na sredini" },
   ];
-  // Privzeto: izvirna razmerja v velikem. Mreza enakih kvadratov pove, koliko
-  // je slik; ta pove, kaksne so - in to je tisto, zaradi cesar jih kdo odpre.
-  let razpored = "izvirnoxl";
+  // Privzeto: gosta mreza cez sredino zaslona. Naenkrat je videti veliko slik,
+  // hkrati pa imajo ob straneh zrak - galerija tako ne pritiska na robove.
+  let razpored = "gost";
   let razmik = "da";
-  let sirina = "robovi";
+  let sirina = "cez";
   mreza.dataset.razpored = razpored;
   mreza.dataset.razmik = razmik;
   mreza.dataset.sirina = sirina;
