@@ -31,6 +31,7 @@ import { installSelectionGlow } from "./selection.js";
 import { zacniJezik, obJeziku, t as tr } from "./jezik.js";
 import { installIzbirnikJezika } from "./izbirnik-jezika.js";
 import { installArkada } from "./arkada.js";
+import { installOzvezdja } from "./ozvezdja.js";
 import { installDomov } from "./domov.js";
 
 // --- nastavitve --------------------------------------------------------------
@@ -584,8 +585,12 @@ function tick(ts) {
   );
 
 
+  ozvezdja.korak();
+
   composer.render();
 }
+
+const ozvezdja = installOzvezdja(scene, camera, renderer);
 
 window.addEventListener("resize", resize);
 resize();
@@ -720,6 +725,7 @@ function uporabiNastavitve() {
   }
   // "Samo zvezde" pomeni brez mlecne plasti med njimi.
   if (megla) megla.visible = prizorVklopljen && nastavitve.ozadje === "galaksija";
+  ozvezdja?.nastavi(prizorVklopljen);
 
   kazalec.nastavi(nastavitve.kazalec);
   magnet.nastavi(nastavitve.magnet);

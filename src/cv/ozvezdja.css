@@ -1,0 +1,56 @@
+/* ---------------------------------------------------------------------------
+   OZVEZDJA - ime in risba nad zvezdami
+
+   Plast lezi cez platno, a ne prestreza miske: kazalec mora naprej do vsega
+   pod njo. Postavitev racuna prizor, tu je le videz.
+--------------------------------------------------------------------------- */
+
+.ozv-sloj {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+.ozv-sloj.skrit { display: none; }
+
+.ozv-napis {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+}
+
+/* Risba ozvezdja: svetel obris, ki lezi cez zvezde. Mesanje "screen" pomeni,
+   da crno ozadje risbe izgine in ostane samo poteza. */
+.ozv-risba {
+  grid-area: 1 / 1;
+  width: clamp(180px, 26vw, 420px);
+  height: auto;
+  mix-blend-mode: screen;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 18px rgba(150, 190, 255, 0.35));
+  user-select: none;
+}
+
+.ozv-ime {
+  grid-area: 1 / 1;
+  align-self: end;
+  transform: translateY(1.9em);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgba(226, 235, 255, 0.92);
+  text-shadow: 0 0 14px rgba(10, 16, 30, 0.9);
+}
+
+/* Kdor ima izklopljeno gibanje, naj vseeno vidi ime in risbo - le brez
+   poudarjenega siju. */
+@media (prefers-reduced-motion: reduce) {
+  .ozv-risba { filter: none; }
+}
