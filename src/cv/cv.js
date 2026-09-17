@@ -437,10 +437,6 @@ new GLTFLoader().load(galaxyModelUrl, (gltf) => {
   box.getCenter(target);
   const radius = percentilniPolmer(root, target) || box.getSize(new THREE.Vector3()).length() / 2;
 
-  // Ozvezdja zivijo v prostoru galaksije, zato jih postavimo sele tu - prej ne
-  // vemo, kje galaksija stoji in kako velika je.
-  ozvezdja.postavi(root, target, radius);
-
   // Velikosti so vezane na polmer, da so razmerja enaka ne glede na merilo GLB.
   const plasti = zvezdniMaterial(geometry, radius);
   root.traverse((node) => {
@@ -454,6 +450,10 @@ new GLTFLoader().load(galaxyModelUrl, (gltf) => {
   root.add(megla);
 
   materiali = [plasti.zvezde, plasti.megla];
+
+  // Ozvezdja zivijo v prostoru galaksije in nosijo njene zvezde: material jim
+  // damo od tod, njihove izvode pa vrnemo v isti seznam, da dobijo isto merilo.
+  materiali.push(...ozvezdja.postavi(root, target, radius, plasti.zvezde));
 
   // Oddaljena galaksija: ista geometrija se enkrat, manjsa, sibkejsa in dalec
   // zadaj. Ker stoji v istem prostoru, se ob krozenju kamere premika s pravo

@@ -33,6 +33,8 @@ const DOSEG_PIK = 44;
 /** Mirno stanje in stanje pod kazalcem. */
 const CRTA_MIRNO = 0.16;
 const CRTA_NAD = 0.75;
+/** Kako mocne so zvezde ozvezdij v primerjavi z galaksijinimi. */
+const MOC_ZVEZD = 0.9;
 /** Dusenje prehodov; nizje je pocasneje. */
 const PREHOD = 0.12;
 
@@ -111,33 +113,12 @@ export function installOzvezdja(camera, renderer) {
     const tocke = ravninskeTocke(o.zvezde);
     const gnezdo = new THREE.Group();
 
+    // Mejniki ozvezdja so iste zvezde kot v galaksiji: isti sencilnik, isti
+    // difrakcijski kraki, isti sij. Svoja risba tock bi se videla kot nalepka
+    // na prizoru. Material dobimo od galaksije sele ob postavitvi, zato tu
+    // naredimo samo geometrijo in zacasen prostor zanj.
     const gZvezde = new THREE.BufferGeometry().setFromPoints(tocke);
-    gZvezde.setAttribute(
-      "aVelikost",
-      new THREE.BufferAttribute(new Float32Array(o.zvezde.map((z) => velikostZvezde(z[2]))), 1)
-    );
-    const mZvezde = new THREE.ShaderMaterial({
-      uniforms: { uMoc: { value: 0 }, uPik: { value: renderer.getPixelRatio() } },
-      transparent: true,
-      depthWrite: false,
-      blending: THREE.AdditiveBlending,
-      vertexShader: `
-        attribute float aVelikost;
-        uniform float uPik;
-        void main() {
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-          gl_PointSize = aVelikost * uPik * 2.0;
-        }`,
-      fragmentShader: `
-        uniform float uMoc;
-        void main() {
-          // Mehka tocka s sijem; brez teksture, da ni odvisna od nalaganja.
-          float r = length(gl_PointCoord - vec2(0.5));
-          float jedro = smoothstep(0.5, 0.0, r);
-          gl_FragColor = vec4(vec3(0.87, 0.92, 1.0) * jedro * uMoc, jedro * uMoc);
-        }`,
-    });
-    const zvezde = new THREE.Points(gZvezde, mZvezde);
+    const zvezde = new THREE.Points(gZvezde, new THREE.PointsMaterial({ visible: false }));
     zvezde.frustumCulled = false;
     gnezdo.add(zvezde);
 
@@ -167,7 +148,8 @@ export function installOzvezdja(camera, renderer) {
       indeks: i,
       tocke,
       gnezdo,
-      mZvezde,
+      gZvezde,
+      zvezde,
       mCrte,
       okvir,
       ime: okvir.querySelector(".ozv-ime"),
@@ -194,21 +176,49 @@ export function installOzvezdja(camera, renderer) {
    * Postavitev v prizor. Klicana, ko je galaksija nalozena in izmerjena -
    * prej ne vemo, kako velika je in kje stoji.
    */
-  function postavi(koren, sredina, polmer) {
+  function postavi(koren, sredina, polmer, zvezdniMaterial) {
     polmerGalaksije = polmer;
     koren.add(skupina);
     // Skupina zivi v prostoru galaksije, zato mora biti v njenih koordinatah.
     koren.updateWorldMatrix(true, false);
     skupina.position.copy(koren.worldToLocal(sredina.clone()));
 
+    const materiali = [];
     vsa.forEach((o, i) => {
       const { smerLege, delez } = lega(i, vsa.length);
       o.gnezdo.position.copy(smerLege).multiplyScalar(polmer * delez);
       // Lik gleda proc od sredisca, da ga od zunaj vidimo od spredaj.
       o.gnezdo.lookAt(o.gnezdo.position.clone().multiplyScalar(2));
       o.gnezdo.scale.setScalar(polmer * MERILO);
+
+      // Vsako ozvezdje dobi svoj izvod materiala, ker se moc pod kazalcem
+      // spreminja posamic. Velikost je v svetovnih enotah, zato je vezana na
+      // polmer galaksije in ne na merilo lika.
+      const n = o.podatki.zvezde.length;
+      const velikost = new Float32Array(n);
+      const svetlost = new Float32Array(n);
+      const barva = new Float32Array(n * 3);
+      o.podatki.zvezde.forEach((z, k) => {
+        const sij = Math.max(0, Math.min(1, (4.6 - z[2]) / 3.4));
+        velikost[k] = polmer * (0.004 + sij * 0.012);
+        svetlost[k] = 0.9 + sij * 2.2;
+        barva[k * 3] = 0.82;
+        barva[k * 3 + 1] = 0.88;
+        barva[k * 3 + 2] = 1;
+      });
+      o.gZvezde.setAttribute("aVelikost", new THREE.BufferAttribute(velikost, 1));
+      o.gZvezde.setAttribute("aSvetlost", new THREE.BufferAttribute(svetlost, 1));
+      o.gZvezde.setAttribute("aBarva", new THREE.BufferAttribute(barva, 3));
+
+      o.mZvezde = zvezdniMaterial.clone();
+      o.mZvezde.uniforms.uMoc.value = 0;
+      o.zvezde.material = o.mZvezde;
+      materiali.push(o.mZvezde);
     });
     skupina.visible = true;
+    // Vrnjeni materiali gredo v isti seznam kot galaksijini, da ob spremembi
+    // velikosti okna in nastavitve velikosti zvezd dobijo novo merilo.
+    return materiali;
   }
 
   // --- kazalec ---
@@ -303,7 +313,7 @@ export function installOzvezdja(camera, renderer) {
       // Ozvezdje za galaksijo ugasne v celoti, tudi mirne crte.
       const osnovna = CRTA_MIRNO * o.blizu;
       o.mCrte.opacity = osnovna + (CRTA_NAD - osnovna) * o.moc;
-      o.mZvezde.uniforms.uMoc.value = (0.5 + 0.5 * o.moc) * o.blizu;
+      if (o.mZvezde) o.mZvezde.uniforms.uMoc.value = MOC_ZVEZD * (0.55 + 0.45 * o.moc) * o.blizu;
 
       if (o.moc > 0.002 && o.vidnih > 1) {
         o.okvir.style.transform =
