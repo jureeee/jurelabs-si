@@ -437,6 +437,10 @@ new GLTFLoader().load(galaxyModelUrl, (gltf) => {
   box.getCenter(target);
   const radius = percentilniPolmer(root, target) || box.getSize(new THREE.Vector3()).length() / 2;
 
+  // Ozvezdja zivijo v prostoru galaksije, zato jih postavimo sele tu - prej ne
+  // vemo, kje galaksija stoji in kako velika je.
+  ozvezdja.postavi(root, target, radius);
+
   // Velikosti so vezane na polmer, da so razmerja enaka ne glede na merilo GLB.
   const plasti = zvezdniMaterial(geometry, radius);
   root.traverse((node) => {
@@ -590,7 +594,7 @@ function tick(ts) {
   composer.render();
 }
 
-const ozvezdja = installOzvezdja(scene, camera, renderer);
+const ozvezdja = installOzvezdja(camera, renderer);
 
 window.addEventListener("resize", resize);
 resize();

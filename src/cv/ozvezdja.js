@@ -1,16 +1,21 @@
 /**
- * Ozvezdja na nebu za galaksijo.
+ * Ozvezdja v galaksiji.
  *
- * Zvezde stojijo na krogli, ki se drzi kamere: ko se kamera premika po orbiti,
- * se ozvezdja ne priblizajo - tako se vede nebo, ki je neskoncno dalec. Vrti pa
- * se z njo, zato mimo drsijo kot prave zvezde.
+ * Ozvezdje ni razpeto cez celo nebo, ampak je majhen lik, ki stoji v prostoru
+ * galaksije in se z njo premika. Ker so v istem prostoru kot njene zvezde, ob
+ * krozenju kamere dobijo pravo paralakso - nebo, pribito na zaslon, bi se
+ * izdalo v prvi sekundi.
  *
- * Crtna figura je privzeto komaj vidna. Ko z miske prides nadnjo, se izrise,
- * zraven pa pride ime in risba ozvezdja, ce zanj obstaja slika.
+ * Crtna figura je privzeto komaj vidna. Ko prides z misko nadnjo, se izrise,
+ * zraven pa pride ime in risba, ce zanjo obstaja slika.
  *
- * Zaznavanje ni raycasting: zvezd je nekaj sto, zato jih vsako slicico
- * projiciramo na zaslon in merimo razdaljo kazalca do crt. To je ceneje in
- * natancneje kot zadeti drobno tocko v prostoru.
+ * Kar je za srediscem galaksije, je skrito: gledalec naj ne lovi ozvezdja, ki
+ * lezi na drugi strani diska in ga zakriva sto tisoc zvezd.
+ *
+ * Oblika lika: prave zvezde ozvezdja so smeri na nebu, zato jih preslikamo na
+ * ravnino (gnomonska projekcija okoli sredisca ozvezdja) in umerimo na enotsko
+ * velikost. Razmerja med zvezdami tako ostanejo prava, lik pa postane predmet,
+ * ki ga je mogoce postaviti kamor koli.
  */
 
 import * as THREE from "three";
@@ -18,20 +23,17 @@ import "./ozvezdja.css";
 import { OZVEZDJA } from "./ozvezdja-podatki.js";
 import { jezik, obJeziku } from "./jezik.js";
 
-/**
- * Nebo je zgrajeno na krogli s polmerom 1, v prizor pa ga postavimo z merilom.
- *
- * Prizor se meri po galaksiji in ta je lahko velika nekaj enot ali nekaj
- * tisoc - odvisno od modela. Trdna stevilka bi torej lahko padla za vidno
- * polje kamere; delez njene najdaljse razdalje pa je vedno pravi.
- */
-const DELEZ_VIDNEGA = 0.5;
+/** Kako velik je lik glede na polmer galaksije. */
+const MERILO = 0.085;
+/** Na kaksni razdalji od sredisca stojijo, spet v polmerih galaksije. */
+const ODMIK_NAJMANJ = 0.62;
+const ODMIK_NAJVEC = 0.98;
 /** Koliko pik od crte se steje za "sem nad ozvezdjem". */
-const DOSEG_PIK = 70;
+const DOSEG_PIK = 44;
 /** Mirno stanje in stanje pod kazalcem. */
-const CRTA_MIRNO = 0.1;
-const CRTA_NAD = 0.62;
-/** Dusenje prehoda; nizje je pocasneje. */
+const CRTA_MIRNO = 0.16;
+const CRTA_NAD = 0.75;
+/** Dusenje prehodov; nizje je pocasneje. */
 const PREHOD = 0.12;
 
 /** Risbe ozvezdij: datoteka se imenuje po kljucu, npr. leo.webp. */
@@ -45,41 +47,77 @@ const risbaZa = (kljuc) => {
   return najdena ? najdena[1] : null;
 };
 
-/** Rektascenzija in deklinacija v stopinjah -> tocka na enotski krogli. */
-function naNebo(ra, dec, polmer = 1) {
+/** Rektascenzija in deklinacija v stopinjah -> smer na enotski krogli. */
+function smer(ra, dec) {
   const a = THREE.MathUtils.degToRad(ra);
   const d = THREE.MathUtils.degToRad(dec);
-  return new THREE.Vector3(
-    Math.cos(d) * Math.cos(a) * polmer,
-    Math.sin(d) * polmer,
-    -Math.cos(d) * Math.sin(a) * polmer
-  );
+  return new THREE.Vector3(Math.cos(d) * Math.cos(a), Math.sin(d), -Math.cos(d) * Math.sin(a));
+}
+
+/**
+ * Zvezde ozvezdja, preslikane na ravnino in umerjene na polmer 1.
+ *
+ * Gnomonska projekcija je tista, ki ravne crte na nebu pusti ravne - zato lik
+ * ostane tak, kot ga vidi oko, in se ne zvije.
+ */
+function ravninskeTocke(zvezde) {
+  const smeri = zvezde.map((z) => smer(z[0], z[1]));
+  const sredina = smeri.reduce((v, s) => v.add(s), new THREE.Vector3()).normalize();
+  const u = new THREE.Vector3(0, 1, 0).cross(sredina);
+  if (u.lengthSq() < 1e-6) u.set(1, 0, 0);
+  u.normalize();
+  const v = new THREE.Vector3().crossVectors(sredina, u).normalize();
+
+  const ravno = smeri.map((s) => {
+    const globina = Math.max(0.2, s.dot(sredina));
+    const p = s.clone().divideScalar(globina).sub(sredina);
+    return new THREE.Vector2(p.dot(u), p.dot(v));
+  });
+  const polmer = Math.max(...ravno.map((p) => p.length())) || 1;
+  return ravno.map((p) => new THREE.Vector3(p.x / polmer, p.y / polmer, 0));
 }
 
 /** Svetlejsa zvezda je vecja; magnituda tece obratno. */
-const velikostZvezde = (mag) => Math.max(1.6, 5.2 - mag * 0.62);
+const velikostZvezde = (mag) => Math.max(1.3, 4.3 - mag * 0.5);
 
-export function installOzvezdja(scene, camera, renderer) {
+/**
+ * Lege ozvezdij: Fibonaccijeva spirala po krogli, da so razmetana enakomerno
+ * in vedno na istem mestu. Nakljucje bi ob vsakem odprtju premesalo nebo.
+ */
+function lega(i, skupaj) {
+  const zlati = Math.PI * (3 - Math.sqrt(5));
+  const y = 1 - (i / Math.max(1, skupaj - 1)) * 2;
+  const r = Math.sqrt(Math.max(0, 1 - y * y));
+  const kot = zlati * i;
+  // Disk galaksije je gost, zato so liki potisnjeni proc od njegove ravnine.
+  const yy = (y >= 0 ? 1 : -1) * (0.35 + Math.abs(y) * 0.65);
+  const smerLege = new THREE.Vector3(Math.cos(kot) * r, yy, Math.sin(kot) * r).normalize();
+  const delez = ODMIK_NAJMANJ + (((i * 7) % 5) / 4) * (ODMIK_NAJVEC - ODMIK_NAJMANJ);
+  return { smerLege, delez };
+}
+
+export function installOzvezdja(camera, renderer) {
   const skupina = new THREE.Group();
-  skupina.frustumCulled = false;
-  scene.add(skupina);
+  skupina.visible = false;
 
   const sloj = document.createElement("div");
   sloj.className = "ozv-sloj";
   sloj.setAttribute("aria-hidden", "true");
   document.body.appendChild(sloj);
 
-  const vsa = OZVEZDJA.map((o) => {
-    const tocke = o.zvezde.map((z) => naNebo(z[0], z[1]));
+  let polmerGalaksije = 0;
 
-    // --- zvezde ---
+  const vsa = OZVEZDJA.map((o, i) => {
+    const tocke = ravninskeTocke(o.zvezde);
+    const gnezdo = new THREE.Group();
+
     const gZvezde = new THREE.BufferGeometry().setFromPoints(tocke);
     gZvezde.setAttribute(
       "aVelikost",
       new THREE.BufferAttribute(new Float32Array(o.zvezde.map((z) => velikostZvezde(z[2]))), 1)
     );
     const mZvezde = new THREE.ShaderMaterial({
-      uniforms: { uMoc: { value: 0.55 }, uPik: { value: renderer.getPixelRatio() } },
+      uniforms: { uMoc: { value: 0 }, uPik: { value: renderer.getPixelRatio() } },
       transparent: true,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
@@ -87,9 +125,8 @@ export function installOzvezdja(scene, camera, renderer) {
         attribute float aVelikost;
         uniform float uPik;
         void main() {
-          vec4 pogled = modelViewMatrix * vec4(position, 1.0);
-          gl_Position = projectionMatrix * pogled;
-          gl_PointSize = aVelikost * uPik * 2.2;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = aVelikost * uPik * 2.0;
         }`,
       fragmentShader: `
         uniform float uMoc;
@@ -97,48 +134,52 @@ export function installOzvezdja(scene, camera, renderer) {
           // Mehka tocka s sijem; brez teksture, da ni odvisna od nalaganja.
           float r = length(gl_PointCoord - vec2(0.5));
           float jedro = smoothstep(0.5, 0.0, r);
-          gl_FragColor = vec4(vec3(0.86, 0.91, 1.0) * jedro * uMoc, jedro * uMoc);
+          gl_FragColor = vec4(vec3(0.87, 0.92, 1.0) * jedro * uMoc, jedro * uMoc);
         }`,
     });
     const zvezde = new THREE.Points(gZvezde, mZvezde);
     zvezde.frustumCulled = false;
-    skupina.add(zvezde);
+    gnezdo.add(zvezde);
 
-    // --- crte ---
     const pari = [];
     for (const [a, b] of o.crte) pari.push(tocke[a], tocke[b]);
     const mCrte = new THREE.LineBasicMaterial({
       color: 0x9fc0ff,
       transparent: true,
-      opacity: CRTA_MIRNO,
+      opacity: 0,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
     });
     const crte = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pari), mCrte);
     crte.frustumCulled = false;
-    skupina.add(crte);
+    gnezdo.add(crte);
+    skupina.add(gnezdo);
 
-    // --- napis in risba ---
     const okvir = document.createElement("div");
     okvir.className = "ozv-napis";
     const risba = risbaZa(o.kljuc);
     okvir.innerHTML =
-      (risba ? `<img class="ozv-risba" src="${risba}" alt="" />` : "") +
-      `<span class="ozv-ime"></span>`;
+      (risba ? `<img class="ozv-risba" src="${risba}" alt="" />` : "") + `<span class="ozv-ime"></span>`;
     sloj.appendChild(okvir);
 
     return {
       podatki: o,
+      indeks: i,
       tocke,
-      zvezde,
-      crte,
+      gnezdo,
       mZvezde,
       mCrte,
       okvir,
       ime: okvir.querySelector(".ozv-ime"),
+      risba: okvir.querySelector(".ozv-risba"),
       zaslon: tocke.map(() => new THREE.Vector3()),
+      svet: new THREE.Vector3(),
       moc: 0,
-      cilj: 0,
+      blizu: 0,
+      vidnih: 0,
+      sredx: 0,
+      sredy: 0,
+      sirinaPik: 0,
     };
   });
 
@@ -148,6 +189,27 @@ export function installOzvezdja(scene, camera, renderer) {
   }
   napisiImena();
   obJeziku(napisiImena);
+
+  /**
+   * Postavitev v prizor. Klicana, ko je galaksija nalozena in izmerjena -
+   * prej ne vemo, kako velika je in kje stoji.
+   */
+  function postavi(koren, sredina, polmer) {
+    polmerGalaksije = polmer;
+    koren.add(skupina);
+    // Skupina zivi v prostoru galaksije, zato mora biti v njenih koordinatah.
+    koren.updateWorldMatrix(true, false);
+    skupina.position.copy(koren.worldToLocal(sredina.clone()));
+
+    vsa.forEach((o, i) => {
+      const { smerLege, delez } = lega(i, vsa.length);
+      o.gnezdo.position.copy(smerLege).multiplyScalar(polmer * delez);
+      // Lik gleda proc od sredisca, da ga od zunaj vidimo od spredaj.
+      o.gnezdo.lookAt(o.gnezdo.position.clone().multiplyScalar(2));
+      o.gnezdo.scale.setScalar(polmer * MERILO);
+    });
+    skupina.visible = true;
+  }
 
   // --- kazalec ---
   let mis = null;
@@ -172,49 +234,55 @@ export function installOzvezdja(scene, camera, renderer) {
   let vidno = true;
   const nastavi = (da) => {
     vidno = da;
-    skupina.visible = da;
+    skupina.visible = da && polmerGalaksije > 0;
     sloj.classList.toggle("skrit", !da);
   };
 
-  /**
-   * Korak: nebo se drzi kamere, nato pogledamo, nad katerim ozvezdjem je
-   * kazalec, in moc prehodov premaknemo proti cilju.
-   */
-  function korak() {
-    // Nebo se drzi kamere in raste z njenim vidnim poljem.
-    const polmer = camera.far * DELEZ_VIDNEGA;
-    skupina.position.copy(camera.position);
-    skupina.scale.setScalar(polmer);
-    if (!vidno) return;
+  const sredisceSvet = new THREE.Vector3();
 
-    const s = renderer.domElement;
-    const sirina = s.clientWidth;
-    const visina = s.clientHeight;
+  function korak() {
+    if (!vidno || !polmerGalaksije) return;
+
+    const platno = renderer.domElement;
+    const sirina = platno.clientWidth;
+    const visina = platno.clientHeight;
+    skupina.getWorldPosition(sredisceSvet);
+    const doSredisca = camera.position.distanceTo(sredisceSvet);
 
     let najblizje = null;
     let najmanj = DOSEG_PIK;
 
     for (const o of vsa) {
-      let vsotaX = 0;
-      let vsotaY = 0;
+      o.gnezdo.getWorldPosition(o.svet);
+      // Za srediscem galaksije: lik je na drugi strani diska in ga ne kazemo.
+      const zaGalaksijo = camera.position.distanceTo(o.svet) > doSredisca;
+
       let vidnih = 0;
-      o.tocke.forEach((t, i) => {
-        const p = o.zaslon[i].copy(t).multiplyScalar(polmer).add(camera.position).project(camera);
+      let minX = Infinity;
+      let maxX = -Infinity;
+      let minY = Infinity;
+      let maxY = -Infinity;
+      for (let i = 0; i < o.tocke.length; i += 1) {
+        const p = o.zaslon[i].copy(o.tocke[i]);
+        o.gnezdo.localToWorld(p).project(camera);
         const zaSabo = p.z > 1;
         p.x = ((p.x + 1) / 2) * sirina;
         p.y = ((1 - p.y) / 2) * visina;
         p.z = zaSabo ? 1 : 0;
-        if (!zaSabo) {
-          vsotaX += p.x;
-          vsotaY += p.y;
-          vidnih += 1;
-        }
-      });
+        if (zaSabo) continue;
+        vidnih += 1;
+        minX = Math.min(minX, p.x);
+        maxX = Math.max(maxX, p.x);
+        minY = Math.min(minY, p.y);
+        maxY = Math.max(maxY, p.y);
+      }
       o.vidnih = vidnih;
-      o.sredx = vidnih ? vsotaX / vidnih : 0;
-      o.sredy = vidnih ? vsotaY / vidnih : 0;
+      o.sredx = (minX + maxX) / 2;
+      o.sredy = (minY + maxY) / 2;
+      o.sirinaPik = maxX - minX;
+      o.blizu = zaGalaksijo ? 0 : 1;
 
-      if (!mis || vidnih < 2) continue;
+      if (!mis || zaGalaksijo || vidnih < 2) continue;
       for (const [a, b] of o.podatki.crte) {
         const pa = o.zaslon[a];
         const pb = o.zaslon[b];
@@ -228,18 +296,22 @@ export function installOzvezdja(scene, camera, renderer) {
     }
 
     for (const o of vsa) {
-      o.cilj = o === najblizje ? 1 : 0;
-      o.moc += (o.cilj - o.moc) * PREHOD;
-      if (o.moc < 0.002 && o.cilj === 0) o.moc = 0;
+      const cilj = o === najblizje ? 1 : 0;
+      o.moc += (cilj - o.moc) * PREHOD;
+      if (o.moc < 0.002 && cilj === 0) o.moc = 0;
 
-      o.mCrte.opacity = CRTA_MIRNO + (CRTA_NAD - CRTA_MIRNO) * o.moc;
-      o.mZvezde.uniforms.uMoc.value = 0.55 + 0.45 * o.moc;
+      // Ozvezdje za galaksijo ugasne v celoti, tudi mirne crte.
+      const osnovna = CRTA_MIRNO * o.blizu;
+      o.mCrte.opacity = osnovna + (CRTA_NAD - osnovna) * o.moc;
+      o.mZvezde.uniforms.uMoc.value = (0.5 + 0.5 * o.moc) * o.blizu;
 
       if (o.moc > 0.002 && o.vidnih > 1) {
-        // Risba in ime stojita na sredini ozvezdja in gresta z njim.
-        o.okvir.style.transform = `translate(${Math.round(o.sredx)}px, ${Math.round(o.sredy)}px) translate(-50%, -50%)`;
+        o.okvir.style.transform =
+          `translate(${Math.round(o.sredx)}px, ${Math.round(o.sredy)}px) translate(-50%, -50%)`;
         o.okvir.style.opacity = String(o.moc);
         o.okvir.style.visibility = "visible";
+        // Risba je velika kot lik na zaslonu, da sede na zvezde in ne lebdi.
+        if (o.risba) o.risba.style.width = `${Math.round(Math.max(110, o.sirinaPik * 1.35))}px`;
       } else if (o.okvir.style.visibility !== "hidden") {
         o.okvir.style.visibility = "hidden";
         o.okvir.style.opacity = "0";
@@ -247,5 +319,5 @@ export function installOzvezdja(scene, camera, renderer) {
     }
   }
 
-  return { korak, nastavi };
+  return { korak, nastavi, postavi };
 }
