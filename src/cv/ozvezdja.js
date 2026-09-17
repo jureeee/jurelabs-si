@@ -43,10 +43,18 @@ const DOSEG_PIK = 44;
 const CRTA_NAD = 0.8;
 /** Koliko prehoda porabi risanje; ostanek je ze izrisana figura. */
 const RISANJE = 0.75;
-/** Kako mocne so zvezde ozvezdij v primerjavi z galaksijinimi. */
-const MOC_ZVEZD = 0.9;
-/** Koliko moci obdrzijo ozvezdja na drugi strani galaksije. */
-const ZA_GALAKSIJO = 0.68;
+/**
+ * Zvezde ozvezdij so navadne zvezde galaksije.
+ *
+ * Iste stevilke kot v cv.js (STAR_SIZE_MIN, STAR_SIZE_SPREAD, STAR_BRIGHT_MIN,
+ * STAR_BRIGHT_SPREAD), le da delez ne pride iz nakljucja, ampak iz magnitude.
+ */
+const ZVEZDA_NAJMANJ = 0.0016;
+const ZVEZDA_RAZPON = 0.0085;
+const SVETLOST_NAJMANJ = 0.32;
+const SVETLOST_RAZPON = 2.6;
+/** Koliko se zvezde ojacajo, ko je ozvezdje pod kazalcem. */
+const DVIG_POD_KAZALCEM = 0.45;
 /** Dusenje prehodov; nizje je pocasneje. */
 const PREHOD = 0.12;
 
@@ -238,13 +246,14 @@ export function installOzvezdja(camera, renderer) {
       const svetlost = new Float32Array(n);
       const barva = new Float32Array(n * 3);
       o.podatki.zvezde.forEach((z, k) => {
-        const sij = Math.max(0, Math.min(1, (4.6 - z[2]) / 3.4));
-        // Mejnik ozvezdja mora biti opazno debelejsi od navadne zvezde v
-        // disku, sicer se izgubi med stotisoc drugimi.
-        velikost[k] = polmer * (0.007 + sij * 0.019);
-        svetlost[k] = 1.3 + sij * 2.6;
-        barva[k * 3] = 0.82;
-        barva[k * 3 + 1] = 0.88;
+        // Ista lestvica kot pri zvezdah galaksije, le da delez ne pride iz
+        // nakljucja, ampak iz magnitude: mejnik ozvezdja je navadna zvezda,
+        // ne poudarjena pika. Vecja ali svetlejsa bi se izdala kot nalepka.
+        const delez = Math.max(0, Math.min(1, (4.6 - z[2]) / 3.4));
+        velikost[k] = polmer * (ZVEZDA_NAJMANJ + delez * ZVEZDA_RAZPON);
+        svetlost[k] = SVETLOST_NAJMANJ + delez * SVETLOST_RAZPON;
+        barva[k * 3] = 0.86;
+        barva[k * 3 + 1] = 0.9;
         barva[k * 3 + 2] = 1;
       });
       o.gZvezde.setAttribute("aVelikost", new THREE.BufferAttribute(velikost, 1));
@@ -252,7 +261,9 @@ export function installOzvezdja(camera, renderer) {
       o.gZvezde.setAttribute("aBarva", new THREE.BufferAttribute(barva, 3));
 
       o.mZvezde = zvezdniMaterial.clone();
-      o.mZvezde.uniforms.uMoc.value = 0;
+      // Osnovna moc je natanko galaksijina; pod kazalcem se le malo dvigne.
+      o.osnovnaMoc = o.mZvezde.uniforms.uMoc.value;
+      o.mZvezde.uniforms.uMoc.value = o.osnovnaMoc;
       o.zvezde.material = o.mZvezde;
       materiali.push(o.mZvezde);
     });
@@ -331,9 +342,9 @@ export function installOzvezdja(camera, renderer) {
       o.sredx = (minX + maxX) / 2;
       o.sredy = (minY + maxY) / 2;
       o.sirinaPik = maxX - minX;
-      // Za galaksijo ostanejo vidne - le loviti se jih ne da, ker bi pomenilo
-      // ciljati skozi disk. Zato so tam nekoliko sibkejse.
-      o.blizu = zaGalaksijo ? ZA_GALAKSIJO : 1;
+      // Za galaksijo so videti enako kot vse druge zvezde - le loviti se jih ne
+      // da, ker bi pomenilo ciljati skozi disk.
+      o.blizu = zaGalaksijo ? 0 : 1;
 
       if (!mis || zaGalaksijo || vidnih < 2) continue;
       for (const [a, b] of o.podatki.crte) {
@@ -357,7 +368,7 @@ export function installOzvezdja(camera, renderer) {
       o.mCrte.uniforms.uMoc.value = CRTA_NAD * o.moc * o.blizu;
       // Risanje je hitrejse od pojemanja moci, da je poteza vidna kot poteza.
       o.mCrte.uniforms.uNapredek.value = Math.min(1, o.moc / RISANJE);
-      if (o.mZvezde) o.mZvezde.uniforms.uMoc.value = MOC_ZVEZD * (0.5 + 0.5 * o.moc) * o.blizu;
+      if (o.mZvezde) o.mZvezde.uniforms.uMoc.value = o.osnovnaMoc * (1 + DVIG_POD_KAZALCEM * o.moc);
 
       if (o.moc > 0.002 && o.vidnih > 1) {
         o.okvir.style.transform =
