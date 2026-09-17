@@ -835,13 +835,29 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
   };
 
   /** Preusmeri znake besedila na novo besedilo. */
+  /**
+   * Enakomerno redcenje seznama tock.
+   *
+   * Vzame vsako n-to tocko, ne prvih n - tako ostane oblika cela, le gostota
+   * pade. Prav to je bila napaka, ki je odrezala spodnjo vrstico napisa.
+   */
+  function redci(tocke, koliko) {
+    if (tocke.length <= koliko) return tocke;
+    const korak = tocke.length / koliko;
+    const izbrane = [];
+    for (let i = 0; i < koliko; i += 1) izbrane.push(tocke[Math.floor(i * korak)]);
+    return izbrane;
+  }
+
   function preusmeriBesedilo(val = VAL_S) {
     // Visino delimo med obe vrstici in pustimo rob: pri 0,3 je spodnja vrstica
     // s podaljski crk segala cez spodnji rob platna.
     const velikost = Math.min(mereB.v * 0.24, mereB.s * 0.155);
-    // Sibkejsa naprava dobi manj znakov; crka ostane ista, le mreza je redkejsa.
+    // Sibkejsa naprava dobi manj znakov. Tocke REDCIMO in ne rezemo: rezanje
+    // seznama je odsekalo spodnjo vrstico, ker tocke nastajajo od zgoraj navzdol.
     const meja = Math.round(NAJVEC_BESEDILA * delezNaprave());
-    const tocke = tockeBesedila(besedilo(), mereB.s * NAJVEC_SIRINE, velikost).slice(0, meja);
+    const vse = tockeBesedila(besedilo(), mereB.s * NAJVEC_SIRINE, velikost);
+    const tocke = redci(vse, meja);
     napolni(besedni, Math.min(meja, Math.round(tocke.length * 1.08)), mereB, 5.5, 11.5);
 
     const sredX = mereB.s / 2;
@@ -1014,15 +1030,18 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
     const dih = 0.5 - 0.5 * Math.cos((sek / k.o.doba + k.o.faza) * Math.PI * 2);
     const moc = OKRAS_DNO + (1 - OKRAS_DNO) * dih;
     const h = k.o.odtenek + Math.sin((sek / (k.o.doba * 0.63) + k.o.faza) * Math.PI * 2) * k.o.zamah;
-    // Odtenek zaokrozimo na dve stopinji: oko razlike ne vidi, predpomnilnik
-    // slicic pa dobi nekaj barv namesto nove ob vsaki slicici.
-    return { moc, barva: `hsl(${(Math.round(h / 2) * 2).toFixed(0)}, 78%, 76%)` };
+    // Odtenek zaokrozimo na dvanajst stopinj: nihanje je tako ali tako majhno,
+    // predpomnilnik slicic pa dobi nekaj barv namesto nove ob vsaki slicici.
+    return { moc, barva: `hsl(${(Math.round(h / 12) * 12).toFixed(0)}, 78%, 76%)` };
   }
 
   /** Preusmeri znake ozadja na naslednjo figuro. */
   function preusmeriOzadje() {
     const vzorec = FREKVENCE[frekvencaKje % FREKVENCE.length];
-    const tocke = tockeFrekvence(vzorec, mereO.s, mereO.v, Math.round(NAJVEC_OZADJA * delezNaprave()));
+    const tocke = redci(
+      tockeFrekvence(vzorec, mereO.s, mereO.v, NAJVEC_OZADJA),
+      Math.round(NAJVEC_OZADJA * delezNaprave())
+    );
     napolni(ozadje, tocke.length, mereO, 6, 13);
     for (const d of ozadje) d.imaCilj = false;
     // Tocke figure so ze v koordinatah ploskve, zato brez zamika sredisca.
@@ -1111,7 +1130,8 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
 
   function sprite(znak, velikost, barva) {
     const dpr = Math.min(devicePixelRatio || 1, 2);
-    const v = Math.max(1, Math.round(velikost * 2) / 2);
+    // Cele pike: pol pike je dalo dvakrat vec razlicic, razlike pa ni videti.
+    const v = Math.max(1, Math.round(velikost));
     const kljuc = `${znak}|${v}|${barva}|${dpr}`;
     let s = spriti.get(kljuc);
     if (s) return s;
@@ -1130,9 +1150,16 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
     g.fillText(znak, rob / 2, rob / 2);
 
     s = { platno, rob };
-    // Zgornja meja: ob menjavi velikosti okna nastanejo nove velikosti in
-    // predpomnilnik bi sicer rasel brez konca.
-    if (spriti.size > 2600) spriti.clear();
+    // Zgornja meja: ko je dosezena, vrzemo ven najstarejse vnose in ne vsega.
+    // Popolno praznjenje je pomenilo, da je treba vse slicice narisati znova -
+    // in prav zaradi tega je stran vsakih nekaj sekund obstala.
+    if (spriti.size > 3000) {
+      let odvec = 600;
+      for (const k of spriti.keys()) {
+        spriti.delete(k);
+        if (--odvec <= 0) break;
+      }
+    }
     spriti.set(kljuc, s);
     return s;
   }
