@@ -25,9 +25,14 @@ import { jezik, obJeziku } from "./jezik.js";
 
 /** Kako velik je lik glede na polmer galaksije. */
 const MERILO = 0.085;
-/** Na kaksni razdalji od sredisca stojijo, spet v polmerih galaksije. */
-const ODMIK_NAJMANJ = 0.62;
-const ODMIK_NAJVEC = 0.98;
+/**
+ * Na kaksni razdalji od sredisca stojijo, v polmerih galaksije.
+ *
+ * Blizje kot so, dlje casa ostanejo v okviru zaslona. Pri 0.62 do 0.98 jih je
+ * bilo pol cez rob in gledalec je videl dve od desetih.
+ */
+const ODMIK_NAJMANJ = 0.5;
+const ODMIK_NAJVEC = 0.78;
 /** Koliko pik od crte se steje za "sem nad ozvezdjem". */
 const DOSEG_PIK = 44;
 /**
@@ -41,7 +46,7 @@ const RISANJE = 0.75;
 /** Kako mocne so zvezde ozvezdij v primerjavi z galaksijinimi. */
 const MOC_ZVEZD = 0.9;
 /** Koliko moci obdrzijo ozvezdja na drugi strani galaksije. */
-const ZA_GALAKSIJO = 0.55;
+const ZA_GALAKSIJO = 0.68;
 /** Dusenje prehodov; nizje je pocasneje. */
 const PREHOD = 0.12;
 
@@ -99,7 +104,7 @@ function lega(i, skupaj) {
   const r = Math.sqrt(Math.max(0, 1 - y * y));
   const kot = zlati * i;
   // Disk galaksije je gost, zato so liki potisnjeni proc od njegove ravnine.
-  const yy = (y >= 0 ? 1 : -1) * (0.35 + Math.abs(y) * 0.65);
+  const yy = (y >= 0 ? 1 : -1) * (0.22 + Math.abs(y) * 0.45);
   const smerLege = new THREE.Vector3(Math.cos(kot) * r, yy, Math.sin(kot) * r).normalize();
   const delez = ODMIK_NAJMANJ + (((i * 7) % 5) / 4) * (ODMIK_NAJVEC - ODMIK_NAJMANJ);
   return { smerLege, delez };
@@ -234,8 +239,10 @@ export function installOzvezdja(camera, renderer) {
       const barva = new Float32Array(n * 3);
       o.podatki.zvezde.forEach((z, k) => {
         const sij = Math.max(0, Math.min(1, (4.6 - z[2]) / 3.4));
-        velikost[k] = polmer * (0.004 + sij * 0.012);
-        svetlost[k] = 0.9 + sij * 2.2;
+        // Mejnik ozvezdja mora biti opazno debelejsi od navadne zvezde v
+        // disku, sicer se izgubi med stotisoc drugimi.
+        velikost[k] = polmer * (0.007 + sij * 0.019);
+        svetlost[k] = 1.3 + sij * 2.6;
         barva[k * 3] = 0.82;
         barva[k * 3 + 1] = 0.88;
         barva[k * 3 + 2] = 1;
