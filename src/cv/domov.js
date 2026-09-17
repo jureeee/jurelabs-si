@@ -189,29 +189,15 @@ export function installDomov({ obDrsenju }) {
     { root: koren, rootMargin: "-6% 0px -12% 0px", threshold: 0.01 }
   );
 
-  /**
-   * Bliznji razdelki dobijo zabrisano liso, oddaljeni je ne.
-   *
-   * Zabrisana podlaga je najdrazji ucinek na strani; devet hkrati je na
-   * sibkejsi napravi preprosto prevec. Pas je dovolj sirok, da je lisa tu,
-   * preden razdelek prides na zaslon.
-   */
-  const opazovalecBlizine = new IntersectionObserver(
-    (vnosi) => vnosi.forEach((v) => v.target.classList.toggle("blizu", v.isIntersecting)),
-    { root: koren, rootMargin: "60% 0px 60% 0px", threshold: 0 }
-  );
-
   function zgradi() {
     const v = prevediVsebino(DOMOV, tPredmet("vsebina.domov", null));
     const bili = new Set([...tok.querySelectorAll(".odsek.vidno")].map((_, i) => i));
     opazovalec.disconnect();
-    opazovalecBlizine.disconnect();
     tok.innerHTML = html(v);
     namig.querySelector(".domov-namig-besedilo").textContent = v.namig;
     tok.querySelectorAll(".odsek").forEach((o, i) => {
       if (bili.has(i)) o.classList.add("vidno");
       opazovalec.observe(o);
-      opazovalecBlizine.observe(o);
     });
     oziviBesedilo(tok, {
       tok: koren,
