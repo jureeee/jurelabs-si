@@ -302,8 +302,17 @@ export function installOzvezdja(camera, renderer) {
 
   const sredisceSvet = new THREE.Vector3();
 
+  let slicic = 0;
+
   function korak() {
     if (!vidno || !polmerGalaksije) return;
+    // Lege na zaslonu racunamo vsako drugo slicico: kazalec se v 16 ms ne
+    // premakne toliko, da bi se poznalo, dela pa je pol manj.
+    slicic += 1;
+    if (slicic % 2 === 0) {
+      posodobiMoci();
+      return;
+    }
 
     const platno = renderer.domElement;
     const sirina = platno.clientWidth;
@@ -359,8 +368,15 @@ export function installOzvezdja(camera, renderer) {
       }
     }
 
+    najblizjeZdaj = najblizje;
+    posodobiMoci();
+  }
+
+  /** Prehodi moci in postavitev napisa; tece vsako slicico. */
+  let najblizjeZdaj = null;
+  function posodobiMoci() {
     for (const o of vsa) {
-      const cilj = o === najblizje ? 1 : 0;
+      const cilj = o === najblizjeZdaj ? 1 : 0;
       o.moc += (cilj - o.moc) * PREHOD;
       if (o.moc < 0.002 && cilj === 0) o.moc = 0;
 

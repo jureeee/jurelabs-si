@@ -29,6 +29,12 @@
 .domov .odsek,
 .domov .odsek.vidno { filter: none; }
 .domov .odsek > * { position: relative; z-index: 1; }
+/* Razdelek, ki je dalec od zaslona, brskalniku ni treba niti postaviti niti
+   izrisati. Dana visina poskrbi, da drsnik ob tem ne poskakuje. */
+.domov .odsek {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 620px;
+}
 .domov .odsek::before {
   content: "";
   position: absolute;
@@ -37,14 +43,21 @@
   /* Brez z-index: -1. Tam brskalnik lise ne zabrise cez platno galaksije -
      vsebino razdelka zato raje dvignemo nadnjo. */
   pointer-events: none;
-  backdrop-filter: blur(16px) saturate(0.85) brightness(0.5);
-  -webkit-backdrop-filter: blur(16px) saturate(0.85) brightness(0.5);
+  /* Zabrisana podlaga je najdrazja stvar na strani, zato jo dobi le razdelek
+     blizu zaslona. Ostali imajo prazno lego in ne stanejo nic. */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   /* Elipsa je na sredini in ima polmer natanko pol okvira, zato je ob vseh
      styirih robovih ze prosojna. Kadar sega cez rob, ostane tam raven rez -
      prav to je delalo liso kvadratno. Vmesne postaje mehcajo prehod. */
   -webkit-mask-image: radial-gradient(50% 50% at 50% 50%, #000 0%, rgba(0, 0, 0, 0.92) 30%, rgba(0, 0, 0, 0.6) 54%, rgba(0, 0, 0, 0.26) 74%, rgba(0, 0, 0, 0.07) 88%, transparent 100%);
   mask-image: radial-gradient(50% 50% at 50% 50%, #000 0%, rgba(0, 0, 0, 0.92) 30%, rgba(0, 0, 0, 0.6) 54%, rgba(0, 0, 0, 0.26) 74%, rgba(0, 0, 0, 0.07) 88%, transparent 100%);
 }
+.domov .odsek.blizu::before {
+  backdrop-filter: blur(16px) saturate(0.85) brightness(0.5);
+  -webkit-backdrop-filter: blur(16px) saturate(0.85) brightness(0.5);
+}
+
 /* Prazen prvi zaslon nima besedila in zato tudi lise ne. */
 .domov .domov-zacetek::before { display: none; }
 

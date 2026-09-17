@@ -291,6 +291,20 @@ const GOSTOTA = 9.5;
 const NAJVEC_BESEDILA = 3000;
 
 /**
+ * Koliko znakov si naprava sploh zasluzi.
+ *
+ * Telefon ima manjso ploskev in pogosto dvojno gostoto tock, torej stiri
+ * milijone pik na isto sliko. Trdih tri tisoc znakov je tam predrago, zato
+ * stevilo vezemo na dejansko povrsino v pikah.
+ */
+function delezNaprave() {
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const pik = innerWidth * innerHeight * dpr * dpr;
+  // 1600 x 900 pri enojni gostoti je merilo za polno kolicino.
+  return Math.max(0.42, Math.min(1, (1600 * 900 * 1.6) / Math.max(1, pik)));
+}
+
+/**
  * Koliko se tarca odmakne od svojega mesta v mrezi, kot delez koraka.
  *
  * Brez tega znaki sedejo natanko na mrezo in crka je videti kot izpis s
@@ -825,11 +839,10 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
     // Visino delimo med obe vrstici in pustimo rob: pri 0,3 je spodnja vrstica
     // s podaljski crk segala cez spodnji rob platna.
     const velikost = Math.min(mereB.v * 0.24, mereB.s * 0.155);
-    const tocke = tockeBesedila(besedilo(), mereB.s * NAJVEC_SIRINE, velikost).slice(
-      0,
-      NAJVEC_BESEDILA
-    );
-    napolni(besedni, Math.min(NAJVEC_BESEDILA, Math.round(tocke.length * 1.08)), mereB, 5.5, 11.5);
+    // Sibkejsa naprava dobi manj znakov; crka ostane ista, le mreza je redkejsa.
+    const meja = Math.round(NAJVEC_BESEDILA * delezNaprave());
+    const tocke = tockeBesedila(besedilo(), mereB.s * NAJVEC_SIRINE, velikost).slice(0, meja);
+    napolni(besedni, Math.min(meja, Math.round(tocke.length * 1.08)), mereB, 5.5, 11.5);
 
     const sredX = mereB.s / 2;
     const sredY = mereB.v / 2;
@@ -1001,13 +1014,15 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
     const dih = 0.5 - 0.5 * Math.cos((sek / k.o.doba + k.o.faza) * Math.PI * 2);
     const moc = OKRAS_DNO + (1 - OKRAS_DNO) * dih;
     const h = k.o.odtenek + Math.sin((sek / (k.o.doba * 0.63) + k.o.faza) * Math.PI * 2) * k.o.zamah;
-    return { moc, barva: `hsl(${h.toFixed(1)}, 78%, 76%)` };
+    // Odtenek zaokrozimo na dve stopinji: oko razlike ne vidi, predpomnilnik
+    // slicic pa dobi nekaj barv namesto nove ob vsaki slicici.
+    return { moc, barva: `hsl(${(Math.round(h / 2) * 2).toFixed(0)}, 78%, 76%)` };
   }
 
   /** Preusmeri znake ozadja na naslednjo figuro. */
   function preusmeriOzadje() {
     const vzorec = FREKVENCE[frekvencaKje % FREKVENCE.length];
-    const tocke = tockeFrekvence(vzorec, mereO.s, mereO.v, NAJVEC_OZADJA);
+    const tocke = tockeFrekvence(vzorec, mereO.s, mereO.v, Math.round(NAJVEC_OZADJA * delezNaprave()));
     napolni(ozadje, tocke.length, mereO, 6, 13);
     for (const d of ozadje) d.imaCilj = false;
     // Tocke figure so ze v koordinatah ploskve, zato brez zamika sredisca.
@@ -1080,19 +1095,76 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
     }
   }
 
+  /**
+   * Znak, narisan vnaprej na svojo majhno sliko.
+   *
+   * Prej je vsak znak ob vsaki slicici dobil svojo pisavo in svoj fillText;
+   * pri treh tisoc znakih je bilo to daljs del celotnega dela in prav to je
+   * delalo zatikanje na sibkejsih napravah. Risanje ze pripravljene slike je
+   * nekajkrat ceneje, videz pa je isti.
+   *
+   * Kljuc je znak, velikost (zaokrozena na pol pike) in barva; slike nastajajo
+   * sproti, ob prvi uporabi.
+   */
+  const spriti = new Map();
+  const PISAVA_ZNAKA = '"Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols 2", sans-serif';
+
+  function sprite(znak, velikost, barva) {
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    const v = Math.max(1, Math.round(velikost * 2) / 2);
+    const kljuc = `${znak}|${v}|${barva}|${dpr}`;
+    let s = spriti.get(kljuc);
+    if (s) return s;
+
+    // Znaki imajo repke in konice; okvir je zato precej vecji od velikosti.
+    const rob = Math.ceil(v * 2.1);
+    const platno = document.createElement("canvas");
+    platno.width = Math.max(2, Math.round(rob * dpr));
+    platno.height = platno.width;
+    const g = platno.getContext("2d");
+    g.scale(dpr, dpr);
+    g.font = `${v}px ${PISAVA_ZNAKA}`;
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    g.fillStyle = barva;
+    g.fillText(znak, rob / 2, rob / 2);
+
+    s = { platno, rob };
+    // Zgornja meja: ob menjavi velikosti okna nastanejo nove velikosti in
+    // predpomnilnik bi sicer rasel brez konca.
+    if (spriti.size > 2600) spriti.clear();
+    spriti.set(kljuc, s);
+    return s;
+  }
+
   function risiPolje(ctx, polje, mnozitelj, barva) {
-    ctx.fillStyle = barva;
     for (const d of polje) {
       // Osnovna moc plus tisto, kar prispeva blisk: 0,4 v mirovanju, 1 na vrhu.
       const moc = OSNOVNA_ALFA + (1 - OSNOVNA_ALFA) * d.sij;
-      ctx.globalAlpha = (d.imaCilj ? d.alfa * moc : d.alfa * 0.16) * mnozitelj;
-      ctx.font = `${d.velikost}px "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols 2", sans-serif`;
-      ctx.fillText(d.z, d.x, d.y);
+      const alfa = (d.imaCilj ? d.alfa * moc : d.alfa * 0.16) * mnozitelj;
+      // Kar je pod tem, se na zaslonu ne vidi; risanje bi bilo zastonj delo.
+      if (alfa <= 0.004) continue;
+      const s = sprite(d.z, d.velikost, barva);
+      ctx.globalAlpha = alfa;
+      ctx.drawImage(s.platno, d.x - s.rob / 2, d.y - s.rob / 2, s.rob, s.rob);
     }
     ctx.globalAlpha = 1;
   }
 
+  /**
+   * Stevec slicic. Ozadje in okrasa se gibljeta pocasi, zato ju osvezujemo
+   * vsako drugo slicico - na platnu med tem ostane prejsnja slika in razlike
+   * ni videti, dela pa je pol manj.
+   */
+  let slicic = 0;
+
   function risi(sek) {
+    slicic += 1;
+    const ozadjeZdaj = slicic % 2 === 0;
+    if (!ozadjeZdaj) {
+      risiNapis();
+      return;
+    }
     ctxO.clearRect(0, 0, mereO.s, mereO.v);
     ctxO.textAlign = "center";
     ctxO.textBaseline = "middle";
@@ -1110,6 +1182,10 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
     }
     ctxO.restore();
 
+    risiNapis();
+  }
+
+  function risiNapis() {
     // Ko napis miruje, platna niti ne cistimo: zadnja slika ostane na njem in
     // je ob vrnitvi ze tu, mi pa med tem ne risemo nicesar.
     if (!napisTece) return;
@@ -1117,11 +1193,10 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
     ctxB.textAlign = "center";
     ctxB.textBaseline = "middle";
     risiPolje(ctxB, besedni, 1, "#e9edf3");
-    ctxB.fillStyle = "#c8d4e8";
+    ctxB.globalAlpha = 0.5;
     for (const k of kotni) {
-      ctxB.globalAlpha = 0.5;
-      ctxB.font = `${k.velikost}px "Segoe UI Symbol", "Apple Symbols", sans-serif`;
-      ctxB.fillText(k.z, k.x, k.y);
+      const s = sprite(k.z, k.velikost, "#c8d4e8");
+      ctxB.drawImage(s.platno, k.x - s.rob / 2, k.y - s.rob / 2, s.rob, s.rob);
     }
     ctxB.globalAlpha = 1;
   }

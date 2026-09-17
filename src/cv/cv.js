@@ -131,7 +131,25 @@ const renderer = new THREE.WebGLRenderer({
   // in platno pocrni, takoj ko neha risati.
   preserveDrawingBuffer: true,
 });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+/**
+ * Kakovost izrisa se prilagaja napravi.
+ *
+ * Stopnja 0 je polna: gostota tock do 2 in bloom v dvojni locljivosti. Ce
+ * slicice padejo, gremo na 1 (manj pik) in nato na 2 (brez megle in oddaljene
+ * galaksije). Stopnjo si zapomnimo za to sejo, da sibka naprava ob vsakem
+ * odprtju ne zacne z lagom, preden se spet znizamo.
+ */
+const KAKOVOST_KLJUC = "jl-kakovost";
+let kakovost = 0;
+try {
+  kakovost = Math.min(2, Math.max(0, Number(sessionStorage.getItem(KAKOVOST_KLJUC)) || 0));
+} catch {
+  kakovost = 0;
+}
+const gostotaZa = (stopnja) => Math.min(window.devicePixelRatio || 1, stopnja === 0 ? 2 : 1.25);
+const bloomZa = (stopnja) => (stopnja === 0 ? 2 : 1);
+
+renderer.setPixelRatio(gostotaZa(kakovost));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.setClearColor(0x000000, 1);
 // Additivno mesanje v jedru sesteje dalec cez 1. Brez preslikave se to odreze
@@ -153,7 +171,7 @@ composer.addPass(new RenderPass(scene, camera));
  * te slike in prav ta se ob povecavi razteza v kvadratke okoli svetlih zvezd;
  * pri dvojni locljivosti so ti bloki pol manjsi in zato veliko manj opazni.
  */
-const BLOOM_SUPERSAMPLE = 2;
+let BLOOM_SUPERSAMPLE = bloomZa(kakovost);
 
 const bloom = new UnrealBloomPass(
   new THREE.Vector2(
@@ -592,6 +610,50 @@ function tick(ts) {
   ozvezdja.korak();
 
   composer.render();
+  preveriKakovost(dt);
+}
+
+/**
+ * Nadzor slicic.
+ *
+ * Merimo mediano zadnjih sto slicic in ne povprecja: en sam dolg zastoj ob
+ * nalaganju slike ne sme znizati kakovosti za ves obisk. Znizujemo samo
+ * navzdol - nihanje gor in dol bi bilo bolj moteco od samega laga.
+ */
+const CASI = [];
+let kakovostOb = 0;
+
+function preveriKakovost(dt) {
+  if (kakovost >= 2) return;
+  CASI.push(dt * 1000);
+  if (CASI.length < 100) return;
+  CASI.sort((a, b) => a - b);
+  const mediana = CASI[50];
+  CASI.length = 0;
+
+  // Pod 45 slicic na sekundo je gib ze viden kot trganje.
+  if (mediana < 22 || performance.now() < kakovostOb + 4000) return;
+  kakovost += 1;
+  kakovostOb = performance.now();
+  try {
+    sessionStorage.setItem(KAKOVOST_KLJUC, String(kakovost));
+  } catch {
+    // Zasebni nacin brskalnika; takrat se stopnja preprosto ne zapomni.
+  }
+  uporabiKakovost();
+}
+
+/** Prenese stopnjo kakovosti na izrisovalnik in plasti. */
+function uporabiKakovost() {
+  renderer.setPixelRatio(gostotaZa(kakovost));
+  BLOOM_SUPERSAMPLE = bloomZa(kakovost);
+  resize();
+  if (kakovost >= 2) {
+    // Zadnja stopnja: megla in oddaljena galaksija sta lepotni plasti, brez
+    // njiju je prizor se vedno galaksija, le manj mlecna.
+    if (megla) megla.visible = false;
+    if (daljnaGal) daljnaGal.visible = false;
+  }
 }
 
 const ozvezdja = installOzvezdja(camera, renderer);
@@ -725,10 +787,10 @@ function uporabiNastavitve() {
   if (galaksija) galaksija.visible = prizorVklopljen;
   if (daljnaGal) {
     daljnaGal.visible =
-      prizorVklopljen && nastavitve.ozadje === "galaksija" && nastavitve.daljnaGalaksija;
+      prizorVklopljen && nastavitve.ozadje === "galaksija" && nastavitve.daljnaGalaksija && kakovost < 2;
   }
   // "Samo zvezde" pomeni brez mlecne plasti med njimi.
-  if (megla) megla.visible = prizorVklopljen && nastavitve.ozadje === "galaksija";
+  if (megla) megla.visible = prizorVklopljen && nastavitve.ozadje === "galaksija" && kakovost < 2;
   ozvezdja?.nastavi(prizorVklopljen);
 
   kazalec.nastavi(nastavitve.kazalec);
