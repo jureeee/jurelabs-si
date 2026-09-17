@@ -30,11 +30,18 @@ const ODMIK_NAJMANJ = 0.62;
 const ODMIK_NAJVEC = 0.98;
 /** Koliko pik od crte se steje za "sem nad ozvezdjem". */
 const DOSEG_PIK = 44;
-/** Mirno stanje in stanje pod kazalcem. */
-const CRTA_MIRNO = 0.16;
-const CRTA_NAD = 0.75;
+/**
+ * Crt v mirovanju ni: na nebu so samo zvezde, tako kot v resnici. Figura se
+ * narise sele pod kazalcem - takrat se izrise po vrsti, od zvezde do zvezde,
+ * kot bi jo nekdo povlekel s prstom.
+ */
+const CRTA_NAD = 0.8;
+/** Koliko prehoda porabi risanje; ostanek je ze izrisana figura. */
+const RISANJE = 0.75;
 /** Kako mocne so zvezde ozvezdij v primerjavi z galaksijinimi. */
 const MOC_ZVEZD = 0.9;
+/** Koliko moci obdrzijo ozvezdja na drugi strani galaksije. */
+const ZA_GALAKSIJO = 0.55;
 /** Dusenje prehodov; nizje je pocasneje. */
 const PREHOD = 0.12;
 
@@ -122,16 +129,43 @@ export function installOzvezdja(camera, renderer) {
     zvezde.frustumCulled = false;
     gnezdo.add(zvezde);
 
+    // Vsaka tocka crte ve, kako dalec po figuri lezi (0 na zacetku, 1 na
+    // koncu). Sencilnik odkrije le tisto, kar je pred napredkom risanja.
     const pari = [];
-    for (const [a, b] of o.crte) pari.push(tocke[a], tocke[b]);
-    const mCrte = new THREE.LineBasicMaterial({
-      color: 0x9fc0ff,
+    const zaporedje = [];
+    o.crte.forEach(([a, b], k) => {
+      pari.push(tocke[a], tocke[b]);
+      const od = k / Math.max(1, o.crte.length);
+      const do_ = (k + 1) / Math.max(1, o.crte.length);
+      zaporedje.push(od, do_);
+    });
+    const gCrte = new THREE.BufferGeometry().setFromPoints(pari);
+    gCrte.setAttribute("aKje", new THREE.BufferAttribute(new Float32Array(zaporedje), 1));
+    const mCrte = new THREE.ShaderMaterial({
+      uniforms: { uMoc: { value: 0 }, uNapredek: { value: 0 } },
       transparent: true,
-      opacity: 0,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
+      vertexShader: `
+        attribute float aKje;
+        varying float vKje;
+        void main() {
+          vKje = aKje;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }`,
+      fragmentShader: `
+        uniform float uMoc;
+        uniform float uNapredek;
+        varying float vKje;
+        void main() {
+          // Mehak konec poteze, da se crta ne pojavi s stopnico.
+          float odkrito = smoothstep(vKje - 0.14, vKje, uNapredek);
+          float a = uMoc * odkrito;
+          if (a <= 0.001) discard;
+          gl_FragColor = vec4(vec3(0.62, 0.75, 1.0) * a, a);
+        }`,
     });
-    const crte = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pari), mCrte);
+    const crte = new THREE.LineSegments(gCrte, mCrte);
     crte.frustumCulled = false;
     gnezdo.add(crte);
     skupina.add(gnezdo);
@@ -290,7 +324,9 @@ export function installOzvezdja(camera, renderer) {
       o.sredx = (minX + maxX) / 2;
       o.sredy = (minY + maxY) / 2;
       o.sirinaPik = maxX - minX;
-      o.blizu = zaGalaksijo ? 0 : 1;
+      // Za galaksijo ostanejo vidne - le loviti se jih ne da, ker bi pomenilo
+      // ciljati skozi disk. Zato so tam nekoliko sibkejse.
+      o.blizu = zaGalaksijo ? ZA_GALAKSIJO : 1;
 
       if (!mis || zaGalaksijo || vidnih < 2) continue;
       for (const [a, b] of o.podatki.crte) {
@@ -310,10 +346,11 @@ export function installOzvezdja(camera, renderer) {
       o.moc += (cilj - o.moc) * PREHOD;
       if (o.moc < 0.002 && cilj === 0) o.moc = 0;
 
-      // Ozvezdje za galaksijo ugasne v celoti, tudi mirne crte.
-      const osnovna = CRTA_MIRNO * o.blizu;
-      o.mCrte.opacity = osnovna + (CRTA_NAD - osnovna) * o.moc;
-      if (o.mZvezde) o.mZvezde.uniforms.uMoc.value = MOC_ZVEZD * (0.55 + 0.45 * o.moc) * o.blizu;
+      // Ozvezdje za galaksijo ugasne v celoti.
+      o.mCrte.uniforms.uMoc.value = CRTA_NAD * o.moc * o.blizu;
+      // Risanje je hitrejse od pojemanja moci, da je poteza vidna kot poteza.
+      o.mCrte.uniforms.uNapredek.value = Math.min(1, o.moc / RISANJE);
+      if (o.mZvezde) o.mZvezde.uniforms.uMoc.value = MOC_ZVEZD * (0.5 + 0.5 * o.moc) * o.blizu;
 
       if (o.moc > 0.002 && o.vidnih > 1) {
         o.okvir.style.transform =
