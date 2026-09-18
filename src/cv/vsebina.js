@@ -187,8 +187,7 @@ export const OMENI = {
       naslov: "Stik računalništva s fiziko",
       telo:
         "Svetloba, optika, gibanje. Področja, kjer se rezultat ne " +
-        "meri v vrsticah kode, ampak v tem, ali se na koncu nekaj premakne " +
-        "ali prikaže tako, kot si zamislil.",
+        "meri v vrsticah kode, ampak tam, kjer se nekaj premakne ali prikaže.",
     },
     {
       tip: "skupine",

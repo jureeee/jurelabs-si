@@ -257,7 +257,7 @@ export default {
         naslov: "Where computing meets physics",
         telo:
           "Light, optics, motion. Fields where the result isn't measured in lines of " +
-          "code, but in whether something moves or appears exactly the way you imagined.",
+          "code, but where something moves or appears.",
       },
       {
         oznaka: "What interests me",
