@@ -74,6 +74,11 @@ const HITROST_MEJA = 46;
 /** Kako dalec od sredisca ploskve se se drzi, kot veckratnik polovice. */
 const ODLEPI = 1.5;
 
+/** Koliko casa mora biti kazalec na svetlem, preden potemni. */
+const PODLAGA_TEMNI_MS = 2000;
+/** Koliko casa na temnem, preden se vrne v belo - kratko, crn na temnem je neviden. */
+const PODLAGA_BELI_MS = 250;
+
 export function installCursor() {
   // Na dotik kazalca ni - ne rissemo ga in ne poslusamo.
   if (window.matchMedia("(hover: none)").matches) return { nastavi() {} };
@@ -158,6 +163,71 @@ export function installCursor() {
     },
     { passive: true }
   );
+
+  // --- barva po podlagi ---
+  //
+  // Kazalec je bel, ker je stran vecinoma temna. Na svetli ploskvi (svetla
+  // tema, glava svetle aplikacije) bi bel izginil - zato po PODLAGA_TEMNI_MS
+  // na svetlem pocasi potemni. Nazaj na belo gre hitreje: crn kazalec na
+  // temnem je neviden, in tega ne smemo drzati dve sekundi.
+  //
+  // Podlago beremo nekajkrat na sekundo in ne ob vsakem premiku: elementi pod
+  // tocko in njihov slog sta za vsak premik miske predraga.
+  let naSvetlem = null;
+  let svetloOd = 0;
+  let temnoOd = 0;
+
+  /** Svetlost podlage pod kazalcem: true svetla, false temna, null ne vemo. */
+  function podlagaSvetla() {
+    const pod = document.elementsFromPoint(misX, misY);
+    for (const e of pod) {
+      if (e === el || el.contains(e)) continue;
+      // Slika ali video: barve ne poznamo, raje ne ugibamo.
+      if (e.tagName === "IMG" || e.tagName === "VIDEO" || e.tagName === "IFRAME") return null;
+      // Galaksija je temna - razen v svetli temi, kjer je obrnjena.
+      if (e.tagName === "CANVAS" && e.id === "galaxy") {
+        return document.documentElement.dataset.tema === "svetla";
+      }
+      const barva = getComputedStyle(e).backgroundColor;
+      const d = barva.match(/[\d.]+/g);
+      if (!d) continue;
+      const [r, g, b, a = 1] = d.map(Number);
+      // Prosojne ploskve (steklo, zavese) preskocimo: odloca, kar je pod njimi.
+      if (a < 0.6) continue;
+      return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.62;
+    }
+    return document.documentElement.dataset.tema === "svetla";
+  }
+
+  function preveriPodlago() {
+    if (el.classList.contains("skrit")) return;
+    const svetla = podlagaSvetla();
+    if (svetla === null) return;
+    const zdaj = performance.now();
+    // Prvic se odlocimo takoj - kazalec ne sme ob nalaganju dve sekundi
+    // lebdeti bel na belem.
+    if (naSvetlem === null) {
+      naSvetlem = svetla;
+      el.classList.toggle("na-svetlem", svetla);
+      return;
+    }
+    if (svetla) {
+      temnoOd = 0;
+      if (!svetloOd) svetloOd = zdaj;
+      if (!naSvetlem && zdaj - svetloOd >= PODLAGA_TEMNI_MS) {
+        naSvetlem = true;
+        el.classList.add("na-svetlem");
+      }
+    } else {
+      svetloOd = 0;
+      if (!temnoOd) temnoOd = zdaj;
+      if (naSvetlem && zdaj - temnoOd >= PODLAGA_BELI_MS) {
+        naSvetlem = false;
+        el.classList.remove("na-svetlem");
+      }
+    }
+  }
+  setInterval(preveriPodlago, 150);
 
   addEventListener("pointerdown", () => el.classList.add("pritisk"));
   addEventListener("pointerup", () => el.classList.remove("pritisk"));

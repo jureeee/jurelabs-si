@@ -19,12 +19,17 @@
   will-change: transform;
   color: #f2f5f9;
   opacity: 1;
-  transition: opacity 220ms var(--ease);
+  /* Nazaj v belo gre hitro: crn kazalec na temnem ni viden. */
+  transition: opacity 220ms var(--ease), color 600ms var(--ease);
 }
 .kaz.skrit { opacity: 0; }
 
-/* Svetla tema: temen kazalec na svetli podlagi. */
-:root[data-tema="svetla"] .kaz { color: #14171d; }
+/* Na svetli podlagi (svetla tema, svetle ploskve) se kazalec pocasi
+   prebarva v temno; kdaj, odloci cursor.js po tem, kaj je pod njim. */
+.kaz.na-svetlem {
+  color: #14171d;
+  transition: opacity 220ms var(--ease), color 1400ms var(--ease);
+}
 
 .kaz-telo {
   position: absolute;
