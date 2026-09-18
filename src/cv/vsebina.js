@@ -86,15 +86,15 @@ export const DELO = {
       tip: "par",
       obrnjen: true,
       oznaka: "Projekt",
-      naslov: "Priprava PC",
+      naslov: "Čarovnik za pripravo računalnika",
       telo:
-        "Čarovnik, ki vodi skozi celotno pripravo Windows postaje: particije, " +
-        "uporabniki, zaklep profila, programi in varnostne kopije. Vsak korak " +
-        "preveri, preden ga izvede, na koncu pa napiše poročilo – kaj je " +
-        "narejeno in kaj ostane za ročno.",
+        "Ponavljajoče nastavljanje računalnika, spremenjeno v čarovnika. Strežnik " +
+        "ali odjemalec: particije, uporabniki, nastavitve po meri, programi in " +
+        "varnostne kopije. Vsak korak preveri, preden ga izvede, na koncu pa " +
+        "napiše poročilo – kaj je narejeno in kaj ostane za ročno.",
       znacke: ["PowerShell", "WPF", "Windows 11", "Avtomatizacija"],
-      // Vmesnik izvirnika v brskalniku; nic se ne izvede, podatki so izmisljeni.
-      aplikacija: { pot: "demo/priprava-pc/index.html", ime: "Priprava PC" },
+      // Vmesnik izvirnika v brskalniku; nic se ne izvede, polja so prazna.
+      aplikacija: { pot: "demo/priprava-pc/index.html", ime: "Čarovnik za pripravo računalnika" },
       slika: pripravaSlika,
       razmerje: "3 / 2",
     },
@@ -331,13 +331,13 @@ export const ARHIV = {
     {
       tip: "par",
       oznaka: "2026 · v razvoju",
-      naslov: "Priprava PC",
+      naslov: "Čarovnik za pripravo računalnika",
       telo:
-        "Čarovnik za pripravo Windows postaj in strežnikov po kontrolnem " +
-        "listu. Particije, uporabniki, zaklep profila in namestitve brez " +
+        "Ponavljajoče nastavljanje računalnika, spremenjeno v čarovnika. " +
+        "Particije, uporabniki, nastavitve po meri in namestitve brez " +
         "interneta – vsak korak preverjen, preden se izvede.",
       znacke: ["PowerShell", "WPF", "Windows 11"],
-      aplikacija: { pot: "demo/priprava-pc/index.html", ime: "Priprava PC" },
+      aplikacija: { pot: "demo/priprava-pc/index.html", ime: "Čarovnik za pripravo računalnika" },
       slika: pripravaSlika,
       razmerje: "3 / 2",
     },

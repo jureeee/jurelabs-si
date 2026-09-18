@@ -174,11 +174,11 @@ export default {
       },
       {
         oznaka: "Project",
-        naslov: "PC Setup",
+        naslov: "Computer setup wizard",
         telo:
-          "A wizard that guides you through setting up a Windows workstation from start to finish: " +
-          "partitions, users, profile lockdown, software and backups. It checks every step before " +
-          "running it and ends with a report – what's done and what's left to do by hand.",
+          "Repetitive computer setup, turned into a wizard. Server or client: partitions, users, " +
+          "custom settings, software and backups. It checks every step before running it and ends " +
+          "with a report – what's done and what's left to do by hand.",
         znacke: ["PowerShell", "WPF", "Windows 11", "Automation"],
       },
       {
@@ -368,10 +368,10 @@ export default {
       },
       {
         oznaka: "2026 · in development",
-        naslov: "PC Setup",
+        naslov: "Computer setup wizard",
         telo:
-          "A wizard for setting up Windows workstations and servers from a checklist. Partitions, " +
-          "users, profile lockdown and offline installs – every step checked before it runs.",
+          "Repetitive computer setup, turned into a wizard. Partitions, users, custom settings " +
+          "and offline installs – every step checked before it runs.",
         znacke: ["PowerShell", "WPF", "Windows 11"],
       },
       {

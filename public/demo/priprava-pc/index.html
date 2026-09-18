@@ -3,14 +3,15 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Avtomatizacija priprave računalnika · predstavitev</title>
+<title>Čarovnik za pripravo računalnika · predstavitev</title>
 <!--
   Predstavitvena razlicica carovnika za pripravo racunalnika.
 
   Izvirnik je WPF okno v PowerShellu, ki vodi po fazah priprave Windows
   postaje. Tu je isti videz in isti potek v brskalniku - s to razliko, da se
-  nic ne izvede in da so vsi podatki izmisljeni. Prava gesla, naslovi in
-  nastavitve narocnika v predstavitev ne sodijo in jih tu ni.
+  nic ne izvede in da je vse splosno: streznik ali odjemalec, prazna polja
+  za podatke in nastavitve uporabnika po meri. Izvirnik je nastal za sluzbo;
+  njegovi podatki in nastavitve v predstavitev ne sodijo in jih tu ni.
 -->
 <style>
   :root {
@@ -155,6 +156,7 @@
     box-shadow: 0 2px 10px rgba(16, 24, 40, 0.04);
     transition: border-color 160ms var(--ease), box-shadow 160ms var(--ease);
   }
+  .polje input::placeholder { color: #a4acb9; }
   .polje input:focus { border-color: var(--modra); box-shadow: 0 0 0 3px rgba(90, 143, 230, 0.14); }
 
   /* particije */
@@ -281,14 +283,14 @@
   <div class="uvod-vsebina">
     <div id="epr-uvod"></div>
     <div class="logo-napis">Jure Labs</div>
-    <div class="podnapis">Avtomatizacija priprave računalnika</div>
+    <div class="podnapis">Čarovnik za pripravo računalnika</div>
   </div>
 </div>
 
 <div id="glavni">
   <div class="ozadje">
     <div class="glava">
-      <h1>Avtomatizacija priprave računalnika</h1>
+      <h1>Čarovnik za pripravo računalnika</h1>
       <p id="glava2"></p>
     </div>
     <div class="koraki" id="koraki"></div>
@@ -341,18 +343,20 @@ const EPRUVETA = `<svg viewBox="0 0 420 470" aria-hidden="true">
 document.getElementById("epr-uvod").innerHTML = EPRUVETA;
 
 // --- stanje --------------------------------------------------------------------
-// Vsi podatki so izmisljeni. Pravi carovnik diske prebere z Get-Disk.
+// Polja so prazna: vpise jih, kdor carovnik preizkusa. Diski so primer -
+// pravi carovnik jih prebere z Get-Disk.
 const iz = {
   tip: "",
-  objekt: "Poslovna stavba Primer",
-  dn: "2026 / PC012",
-  sn: "100245",
-  ime: "PRIMER-DP01",
-  skupina: "WORKGROUP",
-  izvajalec: "Jure",
-  kopije: "E:\\Kopije",
-  namestitve: "D:\\Namestitev",
+  ime: "",
+  skupina: "",
+  uporabnik: "",
+  izvajalec: "",
+  kopije: "",
+  namestitve: "",
 };
+/** Vrednost polja za izpis; prazno polje je pomisljaj. */
+const vr = (k) => (String(iz[k] ?? "").trim() || "—");
+const TIP = { streznik: "strežnik", odjemalec: "odjemalec (PC)" };
 const CRKE = ["D", "E", "F", "G", "H", "I", "J", "K"];
 const diski = [
   { st: 1, gb: 477, sistem: true, naziv: "NVMe SSD", parts: [{ crka: "C", oznaka: "SISTEM", gb: 477 }] },
@@ -390,14 +394,14 @@ const ubezi = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "
 const FAZE = [
   {
     pill: "Tip",
-    naslov: "Kakšna postaja je to?",
-    namig: "Od te izbire je odvisno, kdaj se izklopijo diski:\nDelovna postaja - diski se izklopijo po 20 minutah.\nStrežnik - diski se NIKOLI ne izklopijo.\n\nMonitor in spanje sta v obeh primerih izklopljena za vedno.",
+    naslov: "Kakšen računalnik je to?",
+    namig: "Od te izbire je odvisno, kdaj se izklopijo diski:\nOdjemalec (PC) - diski se izklopijo po 20 minutah.\nStrežnik - diski se NIKOLI ne izklopijo.\n\nMonitor in spanje sta v obeh primerih izklopljena za vedno.",
     kontrole: "tip",
     vrstice: () =>
       !iz.tip ? [] : [
         iz.tip === "streznik"
           ? { v: "ok", t: "Strežnik – diski se NIKOLI ne izklopijo." }
-          : { v: "ok", t: "Delovna postaja – diski se izklopijo po 20 minutah." },
+          : { v: "ok", t: "Odjemalec (PC) – diski se izklopijo po 20 minutah." },
         { v: "ok", t: "Monitor in spanje sta v obeh primerih izklopljena za vedno." },
         { v: "info", t: "Izbira velja za vse nadaljnje faze." },
       ],
@@ -405,15 +409,16 @@ const FAZE = [
   {
     pill: "Podatki",
     naslov: "Kateri računalnik pripravljaš?",
-    podnaslov: "Ti podatki gredo v kontrolni list in v končno poročilo.",
+    podnaslov: "Vpiši, kar veš – podatki gredo v končno poročilo. Polja lahko ostanejo prazna.",
     namig: "Vnesejo se enkrat, vse nadaljnje faze jih preberejo same.\n\nShranijo se na disk in preživijo ponovne zagone in menjave uporabnika, zato lahko postopek nadaljuješ po zagonu.",
     kontrole: "podatki",
     vrstice: () => [
-      { v: "ok", t: `Objekt: ${iz.objekt}` },
-      { v: "ok", t: `DN: ${iz.dn},  SN PC: ${iz.sn}` },
-      { v: "ok", t: `Ime računalnika: ${iz.ime},  delovna skupina: ${iz.skupina}` },
-      { v: "ok", t: `Varnostne kopije v ${iz.kopije},  namestitvene datoteke iz ${iz.namestitve}` },
-      { v: "ok", t: `Izvajal: ${iz.izvajalec},  datum: ${new Date().toLocaleDateString("sl-SI")}` },
+      { v: "ok", t: `Tip: ${TIP[iz.tip] ?? "—"}` },
+      { v: "ok", t: `Ime računalnika: ${vr("ime")},  delovna skupina: ${vr("skupina")}` },
+      { v: "ok", t: `Uporabnik: ${vr("uporabnik")}` },
+      { v: "ok", t: `Varnostne kopije v ${vr("kopije")},  namestitvene datoteke iz ${vr("namestitve")}` },
+      { v: "ok", t: `Izvajal: ${vr("izvajalec")},  datum: ${new Date().toLocaleDateString("sl-SI")}` },
+      ...(!iz.ime.trim() ? [{ v: "info", t: "Brez imena računalnik obdrži ime, ki ga ima zdaj." }] : []),
     ],
   },
   {
@@ -449,25 +454,27 @@ const FAZE = [
     podnaslov: "Lokalni računi, ime računalnika, Windows posodobitve.",
     tece: true,
     vrstice: () => [
-      { v: "ok", t: "Lokalni računi ustvarjeni – vsak s svojo vlogo, gesla ne potečejo." },
-      { v: "ok", t: "Privzeti profil je onemogočen." },
-      { v: "ok", t: `Računalnik preimenovan v ${iz.ime}, delovna skupina ${iz.skupina}.` },
+      { v: "ok", t: `Lokalni račun ${iz.uporabnik.trim() ? `»${iz.uporabnik.trim()}« ` : ""}ustvarjen, skrbniški račun ločen od njega.` },
+      iz.ime.trim()
+        ? { v: "ok", t: `Računalnik preimenovan v ${iz.ime.trim()}${iz.skupina.trim() ? `, delovna skupina ${iz.skupina.trim()}` : ""}.` }
+        : { v: "info", t: "Ime računalnika ostane, kakršno je." },
       { v: "ok", t: "Nameščenih 14 Windows posodobitev." },
       { v: "warn", t: "Nastavitve v BIOS-u nisi potrdil – ostane na seznamu ročnih korakov." },
-      { v: "info", t: "Potreben je ponovni zagon, nato prijava v omejen profil." },
+      { v: "info", t: "Potreben je ponovni zagon, nato prijava v uporabnikov račun." },
     ],
   },
   {
-    pill: "Profil",
-    naslov: "Zaklep delovnega profila",
-    podnaslov: "Profil, v katerem se dela vsak dan, dobi samo tisto, kar potrebuje.",
+    pill: "Nastavitve",
+    naslov: "Nastavitve uporabnika",
+    podnaslov: "Računalnik se prilagodi uporabniku – po meri, ne po privzetem.",
     tece: true,
     vrstice: () => [
-      { v: "ok", t: "Monitor in spanje NIKOLI, ohranjevalnik zaslona izklopljen." },
-      { v: "ok", t: `Diski: ${iz.tip === "streznik" ? "nikoli" : "po 20 minutah"}.` },
-      { v: "ok", t: "Start meni, namizje in opravilna vrstica počiščeni." },
-      { v: "ok", t: "Sistemska orodja zaklenjena z uvozom pravilnika v register." },
-      { v: "ok", t: "Profil vidi samo delovni pogon D:." },
+      { v: "ok", t: "Monitor in spanje nastavljena, ohranjevalnik zaslona izklopljen." },
+      { v: "ok", t: `Diski: ${iz.tip === "streznik" ? "se nikoli ne izklopijo" : "izklop po 20 minutah"}.` },
+      { v: "ok", t: "Tema, ozadje in razpored opravilne vrstice po meri." },
+      { v: "ok", t: "Start meni in namizje počiščena, pripete samo potrebne bližnjice." },
+      { v: "ok", t: "Privzeti brskalnik in bralnik PDF nastavljena." },
+      { v: "ok", t: "Obvestila in predlogi Windows utišani." },
       { v: "alert", t: "Pripomočkov (Widgets) ni bilo mogoče odstraniti – gumb bo še viden.", p: "Paket je sistemski in ga ta različica Windows ne dovoli odstraniti. Rešitev: Nastavitve › Prilagoditev › Opravilna vrstica › Pripomočki = izklopljeno." },
     ],
   },
@@ -479,7 +486,7 @@ const FAZE = [
     vrstice: () => [
       { v: "ok", t: "Google Chrome, Adobe Acrobat Reader in OpenOffice so nameščeni." },
       { v: "ok", t: "Raziskovalec pokaže skrite datoteke in končnice." },
-      { v: "warn", t: "Ročno še: programska oprema naročnika." },
+      { v: "warn", t: "Ročno še: programi, ki jih uporabnik potrebuje posebej." },
     ],
   },
   {
@@ -557,15 +564,17 @@ function odigraj() {
 function kontroleHtml(f) {
   if (f.kontrole === "tip") {
     return `<div class="izbire">
-      <button class="izbira${iz.tip === "dp" ? " izbrana" : ""}" data-tip="dp" type="button"><b>Delovna postaja</b><span>Diski se izklopijo po 20 minutah.</span></button>
-      <button class="izbira${iz.tip === "streznik" ? " izbrana" : ""}" data-tip="streznik" type="button"><b>Strežnik</b><span>Diski se nikoli ne izklopijo.</span></button>
+      <button class="izbira${iz.tip === "odjemalec" ? " izbrana" : ""}" data-tip="odjemalec" type="button"><b>Odjemalec (PC)</b><span>Računalnik za delo. Diski se izklopijo po 20 minutah.</span></button>
+      <button class="izbira${iz.tip === "streznik" ? " izbrana" : ""}" data-tip="streznik" type="button"><b>Strežnik</b><span>Teče ves čas. Diski se nikoli ne izklopijo.</span></button>
     </div>`;
   }
   if (f.kontrole === "podatki") {
-    const p = (k, l) => `<div class="polje"><label>${l}</label><input data-k="${k}" value="${ubezi(iz[k])}" /></div>`;
+    const p = (k, l, primer) =>
+      `<div class="polje"><label>${l}</label><input data-k="${k}" value="${ubezi(iz[k])}" placeholder="${primer}" /></div>`;
     return `<div class="kartica"><div class="polja">
-      ${p("objekt", "Objekt")}${p("dn", "DN")}${p("sn", "SN računalnika")}${p("ime", "Ime računalnika")}
-      ${p("skupina", "Delovna skupina")}${p("izvajalec", "Izvajalec")}${p("kopije", "Pot za varnostne kopije")}${p("namestitve", "Namestitvene datoteke")}
+      ${p("ime", "Ime računalnika", "npr. PC-01")}${p("skupina", "Delovna skupina", "npr. WORKGROUP")}
+      ${p("uporabnik", "Uporabnik", "npr. ana")}${p("izvajalec", "Izvajalec", "tvoje ime")}
+      ${p("kopije", "Pot za varnostne kopije", "npr. E:\\Kopije")}${p("namestitve", "Namestitvene datoteke", "npr. D:\\Namestitev")}
     </div></div>`;
   }
   if (f.kontrole === "particije") return `<div class="kartica" id="part"></div>`;
@@ -634,7 +643,7 @@ function narisiFazo(zamenjava = true) {
     narisiKorake();
     if (konec) {
       vsebina.innerHTML = `<div class="konec">${EPRUVETA}<h2>Računalnik je pripravljen.</h2>
-        <p>${ubezi(iz.ime)} · ${iz.tip === "streznik" ? "strežnik" : "delovna postaja"} · končno poročilo je shranjeno.</p></div>`;
+        <p>${iz.ime.trim() ? ubezi(iz.ime.trim()) + " · " : ""}${TIP[iz.tip] ?? "računalnik"} · končno poročilo je shranjeno.</p></div>`;
       $("stanje").textContent = "Predstavitev · na tem računalniku se ni nič spremenilo.";
     } else {
       const f = FAZE[faza];
@@ -770,7 +779,7 @@ $("izhod").addEventListener("click", () => { konec = true; narisiFazo(); });
 // ?faza=2 odpre naravnost pri particijah (za posnetek zaslona).
 const zacetna = Number(new URLSearchParams(location.search).get("faza"));
 if (zacetna > 0) {
-  iz.tip = "dp";
+  iz.tip = "odjemalec";
   faza = Math.min(zacetna, FAZE.length - 1);
   $("uvod").remove();
   $("glavni").classList.add("viden");
