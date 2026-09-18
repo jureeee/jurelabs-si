@@ -228,8 +228,9 @@ export default {
     odseki: [
       {
         oznaka: "What I like doing",
-        naslov: "Things you notice right away.\nYou know they're good – just not why.",
+        naslov: "Unforgettable design.",
         telo:
+          "Things you notice right away. You know they're good – just not why. " +
           "I like working where code ends in something visible – an image, motion, a device that " +
           "responds. A screen that shows something says more than terminal output. What you " +
           "can't put a name to is an eye for UI and UX design you rarely see.",
