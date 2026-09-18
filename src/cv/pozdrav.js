@@ -387,6 +387,36 @@ const DUSENJE = 0.86;
 const ODBOJ = 0.055;
 const ODBOJ_NAJVEC = 13;
 
+/**
+ * Razlet ob robu zaslona.
+ *
+ * Ko pri drsenju vrh vrstice napisa (ali metulja, krone, podpisa v kotu)
+ * doseze zgornji rob zaslona, oblika poci. Najprej jo za hip potegne vase,
+ * kot da zajame sapo, nato njeni znaki odletijo narazen od sredisca in med
+ * letom ugasnejo. Ko se stran vrne in je oblika spet dovolj pod robom, se
+ * znaki od koder koli priplazijo nazaj in se sestavijo.
+ *
+ *   VLEK_S            kako dolgo jo vlece vase, preden poci
+ *   VLEK_OSTANE       na kolikšen del velikosti se skrci (0 = v tocko)
+ *   VLEK_VZMET        kako mocno jo vlece vase
+ *   RAZLET_ROB        kako dalec pod robom oblika ze poci (v pikah)
+ *   RAZLET_NAZAJ      koliko nizje mora priti, da se sestavi - brez te razlike
+ *                     bi crka na meji pokala in se sestavljala v nedogled
+ *   RAZLET_HITROST    zacetna hitrost znaka ob poku (pik na slicico)
+ *   RAZLET_DUSENJE    trenje med letom; sibkejse od obicajnega, da letijo dlje
+ *   RAZLET_UGASNI_S   v koliko sekundah znak med letom ugasne
+ *   RAZLET_PRIHOD_S   v koliko sekundah se ob vrnitvi spet prizge
+ */
+const VLEK_S = 0.3;
+const VLEK_OSTANE = 0.42;
+const VLEK_VZMET = 0.13;
+const RAZLET_ROB = 0;
+const RAZLET_NAZAJ = 36;
+const RAZLET_HITROST = 11;
+const RAZLET_DUSENJE = 0.94;
+const RAZLET_UGASNI_S = 0.42;
+const RAZLET_PRIHOD_S = 0.7;
+
 /** Kazalec odriva znake. Polmer v pikah in moc odriva. */
 const KAZALEC_R = 150;
 const KAZALEC_MOC = 2.6;
@@ -814,6 +844,8 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
   const crkeNapisa = [];
   const ozadje = [];    // znaki na Chladnijevi figuri
   const kotni = [];     // podpis v kotu
+  /** Stanje poka podpisa v kotu; podpis poci kot celota. */
+  const kot = { stanje: 0, vrh: 0 };
   /** Vsak okras ima svoje znake, da lahko diha in menja odtenek po svoje. */
   const okrasni = OKRASI.map((o) => ({ o, delci: [], x: 0, y: 0 }));
 
@@ -913,6 +945,8 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
       z: znak(),
       velikost: nakljucno(najmanj, najvec),
       alfa: nakljucno(0.45, 1),
+      /** 1 = viden; pade proti 0, ko crka poci, in zraste, ko se sestavi. */
+      vid: 1,
       sij: 0,
       // Cas je absoluten, zato ga postavimo od zdaj naprej - sicer bi bili vsi
       // znaki ze "zapadli" in bi ob prvi slicici zasvetili hkrati.
@@ -1004,20 +1038,82 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
       c.cy = c.sy / c.n;
       c.r = Math.max(c.desno - c.levo, c.spodaj - c.zgoraj) * 0.5;
     }
+    // Vrh vrstice: najvisja tocka crk z istim srediscem po visini. Vrstica
+    // poci cela naenkrat - sicer bi visoke crke (J, B, l) pocile prej in od
+    // imena bi ostal okrnjen ostanek.
+    for (const c of vrsta) {
+      c.vrhVrstice = c.zgoraj;
+      for (const d of vrsta) {
+        if (Math.abs(d.cy - c.cy) < Math.max(c.r, d.r)) c.vrhVrstice = Math.min(c.vrhVrstice, d.zgoraj);
+      }
+    }
   }
 
   /** Zadnja lega luknje; ostane tudi, ko gre kazalec stran, da se crke vrnejo od tam. */
   let luknjaX = 0;
   let luknjaY = 0;
 
-  /** Vlek vsake crke: narasca, ko je kazalec blizu, in pojenja, ko ga ni. */
-  function korakCrk(lok) {
+  /**
+   * Pok ene oblike: crke, metulja, krone ali podpisa.
+   *
+   * g je skupina s stanjem: 0 miruje, 1 jo vlece vase, 2 je pocila. vrh je
+   * zgornji rob oblike glede na rob zaslona. pripada pove, kateri znaki iz
+   * seznama so njeni.
+   *
+   * Ob dotiku roba si skupina zapomni svoje sredisce (povprecje tarc) - proti
+   * njemu jo nato vlece, od njega pa znaki odletijo. Smer leta je smer od
+   * sredisca do znaka z malo nakljucja, da razlet ni popolnoma okrogel.
+   */
+  function korakPoka(g, vrh, sek, delci, pripada) {
+    if (g.stanje === 0 || g.stanje === undefined) {
+      g.stanje = 0;
+      if (vrh >= RAZLET_ROB) return;
+      let sx = 0;
+      let sy = 0;
+      let n = 0;
+      for (const d of delci) {
+        if (!pripada(d)) continue;
+        sx += d.ciljX;
+        sy += d.ciljY;
+        n += 1;
+      }
+      if (!n) return;
+      g.pokX = sx / n;
+      g.pokY = sy / n;
+      g.pokOb = sek + VLEK_S;
+      g.stanje = 1;
+    } else if (g.stanje === 1) {
+      if (sek < g.pokOb) return;
+      g.stanje = 2;
+      for (const d of delci) {
+        if (!pripada(d)) continue;
+        const dx = d.ciljX - g.pokX;
+        const dy = d.ciljY - g.pokY;
+        const kot = Math.atan2(dy, dx) + nakljucno(-0.6, 0.6);
+        const hitrost = RAZLET_HITROST * nakljucno(0.45, 1.15);
+        d.vx += Math.cos(kot) * hitrost;
+        d.vy += Math.sin(kot) * hitrost;
+      }
+    } else if (vrh > RAZLET_ROB + RAZLET_NAZAJ) {
+      g.stanje = 0;
+    }
+  }
+
+  /**
+   * Vlek vsake crke: narasca, ko je kazalec blizu, in pojenja, ko ga ni.
+   *
+   * vrh je lega zgornjega roba platna glede na zgornji rob zaslona; iz nje
+   * vemo, ali je crka ze pri robu in mora poci.
+   */
+  function korakCrk(lok, vrh, sek) {
     if (lok.ziv) {
       luknjaX = lok.x;
       luknjaY = lok.y;
     }
-    for (const c of crkeNapisa) {
+    for (let i = 0; i < crkeNapisa.length; i++) {
+      const c = crkeNapisa[i];
       if (!c) continue;
+      korakPoka(c, vrh + c.vrhVrstice, sek, besedni, (d) => d.imaCilj && d.crka === i);
       let cilj = 0;
       if (lok.ziv) {
         const r = Math.hypot(c.cx - lok.x, c.cy - lok.y);
@@ -1126,11 +1222,43 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
     const x0 = 46 + najX;
     const y0 = mereB.v - 44 - najY;
     for (const t of tocke) {
-      kotni.push({ x: x0 + t.x, y: y0 + t.y, z: znak(), velikost: nakljucno(5, 9) });
+      const x = x0 + t.x;
+      const y = y0 + t.y;
+      kotni.push({ ciljX: x, ciljY: y, x, y, vx: 0, vy: 0, vid: 1, z: znak(), velikost: nakljucno(5, 9) });
+    }
+    kot.stanje = 0;
+    kot.vrh = y0 - najY;
+  }
+
+  /**
+   * Podpis v kotu stoji pri miru - le ko poci, se premakne. Brez vzmeti, ko
+   * miruje, bi bil vsak znak natanko na svoji tarci; vzmet ga le vrne tja.
+   */
+  function korakKota(vrh, dt, sek) {
+    korakPoka(kot, vrh + kot.vrh, sek, kotni, () => true);
+    for (const k of kotni) {
+      const leti = kot.stanje === 2;
+      k.vid = leti
+        ? Math.max(0, k.vid - dt / RAZLET_UGASNI_S)
+        : Math.min(1, k.vid + dt / RAZLET_PRIHOD_S);
+      if (kot.stanje === 1) {
+        const tx = kot.pokX + (k.ciljX - kot.pokX) * VLEK_OSTANE;
+        const ty = kot.pokY + (k.ciljY - kot.pokY) * VLEK_OSTANE;
+        k.vx += (tx - k.x) * VLEK_VZMET;
+        k.vy += (ty - k.y) * VLEK_VZMET;
+      } else if (!leti) {
+        k.vx += (k.ciljX - k.x) * VZMET;
+        k.vy += (k.ciljY - k.y) * VZMET;
+      }
+      const trenje = leti ? RAZLET_DUSENJE : DUSENJE;
+      k.vx *= trenje;
+      k.vy *= trenje;
+      k.x += k.vx;
+      k.y += k.vy;
     }
   }
 
-  function korakPolja(polje, mere, dt, lok, sek, crke) {
+  function korakPolja(polje, mere, dt, lok, sek, crke, okras) {
     for (const d of polje) {
       // Blescanje: sij se prizge in ugasne po mehki krivulji, nato pocaka.
       if (d.sijOd !== undefined) {
@@ -1142,7 +1270,26 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
         d.sijOb = sek + BLESK_TRAJANJE_S + nakljucno(BLESK_NAJKRAJ_S, BLESK_NAJDLJE_S);
       }
 
-      if (d.cakaj > 0) {
+      // Skupina, ki lahko poci: crka napisa ali cel okras. Ozadje je nima.
+      const g = crke ? (d.imaCilj && d.crka >= 0 ? crke[d.crka] : null) : okras;
+      const stanje = g ? g.stanje : 0;
+      const leti = stanje === 2;
+      // Znak pocene oblike leti prost in ugasa; ostali se prizigajo nazaj.
+      if (g || crke) {
+        d.vid = leti
+          ? Math.max(0, d.vid - dt / RAZLET_UGASNI_S)
+          : Math.min(1, d.vid + dt / RAZLET_PRIHOD_S);
+      }
+
+      if (leti) {
+        // Brez vzmeti: znak odnese sunek poka.
+      } else if (stanje === 1 && d.imaCilj) {
+        // Pred pokom: oblika se skrci proti srediscu.
+        const tx = g.pokX + (d.ciljX - g.pokX) * VLEK_OSTANE;
+        const ty = g.pokY + (d.ciljY - g.pokY) * VLEK_OSTANE;
+        d.vx += (tx - d.x) * VLEK_VZMET;
+        d.vy += (ty - d.y) * VLEK_VZMET;
+      } else if (d.cakaj > 0) {
         d.cakaj -= dt;
       } else if (d.imaCilj) {
         let tx = d.ciljX;
@@ -1178,8 +1325,9 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
         }
       }
 
-      d.vx *= DUSENJE;
-      d.vy *= DUSENJE;
+      const trenje = leti ? RAZLET_DUSENJE : DUSENJE;
+      d.vx *= trenje;
+      d.vy *= trenje;
       d.x += d.vx;
       d.y += d.vy;
 
@@ -1250,7 +1398,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
       const obris = d.imaCilj && d.rob !== undefined
         ? OBRIS_NOTRANJOST + (OBRIS_ROB - OBRIS_NOTRANJOST) * d.rob
         : 1;
-      const alfa = Math.min(1, (d.imaCilj ? d.alfa * moc * obris : d.alfa * 0.16) * mnozitelj);
+      const alfa = Math.min(1, (d.imaCilj ? d.alfa * moc * obris : d.alfa * 0.16) * mnozitelj) * d.vid;
       // Kar je pod tem, se na zaslonu ne vidi; risanje bi bilo zastonj delo.
       if (alfa <= 0.004) continue;
       const s = sprite(d.z, d.velikost, barva);
@@ -1302,8 +1450,9 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
     ctxB.textAlign = "center";
     ctxB.textBaseline = "middle";
     risiPolje(ctxB, besedni, 1, "#e9edf3");
-    ctxB.globalAlpha = 0.5;
     for (const k of kotni) {
+      if (k.vid <= 0.01) continue;
+      ctxB.globalAlpha = 0.5 * k.vid;
       const s = sprite(k.z, k.velikost, "#c8d4e8");
       ctxB.drawImage(s.platno, k.x - s.rob / 2, k.y - s.rob / 2, s.rob, s.rob);
     }
@@ -1337,8 +1486,12 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
       frekvencaOb = sek + FREKVENCA_S;
     }
     const kazalecB = kazalecZa(gnezdoBesedila);
+    // Rob zaslona je vrh drsnika (ce stoji nizje od okna) ali vrh okna.
+    const robZaslona = drsnik ? Math.max(0, drsnik.getBoundingClientRect().top) : 0;
     if (napisTece) {
-      korakCrk(kazalecB);
+      const vrhB = gnezdoBesedila.getBoundingClientRect().top - robZaslona;
+      korakCrk(kazalecB, vrhB, sek);
+      korakKota(vrhB, dt, sek);
       korakPolja(besedni, mereB, dt, kazalecB, sek, crkeNapisa);
     }
     korakPolja(ozadje, mereO, dt, kazalecZa(gnezdoOzadja), sek);
@@ -1347,9 +1500,16 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
     // je stran zdrsela - sicer bi znaki bezali pred prazno tocko.
     const kazalecK = kazalecZa(gnezdoOzadja);
     if (kazalecK.ziv) kazalecK.y += vrhStrani();
+    // Okras je v prostoru strani: na zaslonu je za toliko visje, kolikor je
+    // stran zdrsela, in se za toliko nizje, kolikor platno ozadja stoji pod
+    // robom zaslona.
+    const zamikK = gnezdoOzadja.getBoundingClientRect().top - robZaslona - vrhStrani();
     for (const k of okrasni) {
       zamahni(k, sek);
-      korakPolja(k.delci, mereK, dt, kazalecK, sek);
+      let vrhK = Infinity;
+      for (const d of k.delci) if (d.imaCilj && d.ciljY < vrhK) vrhK = d.ciljY;
+      if (vrhK < Infinity) korakPoka(k, vrhK + zamikK, sek, k.delci, (d) => d.imaCilj);
+      korakPolja(k.delci, mereK, dt, kazalecK, sek, null, k);
     }
     risi(sek);
   }
