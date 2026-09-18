@@ -61,7 +61,7 @@ export default {
   "stik.kjeOznaka": "Where I am",
   "stik.kjeNaslov": "Ljubljana, Slovenia.",
   "stik.kjeVodilo":
-    "I work from here. For remote work, distance is no obstacle – but for a coffee it's good to know I'm closer than it looks from above.",
+    "I work from Ljubljana, locally or remotely. Distance is no obstacle.",
 
   "viz.stran": "SITE",
   "viz.prizor": "SCENE",

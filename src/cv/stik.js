@@ -78,7 +78,7 @@ const BESEDILA = {
   ".stik-naslov2": ["stik.kjeNaslov", "Ljubljana, Slovenija."],
   ".stik-kje-besedilo .stik-vodilo": [
     "stik.kjeVodilo",
-    "Delam od tod. Za delo na daljavo razdalja ni ovira – za kavo pa je dobro vedeti, da je do mene bliže, kot je videti od zgoraj.",
+    "Delam iz Ljubljane, lokalno ali na daljavo. Razdalja ni ovira.",
   ],
 };
 
@@ -129,8 +129,7 @@ export function installStik() {
           <div class="zapis-oznaka">Kje sem</div>
           <h2 class="stik-naslov2">Ljubljana, Slovenija.</h2>
           <p class="stik-vodilo">
-            Delam od tod. Za delo na daljavo razdalja ni ovira – za kavo pa je
-            dobro vedeti, da je do mene bliže, kot je videti od zgoraj.
+            Delam iz Ljubljane, lokalno ali na daljavo. Razdalja ni ovira.
           </p>
         </div>
       </section>
