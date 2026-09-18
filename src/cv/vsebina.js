@@ -154,7 +154,8 @@ export const OMENI = {
       telo:
         "Najraje delam tam, kjer se koda konča v nečem vidnem – v sliki, v " +
         "gibanju, v napravi, ki se odzove. Zaslon, ki nekaj pokaže, pove " +
-        "več od izpisa v terminalu. To je UI in UX, kakršnega redko vidiš.",
+        "več od izpisa v terminalu. Tisto, česar ne znaš poimenovati, je " +
+        "oko za dizajn UI in UX, kakršnega redko vidiš.",
       slika: 2,
     },
     {

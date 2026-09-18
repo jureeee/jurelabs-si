@@ -231,8 +231,8 @@ export default {
         naslov: "Things you notice right away.\nYou know they're good – just not why.",
         telo:
           "I like working where code ends in something visible – an image, motion, a device that " +
-          "responds. A screen that shows something says more than terminal output. That's UI and " +
-          "UX you rarely see.",
+          "responds. A screen that shows something says more than terminal output. What you " +
+          "can't put a name to is an eye for UI and UX design you rarely see.",
       },
       {
         oznaka: "What I do in my free time",
