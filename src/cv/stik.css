@@ -172,11 +172,10 @@
      globusu. */
   cursor: grab;
   touch-action: pan-y;
-  /* Prihod pise JS iz lege drsnika; prehod tu le zgladi skoke med sporocili. */
+  /* Prihod pise JS vsako slicico (vzmet v zemlja.js) - prehod bi ga le zamikal. */
   opacity: 0;
-  transform: translateY(9%) scale(0.64);
+  transform: translateY(12%) scale(0.2);
   transform-origin: 50% 50%;
-  transition: opacity 200ms linear, transform 200ms linear, filter 200ms linear;
 }
 .zemlja-platno.vlecem { cursor: grabbing; }
 

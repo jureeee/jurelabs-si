@@ -180,6 +180,24 @@ const ZRAK = 1.05;
 
 const easeOut = (t) => 1 - Math.pow(1 - t, 3);
 
+/**
+ * Prihod globusa v prizor.
+ *
+ * Prej je sledil drsniku ena na ena - globus se je premikal natanko toliko,
+ * kolikor si zavrtel kolesce, in gib je bil zato raven kot tracnica. Zdaj
+ * drsnik le pove, ali naj pride (ali odide), pot pa odigra vzmet: pospesi,
+ * malo prenese cez in se umiri. Tako je gib enak, ne glede na to, kako hitro
+ * drsis - in ce model pride pozneje, se ob prihodu vseeno lepo pripelje,
+ * namesto da bi se pojavil ze na mestu.
+ *
+ *   PRIHOD_PRAG / ODHOD_PRAG   pri katerem delezu drsnika pride oz. odide
+ *   PRIHOD_MOC / PRIHOD_DUSENJE  vzmet; dusenje pod 2*sqrt(moc) da mehak prenos
+ */
+const PRIHOD_PRAG = 0.2;
+const ODHOD_PRAG = 0.06;
+const PRIHOD_MOC = 19;
+const PRIHOD_DUSENJE = 2 * 0.7 * Math.sqrt(PRIHOD_MOC);
+
 /** Tocka na krogli iz zemljepisnih koordinat, v prostoru mreze. */
 function naKroglo(lonStopinj, latStopinj, r) {
   const lon = (lonStopinj * Math.PI) / 180;
@@ -246,8 +264,35 @@ export function installZemlja(gnezdo) {
   let zoom = 0;
   let zoomCilj = 0;
   let razdaljaOsnovna = 1;
-  /** Kako dalec je globus na svoji poti v prizor; 1 je na mestu. */
+  /** Prihod: cilj (0 ali 1), trenutna lega na poti in njena hitrost. */
+  let prihodCilj = 0;
   let prihodDelez = 0;
+  let prihodHitrost = 0;
+
+  /** Zapise prihod v slog platna: rast iz daljave, izostritev, prosojnost. */
+  function narisiPrihod() {
+    const e = prihodDelez;
+    const blizu = Math.max(0, Math.min(e, 1));
+    platno.style.transform = `translateY(${((1 - e) * 12).toFixed(2)}%) scale(${(0.2 + e * 0.8).toFixed(4)})`;
+    platno.style.opacity = blizu.toFixed(3);
+    platno.style.filter = blizu > 0.995 ? "none" : `blur(${((1 - blizu) * 8).toFixed(2)}px)`;
+  }
+
+  /** En korak vzmeti prihoda. Vrne, ali se je kaj premaknilo. */
+  function korakPrihoda(dt) {
+    const razlika = prihodCilj - prihodDelez;
+    if (Math.abs(razlika) < 1e-4 && Math.abs(prihodHitrost) < 1e-4) {
+      if (prihodDelez !== prihodCilj) {
+        prihodDelez = prihodCilj;
+        narisiPrihod();
+      }
+      return false;
+    }
+    prihodHitrost += (razlika * PRIHOD_MOC - prihodHitrost * PRIHOD_DUSENJE) * dt;
+    prihodDelez += prihodHitrost * dt;
+    narisiPrihod();
+    return true;
+  }
 
   let zanka = null;
   let viden = false;
@@ -289,6 +334,12 @@ export function installZemlja(gnezdo) {
         namestiKamero(g.scene);
         postaviLego();
         naredMejo();
+        // Ogrevanje: prevod sencilnikov in prenos tekstur na graficno se
+        // zgodita zdaj, ko globusa se ni videti. Sicer bi se zgodila ob prvi
+        // slicici prihoda - in prav tam je bil zastoj.
+        meri();
+        izrisovalnik.compile(prizor, kamera);
+        izrisovalnik.render(prizor, kamera);
         res(true);
       },
       undefined,
@@ -413,6 +464,7 @@ export function installZemlja(gnezdo) {
     zadnjiSek = sek;
 
     let spremenilo = false;
+    korakPrihoda(dt);
 
     if (priletTece) {
       const t = Math.min((sek - priletOd) / (PRILET_MS / 1000), 1);
@@ -560,7 +612,7 @@ export function installZemlja(gnezdo) {
     (e) => {
       // Dokler globus ni na mestu, je kolesce navadno drsenje. Sele ko je
       // prispel in se nehal vrteti, ga sme kdo priblizevati.
-      if (!viden || priletTece || prihodDelez < 0.999) return;
+      if (!viden || priletTece || prihodCilj < 1 || prihodDelez < 0.98) return;
 
       // Ko priblizujemo, stran ne sme hkrati drseti - sicer se globus veca in
       // odhaja z zaslona obenem.
@@ -597,24 +649,25 @@ export function installZemlja(gnezdo) {
 
   return {
     /**
-     * Prihod, vezan na lego drsnika.
+     * Lega drsnika proti tretjemu zaslonu.
      *
-     * Globus pripotuje iz daljave: raste in se izostri, namesto da bi se le
-     * pojavil. Pisemo v slog platna, ne v prizor - merilo in prosojnost v
-     * slogu delujeta tudi, ko izris ne tece, in gib gre ob vracanju sam po
-     * sebi nazaj.
+     * Ne premika globusa neposredno: le odloci, ali naj pride ali odide. Pot
+     * odigra vzmet v zanki (glej PRIHOD_PRAG). Pisemo v slog platna, ne v
+     * prizor - globus pripotuje iz daljave: raste, se izostri in prikaze.
      *
-     * @param {number} p 0 = se dalec, 1 = na svojem mestu
+     * @param {number} p 0 = tretji zaslon je se pod robom, 1 = na svojem mestu
      */
     nastaviPrihod(p) {
-      const d = Math.max(0, Math.min(p, 1));
-      prihodDelez = d;
-      const e = easeOut(d);
-      // Iz daljave in ne le od spodaj: pri 0,64 je globus ze ob prihodu skoraj
-      // tak, kot bo, in poti ni videti. Pri 0,2 je najprej drobec.
-      platno.style.transform = `translateY(${(1 - e) * 9}%) scale(${0.2 + e * 0.8})`;
-      platno.style.opacity = String(e);
-      platno.style.filter = `blur(${(1 - e) * 7}px)`;
+      // Med pragovoma cilj ostane, kakrsen je bil - sicer bi globus na meji
+      // prihajal in odhajal ob vsakem drobnem premiku kolesca.
+      if (p >= PRIHOD_PRAG) prihodCilj = 1;
+      else if (p <= ODHOD_PRAG) prihodCilj = 0;
+      // Ce zanka ne tece (stran zaprta, model se ni tu), gib pocaka nanjo.
+      if (!zanka && p <= 0) {
+        prihodDelez = 0;
+        prihodHitrost = 0;
+        narisiPrihod();
+      }
     },
     pokazi() {
       if (viden) return;

@@ -85,6 +85,17 @@ const BESEDILA = {
 /** Koliko po odprtju pride pozdrav. */
 const POZDRAV_ZAMIK_MS = 1000;
 
+/**
+ * Koliko po odprtju se v ozadju zacne nalagati Zemlja.
+ *
+ * Model je tri megabajte in njegovo razpakiranje za hip zasede brskalnik.
+ * Prej se je nalagal sele, ko si pridrsel do njega - in zastoj je padel
+ * ravno v prihod. Zdaj se nalozi vnaprej, ko pozdrav ze tece in nihce se ne
+ * drsi; kdor pride do dna prej, pa pocaka, da je globus tu, in ga vseeno
+ * dobi s prihodom.
+ */
+const ZEMLJA_ZAMIK_MS = 2600;
+
 export function installStik() {
   const koren = document.createElement("div");
   koren.className = "zapis stik";
@@ -237,6 +248,7 @@ export function installStik() {
   // --- odpiranje in zapiranje ---------------------------------------------
   let zapiranje = null;
   let cakalec = null;
+  let zemljaCakalec = null;
   const api = { odpri, zapri };
 
   function odpri() {
@@ -266,12 +278,19 @@ export function installStik() {
     cakalec = setTimeout(() => {
       pripraviPozdrav().then((p) => p?.pokazi());
     }, POZDRAV_ZAMIK_MS);
+    clearTimeout(zemljaCakalec);
+    zemljaCakalec = setTimeout(() => {
+      const zdaj = () => pripraviZemljo();
+      if ("requestIdleCallback" in window) requestIdleCallback(zdaj, { timeout: 2000 });
+      else zdaj();
+    }, ZEMLJA_ZAMIK_MS);
   }
 
   /** Zapre v hipu, brez odhodne animacije. Za zamenjavo strani. */
   function takoj() {
     clearTimeout(zapiranje);
     clearTimeout(cakalec);
+    clearTimeout(zemljaCakalec);
     zapiranje = null;
     koren.classList.remove("odprt", "zapira");
     pozdrav?.skrij();
@@ -282,6 +301,7 @@ export function installStik() {
     if (zapiranje) return;
     sprostiOdprto(api);
     clearTimeout(cakalec);
+    clearTimeout(zemljaCakalec);
     pozdrav?.skrij();
     zemlja?.skrij();
     koren.classList.add("zapira");
