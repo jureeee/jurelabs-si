@@ -75,13 +75,16 @@
 /* --- glava ----------------------------------------------------------------
    Iste barve kot aplikacija, brez crte - okno je ena ploskev. Ime, novi
    zavihek in zapiranje so enake kapsule. */
+/* Tri polja: opomba levo, ime na sredini, gumbi desno. Stranska polja sta
+   enako siroka, zato je ime res na sredini okna in ne med sosedoma. */
 .apl-glava {
   flex: none;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 14px;
-  height: 58px;
-  padding: 0 12px;
+  height: 62px;
+  padding: 0 12px 0 20px;
   background: var(--apl-ozadje);
   transition: background-color 420ms var(--ease);
 }
@@ -103,21 +106,26 @@
     color var(--t-fast) var(--ease),
     transform var(--t-med) var(--spring);
 }
-.apl-ime { cursor: default; }
+.apl-ime { cursor: default; justify-self: center; }
+
+/* Steklo: kapsule nosijo .dg, le robu in senci damo mero okna. Na svetli
+   aplikaciji bi temna senca in skoraj prozorna podlaga izginili v belem. */
+.apl-kapsula.dg { border: none; background: var(--dg-tint); }
+.apl.svetla .apl-kapsula.dg {
+  background: rgba(255, 255, 255, 0.45);
+  box-shadow:
+    inset 0 0 0 1px rgba(20, 25, 35, 0.08),
+    inset 0 8px 18px rgba(255, 255, 255, 0.7),
+    0 6px 18px rgba(16, 24, 40, 0.1);
+}
+.apl.svetla .apl-kapsula.dg::before { mix-blend-mode: multiply; opacity: 0.5; }
 .apl-zavihek,
 .apl-gumb { cursor: pointer; color: var(--apl-sivo); }
 .apl-zavihek:hover,
-.apl-gumb:hover { background: var(--apl-kapsula-nad); color: var(--apl-crnilo); }
+.apl-gumb:hover { color: var(--apl-crnilo); }
 .apl-zavihek:active,
 .apl-gumb:active { transform: scale(0.94); }
 .apl-zavihek span { font-weight: 550; }
-.apl-pika {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #3ddc97;
-  box-shadow: 0 0 10px rgba(61, 220, 151, 0.7);
-}
 .apl-demo {
   font-size: 12px;
   color: var(--apl-sivo);
@@ -126,7 +134,7 @@
   text-overflow: ellipsis;
 }
 .apl-gumbi {
-  margin-left: auto;
+  justify-self: end;
   display: flex;
   gap: 6px;
 }

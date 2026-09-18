@@ -69,11 +69,11 @@ export function odpri(url, ime) {
     <div class="apl-zavesa"></div>
     <div class="apl-okno">
       <div class="apl-glava">
-        <div class="apl-kapsula apl-ime"><span class="apl-pika"></span>${ime}</div>
         <div class="apl-demo">${t("aplikacija.demo", "Predstavitvena različica · podatki so izmišljeni")}</div>
+        <div class="apl-kapsula apl-ime dg">${ime}</div>
         <div class="apl-gumbi">
-          <a class="apl-kapsula apl-zavihek" href="${url}" target="_blank" rel="noopener">${ZUNAJ}<span>${t("aplikacija.zavihek", "Odpri v novem zavihku")}</span></a>
-          <button class="apl-kapsula apl-gumb" type="button" aria-label="${t("aplikacija.zapri", "Zapri aplikacijo")}">${ZAPRI}</button>
+          <a class="apl-kapsula apl-zavihek dg" href="${url}" target="_blank" rel="noopener">${ZUNAJ}<span>${t("aplikacija.zavihek", "Odpri v novem zavihku")}</span></a>
+          <button class="apl-kapsula apl-gumb dg" type="button" aria-label="${t("aplikacija.zapri", "Zapri aplikacijo")}">${ZAPRI}</button>
         </div>
       </div>
       <div class="apl-telo">
