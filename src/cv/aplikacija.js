@@ -18,6 +18,34 @@ const ZAPRI =
 const ZUNAJ =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 5h5v5M19 5l-8 8M18 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h4"/></svg>';
 
+/**
+ * Glava okna prevzame barvo ozadja aplikacije.
+ *
+ * Tako glava ni tuja vrstica nad aplikacijo, ampak njen del - okno je ena
+ * ploskev. Aplikacije so na isti domeni, zato njihovo barvo lahko preberemo.
+ * Na svetli aplikaciji gumbi potemnijo, sicer bi bili na beli beli.
+ */
+function prevzemiBarvo(koren, okvir) {
+  let barva = "";
+  try {
+    const doc = okvir.contentDocument;
+    for (const el of [doc.body, doc.documentElement]) {
+      const b = getComputedStyle(el).backgroundColor;
+      if (b && !/rgba\(.*,\s*0\)$/.test(b) && b !== "transparent") {
+        barva = b;
+        break;
+      }
+    }
+  } catch {
+    // Tuja domena: glava ostane temna.
+  }
+  if (!barva) return;
+  const [r, g, b] = (barva.match(/\d+(\.\d+)?/g) || []).map(Number);
+  const svetlost = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  koren.style.setProperty("--apl-ozadje", barva);
+  koren.classList.toggle("svetla", svetlost > 0.6);
+}
+
 /** Koliko traja odhod okna, preden gre iz strani. */
 const ODHOD_MS = 420;
 
@@ -41,11 +69,11 @@ export function odpri(url, ime) {
     <div class="apl-zavesa"></div>
     <div class="apl-okno">
       <div class="apl-glava">
-        <div class="apl-ime"><span class="apl-pika"></span>${ime}</div>
+        <div class="apl-kapsula apl-ime"><span class="apl-pika"></span>${ime}</div>
         <div class="apl-demo">${t("aplikacija.demo", "Predstavitvena različica · podatki so izmišljeni")}</div>
         <div class="apl-gumbi">
-          <a class="apl-gumb dg" href="${url}" target="_blank" rel="noopener" aria-label="${t("aplikacija.zavihek", "Odpri v novem zavihku")}">${ZUNAJ}</a>
-          <button class="apl-gumb dg" type="button" aria-label="${t("aplikacija.zapri", "Zapri aplikacijo")}">${ZAPRI}</button>
+          <a class="apl-kapsula apl-zavihek" href="${url}" target="_blank" rel="noopener">${ZUNAJ}<span>${t("aplikacija.zavihek", "Odpri v novem zavihku")}</span></a>
+          <button class="apl-kapsula apl-gumb" type="button" aria-label="${t("aplikacija.zapri", "Zapri aplikacijo")}">${ZAPRI}</button>
         </div>
       </div>
       <div class="apl-telo">
@@ -56,7 +84,14 @@ export function odpri(url, ime) {
   document.body.appendChild(koren);
 
   const okvir = koren.querySelector(".apl-okvir");
-  okvir.addEventListener("load", () => koren.classList.add("nalozeno"), { once: true });
+  okvir.addEventListener(
+    "load",
+    () => {
+      prevzemiBarvo(koren, okvir);
+      koren.classList.add("nalozeno");
+    },
+    { once: true }
+  );
   // Kazalec strani nad okvirjem nima kaj iskati - aplikacija ima svojega.
   okvir.addEventListener("pointerenter", () => document.documentElement.classList.add("apl-v-okvirju"));
   okvir.addEventListener("pointerleave", () => document.documentElement.classList.remove("apl-v-okvirju"));
