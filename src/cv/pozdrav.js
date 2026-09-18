@@ -407,7 +407,7 @@ const ODBOJ_NAJVEC = 13;
  *   RAZLET_UGASNI_S   v koliko sekundah znak med letom ugasne
  *   RAZLET_PRIHOD_S   v koliko sekundah se ob vrnitvi spet prizge
  */
-const VLEK_S = 0.3;
+const VLEK_S = 0.22;
 const VLEK_OSTANE = 0.42;
 const VLEK_VZMET = 0.13;
 const RAZLET_ROB = 0;
@@ -416,6 +416,22 @@ const RAZLET_HITROST = 11;
 const RAZLET_DUSENJE = 0.94;
 const RAZLET_UGASNI_S = 0.42;
 const RAZLET_PRIHOD_S = 0.7;
+
+/**
+ * Trampolin: rob zaslona obliko ob dotiku odbije nazaj dol, postrani levo ali
+ * desno - smer je za vsako obliko nakljucna. Odboj, vlek vase in pok se
+ * zgodijo v istem gibu: oblika se med odskokom skrci, poci in oblak znakov
+ * nese naprej v smeri odboja.
+ *
+ *   TRAMPOLIN_HITROST   hitrost odboja (pik na slicico)
+ *   TRAMPOLIN_DUSENJE   kako hitro odboj pojenja med vlekom
+ *   TRAMPOLIN_NAGIB     obseg nagiba od navpicnice (radiani), levo ali desno
+ *   TRAMPOLIN_NESE      koliko odboja dobijo znaki se ob poku
+ */
+const TRAMPOLIN_HITROST = 9;
+const TRAMPOLIN_DUSENJE = 0.88;
+const TRAMPOLIN_NAGIB = [0.35, 0.95];
+const TRAMPOLIN_NESE = 0.6;
 
 /** Kazalec odriva znake. Polmer v pikah in moc odriva. */
 const KAZALEC_R = 150;
@@ -1078,21 +1094,37 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
         n += 1;
       }
       if (!n) return;
-      g.pokX = sx / n;
-      g.pokY = sy / n;
+      g.srX = g.pokX = sx / n;
+      g.srY = g.pokY = sy / n;
+      // Odboj: navzdol (PI/2), nagnjen levo ali desno.
+      const stran = Math.random() < 0.5 ? -1 : 1;
+      const smer = Math.PI / 2 + stran * nakljucno(TRAMPOLIN_NAGIB[0], TRAMPOLIN_NAGIB[1]);
+      g.smerX = Math.cos(smer);
+      g.smerY = Math.sin(smer);
+      g.odbVX = g.smerX * TRAMPOLIN_HITROST;
+      g.odbVY = g.smerY * TRAMPOLIN_HITROST;
       g.pokOb = sek + VLEK_S;
       g.stanje = 1;
     } else if (g.stanje === 1) {
+      // Sredisce, proti kateremu se oblika krci, odskakuje - z njim tudi oblika.
+      g.pokX += g.odbVX;
+      g.pokY += g.odbVY;
+      g.odbVX *= TRAMPOLIN_DUSENJE;
+      g.odbVY *= TRAMPOLIN_DUSENJE;
       if (sek < g.pokOb) return;
       g.stanje = 2;
+      const neseX = g.odbVX + g.smerX * TRAMPOLIN_HITROST * TRAMPOLIN_NESE;
+      const neseY = g.odbVY + g.smerY * TRAMPOLIN_HITROST * TRAMPOLIN_NESE;
       for (const d of delci) {
         if (!pripada(d)) continue;
-        const dx = d.ciljX - g.pokX;
-        const dy = d.ciljY - g.pokY;
+        // Smer poka merimo od prvotnega sredisca, ne od odskocenega - sicer
+        // bi vsi znaki leteli nazaj gor.
+        const dx = d.ciljX - g.srX;
+        const dy = d.ciljY - g.srY;
         const kot = Math.atan2(dy, dx) + nakljucno(-0.6, 0.6);
         const hitrost = RAZLET_HITROST * nakljucno(0.45, 1.15);
-        d.vx += Math.cos(kot) * hitrost;
-        d.vy += Math.sin(kot) * hitrost;
+        d.vx += Math.cos(kot) * hitrost + neseX;
+        d.vy += Math.sin(kot) * hitrost + neseY;
       }
     } else if (vrh > RAZLET_ROB + RAZLET_NAZAJ) {
       g.stanje = 0;
