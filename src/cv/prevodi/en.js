@@ -148,7 +148,8 @@ export default {
         naslov: "Hardware and software,\nnot one or the other.",
         telo:
           "Server environments, networks and technical systems on one side, full application " +
-          "development on the other. One doesn't work without the other – so I know both.",
+          "development on the other. The best solutions are built where the two meet – so I " +
+          "know both inside out.",
       },
       {
         oznaka: "Project",

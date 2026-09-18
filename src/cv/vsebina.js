@@ -46,8 +46,8 @@ export const DELO = {
       naslov: "Strojna in programska oprema",
       telo:
         "Strežniško okolje, omrežja in tehnični sistemi na eni strani, celovit " +
-        "razvoj aplikacij na drugi. Eno brez drugega ne deluje – zato " +
-        "poznam oboje.",
+        "razvoj aplikacij na drugi. Najboljše rešitve nastanejo tam, kjer " +
+        "se srečata – zato obvladam oboje.",
       slika: strojnaSlika,
     },
     {
