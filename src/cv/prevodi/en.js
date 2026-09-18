@@ -220,10 +220,10 @@ export default {
   "vsebina.omeni": {
     uvod: {
       oznaka: "About",
-      naslov: "It's curiosity without borders.",
+      naslov: "Curiosity without borders.",
       vodilo:
-        "What I like doing, what pulls me in, and why I always dig deep into things before I " +
-        "start using them.",
+        "Curiosity is my profession. I love the work, and once something pulls me in, I don't " +
+        "let go – I dig deep. The goal is usefulness.",
     },
     odseki: [
       {
