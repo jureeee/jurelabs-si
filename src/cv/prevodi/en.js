@@ -220,7 +220,7 @@ export default {
   "vsebina.omeni": {
     uvod: {
       oznaka: "About",
-      naslov: "It's not a job.\nIt's curiosity without borders.",
+      naslov: "It's curiosity without borders.",
       vodilo:
         "What I like doing, what pulls me in, and why I always dig deep into things before I " +
         "start using them.",

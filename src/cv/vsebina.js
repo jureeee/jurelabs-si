@@ -141,7 +141,7 @@ export const DELO = {
 export const OMENI = {
   uvod: {
     oznaka: "O meni",
-    naslov: "To ni poklic.\nJe radovednost brez meja.",
+    naslov: "Je radovednost brez meja.",
     vodilo:
       "Kaj rad delam, kaj me potegne in zakaj se v stvari vedno poglobim, " +
       "preden jih začnem uporabljati.",
