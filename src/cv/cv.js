@@ -34,6 +34,7 @@ import { installArkada } from "./arkada.js";
 import { installIskanje } from "./iskanje.js";
 import { installOzvezdja } from "./ozvezdja.js";
 import { installDomov } from "./domov.js";
+import { installObiski } from "./obiski.js";
 
 // --- nastavitve --------------------------------------------------------------
 /**
@@ -876,6 +877,7 @@ installDomov({
     drs.sunek = Math.max(-1.2, Math.min(1.2, drs.sunek + sunek * 6));
   },
 });
+installObiski();
 
 /**
  * Prenese nastavitve na prizor.

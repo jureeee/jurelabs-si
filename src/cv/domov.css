@@ -207,6 +207,17 @@
   letter-spacing: 0.04em;
   color: var(--muted);
 }
+/* Obiski: prave stevilke iz obiski.js. Dokler jih ni, vrstice ni. */
+.domov-obiski {
+  margin-top: 8px;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  color: var(--faint);
+  animation: domovObiski 700ms var(--ease) both;
+}
+.domov-obiski[hidden] { display: none; }
+.domov-obiski b { color: var(--muted); font-weight: 600; }
+@keyframes domovObiski { from { opacity: 0; filter: blur(6px); } }
 .domov-gumbi { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
 .domov-gumbi.sredina { justify-content: center; }
 .domov-gumb {

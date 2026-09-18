@@ -48,6 +48,7 @@ function html(v) {
       <div class="domov-podrocja">${u.podrocja}</div>
       <div class="domov-uvod-telo">${odstavki(u.telo)}</div>
       <div class="domov-kraj">${u.kraj.replace("{starost}", starost())}</div>
+      <div class="domov-obiski" hidden></div>
       <div class="domov-gumbi">${u.gumbi.map((g, i) => gumb(g, i === 0)).join("")}</div>
     </section>
 
