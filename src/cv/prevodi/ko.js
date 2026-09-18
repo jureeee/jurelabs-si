@@ -93,7 +93,6 @@ export default {
   "prof.objav": "게시물",
   "prof.sledilcev": "팔로워",
   "prof.sledi": "팔로잉",
-  "prof.bio": "✨ 별을 잡지 못하면, 너를 데리러 갈게.",
   "prof.uredi": "프로필 편집",
   "prof.arhiv": "보관함",
   "prof.objave": "게시물",

@@ -113,7 +113,6 @@ export default {
   "prof.objav": "posts",
   "prof.sledilcev": "followers",
   "prof.sledi": "following",
-  "prof.bio": "✨ If I don't catch the stars, I'll come for you.",
   "prof.uredi": "Edit profile",
   "prof.arhiv": "Archive",
   "prof.objave": "Posts",

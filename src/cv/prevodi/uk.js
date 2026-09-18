@@ -93,7 +93,6 @@ export default {
   "prof.objav": "дописів",
   "prof.sledilcev": "підписників",
   "prof.sledi": "стежить",
-  "prof.bio": "✨ Якщо не впіймаю зорі, прийду по тебе.",
   "prof.uredi": "Редагувати профіль",
   "prof.arhiv": "Архів",
   "prof.objave": "Дописи",

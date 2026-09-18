@@ -93,7 +93,6 @@ export default {
   "prof.objav": "berichten",
   "prof.sledilcev": "volgers",
   "prof.sledi": "volgend",
-  "prof.bio": "✨ Als ik de sterren niet vang, kom ik jou halen.",
   "prof.uredi": "Profiel bewerken",
   "prof.arhiv": "Archief",
   "prof.objave": "Berichten",

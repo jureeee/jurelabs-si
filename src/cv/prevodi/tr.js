@@ -93,7 +93,6 @@ export default {
   "prof.objav": "gönderi",
   "prof.sledilcev": "takipçi",
   "prof.sledi": "takip",
-  "prof.bio": "✨ Yıldızları yakalayamazsam senin için gelirim.",
   "prof.uredi": "Profili düzenle",
   "prof.arhiv": "Arşiv",
   "prof.objave": "Gönderiler",

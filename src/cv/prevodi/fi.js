@@ -93,7 +93,6 @@ export default {
   "prof.objav": "julkaisua",
   "prof.sledilcev": "seuraajaa",
   "prof.sledi": "seurattua",
-  "prof.bio": "✨ Jos en saa tähtiä kiinni, tulen sinun perääsi.",
   "prof.uredi": "Muokkaa profiilia",
   "prof.arhiv": "Arkisto",
   "prof.objave": "Julkaisut",

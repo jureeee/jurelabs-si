@@ -93,7 +93,6 @@ export default {
   "prof.objav": "objava",
   "prof.sledilcev": "pratitelja",
   "prof.sledi": "prati",
-  "prof.bio": "✨ Ako ne uhvatim zvijezde, doći ću po tebe.",
   "prof.uredi": "Uredi profil",
   "prof.arhiv": "Arhiva",
   "prof.objave": "Objave",

@@ -93,7 +93,6 @@ export default {
   "prof.objav": "post",
   "prof.sledilcev": "follower",
   "prof.sledi": "seguiti",
-  "prof.bio": "✨ Se non catturo le stelle, vengo a prendere te.",
   "prof.uredi": "Modifica profilo",
   "prof.arhiv": "Archivio",
   "prof.objave": "Post",

@@ -93,7 +93,6 @@ export default {
   "prof.objav": "postów",
   "prof.sledilcev": "obserwujących",
   "prof.sledi": "obserwowanych",
-  "prof.bio": "✨ Jeśli nie złapię gwiazd, przyjdę po ciebie.",
   "prof.uredi": "Edytuj profil",
   "prof.arhiv": "Archiwum",
   "prof.objave": "Posty",

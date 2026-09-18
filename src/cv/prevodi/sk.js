@@ -93,7 +93,6 @@ export default {
   "prof.objav": "príspevkov",
   "prof.sledilcev": "sledovateľov",
   "prof.sledi": "sleduje",
-  "prof.bio": "✨ Ak nechytím hviezdy, prídem si po teba.",
   "prof.uredi": "Upraviť profil",
   "prof.arhiv": "Archív",
   "prof.objave": "Príspevky",

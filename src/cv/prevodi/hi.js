@@ -93,7 +93,6 @@ export default {
   "prof.objav": "पोस्ट",
   "prof.sledilcev": "फ़ॉलोअर्स",
   "prof.sledi": "फ़ॉलोइंग",
-  "prof.bio": "✨ अगर तारे न पकड़ पाया, तो तुम्हारे लिए आऊँगा।",
   "prof.uredi": "प्रोफ़ाइल संपादित करें",
   "prof.arhiv": "संग्रह",
   "prof.objave": "पोस्ट",

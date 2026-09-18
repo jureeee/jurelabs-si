@@ -93,7 +93,6 @@ export default {
   "prof.objav": "פוסטים",
   "prof.sledilcev": "עוקבים",
   "prof.sledi": "נעקבים",
-  "prof.bio": "✨ אם לא אתפוס את הכוכבים, אבוא אלייך.",
   "prof.uredi": "עריכת פרופיל",
   "prof.arhiv": "ארכיון",
   "prof.objave": "פוסטים",

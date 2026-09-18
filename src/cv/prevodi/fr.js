@@ -93,7 +93,6 @@ export default {
   "prof.objav": "publications",
   "prof.sledilcev": "abonnés",
   "prof.sledi": "abonnements",
-  "prof.bio": "✨ Si je n'attrape pas les étoiles, je viendrai te chercher.",
   "prof.uredi": "Modifier le profil",
   "prof.arhiv": "Archives",
   "prof.objave": "Publications",

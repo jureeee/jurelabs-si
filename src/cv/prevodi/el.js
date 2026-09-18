@@ -93,7 +93,6 @@ export default {
   "prof.objav": "δημοσιεύσεις",
   "prof.sledilcev": "ακόλουθοι",
   "prof.sledi": "ακολουθεί",
-  "prof.bio": "✨ Αν δεν πιάσω τα αστέρια, θα έρθω για σένα.",
   "prof.uredi": "Επεξεργασία προφίλ",
   "prof.arhiv": "Αρχείο",
   "prof.objave": "Δημοσιεύσεις",

@@ -35,7 +35,8 @@ const IKONA_VIDEO =
 const PODATKI = {
   ime: "blatnikjuree",
   pravo: "Jure",
-  bio: "✨ Če ne ujamem zvezd, pridem po tebe.",
+  // Opis je v turscini v vseh jezikih strani - tak je, ne prevaja se.
+  bio: "✨ Yıldızları yakalayamazsam, senin için gelirim.",
   sledilcev: 325,
   sledi: 169,
 };
@@ -588,7 +589,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
       if (besede[i]) el.textContent = t(...besede[i]);
     });
     const bio = koren.querySelector(".prof-bio");
-    if (bio) bio.textContent = t("prof.bio", PODATKI.bio);
+    if (bio) bio.textContent = PODATKI.bio;
     const [uredi, arhiv] = koren.querySelectorAll(".prof-gumb");
     if (uredi) uredi.textContent = t("prof.uredi", "Uredi profil");
     if (arhiv) arhiv.textContent = t("prof.arhiv", "Arhiv");

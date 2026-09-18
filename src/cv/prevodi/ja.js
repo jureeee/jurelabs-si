@@ -93,7 +93,6 @@ export default {
   "prof.objav": "投稿",
   "prof.sledilcev": "フォロワー",
   "prof.sledi": "フォロー中",
-  "prof.bio": "✨ 星を捕まえられなかったら、君を迎えに行く。",
   "prof.uredi": "プロフィールを編集",
   "prof.arhiv": "アーカイブ",
   "prof.objave": "投稿",

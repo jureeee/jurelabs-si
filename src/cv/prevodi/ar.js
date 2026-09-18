@@ -93,7 +93,6 @@ export default {
   "prof.objav": "منشورات",
   "prof.sledilcev": "متابِعون",
   "prof.sledi": "يتابع",
-  "prof.bio": "✨ إن لم ألتقط النجوم، سآتي من أجلك.",
   "prof.uredi": "تعديل الملف الشخصي",
   "prof.arhiv": "الأرشيف",
   "prof.objave": "المنشورات",

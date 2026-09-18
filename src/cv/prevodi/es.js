@@ -93,7 +93,6 @@ export default {
   "prof.objav": "publicaciones",
   "prof.sledilcev": "seguidores",
   "prof.sledi": "seguidos",
-  "prof.bio": "✨ Si no atrapo las estrellas, iré a por ti.",
   "prof.uredi": "Editar perfil",
   "prof.arhiv": "Archivo",
   "prof.objave": "Publicaciones",

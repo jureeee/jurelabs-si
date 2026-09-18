@@ -93,7 +93,6 @@ export default {
   "prof.objav": "帖子",
   "prof.sledilcev": "粉丝",
   "prof.sledi": "关注",
-  "prof.bio": "✨ 如果抓不到星星，我就来找你。",
   "prof.uredi": "编辑资料",
   "prof.arhiv": "归档",
   "prof.objave": "帖子",

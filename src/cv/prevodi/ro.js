@@ -93,7 +93,6 @@ export default {
   "prof.objav": "postări",
   "prof.sledilcev": "urmăritori",
   "prof.sledi": "urmăriți",
-  "prof.bio": "✨ Dacă nu prind stelele, vin după tine.",
   "prof.uredi": "Editează profilul",
   "prof.arhiv": "Arhivă",
   "prof.objave": "Postări",

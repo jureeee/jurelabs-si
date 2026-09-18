@@ -93,7 +93,6 @@ export default {
   "prof.objav": "публикации",
   "prof.sledilcev": "последователи",
   "prof.sledi": "следвани",
-  "prof.bio": "✨ Ако не хвана звездите, ще дойда за теб.",
   "prof.uredi": "Редактирай профила",
   "prof.arhiv": "Архив",
   "prof.objave": "Публикации",

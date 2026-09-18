@@ -93,7 +93,6 @@ export default {
   "prof.objav": "Beiträge",
   "prof.sledilcev": "Follower",
   "prof.sledi": "Gefolgt",
-  "prof.bio": "✨ Wenn ich die Sterne nicht fange, komme ich zu dir.",
   "prof.uredi": "Profil bearbeiten",
   "prof.arhiv": "Archiv",
   "prof.objave": "Beiträge",

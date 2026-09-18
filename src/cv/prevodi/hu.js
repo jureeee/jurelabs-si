@@ -93,7 +93,6 @@ export default {
   "prof.objav": "bejegyzés",
   "prof.sledilcev": "követő",
   "prof.sledi": "követett",
-  "prof.bio": "✨ Ha nem kapom el a csillagokat, érted jövök.",
   "prof.uredi": "Profil szerkesztése",
   "prof.arhiv": "Archívum",
   "prof.objave": "Bejegyzések",

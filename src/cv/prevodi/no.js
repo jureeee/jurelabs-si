@@ -93,7 +93,6 @@ export default {
   "prof.objav": "innlegg",
   "prof.sledilcev": "følgere",
   "prof.sledi": "følger",
-  "prof.bio": "✨ Hvis jeg ikke fanger stjernene, kommer jeg etter deg.",
   "prof.uredi": "Rediger profil",
   "prof.arhiv": "Arkiv",
   "prof.objave": "Innlegg",
