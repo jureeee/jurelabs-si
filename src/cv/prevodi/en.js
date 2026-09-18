@@ -249,7 +249,7 @@ export default {
         naslov: "It works, it runs, it impresses.",
         telo:
           "Documentation is an important foundation. Solving a problem is analysis and choosing " +
-          "between different options. I settle only for the best one – the beauty is in " +
+          "between different options. Settle only for the best one – the beauty is in " +
           "finding it.",
       },
       {

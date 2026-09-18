@@ -177,7 +177,7 @@ export const OMENI = {
       naslov: "Dela, funkcionira, navdušuje.",
       telo:
         "Dokumentacija je pomembna osnova. Reševanje problema je analiza in " +
-        "odločanje med različnimi možnostmi. Zadovoljim se le z najboljšo – " +
+        "odločanje med različnimi možnostmi. Zadovoljite se le z najboljšo – " +
         "čar je v tem, da jo najdeš.",
       slika: 17,
     },
