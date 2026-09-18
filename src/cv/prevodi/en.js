@@ -254,9 +254,9 @@ export default {
       },
       {
         oznaka: "Where I'm drawn",
-        naslov: "To where computing touches physics",
+        naslov: "Where computing meets physics",
         telo:
-          "Light, optics, motion, sensors. Fields where the result isn't measured in lines of " +
+          "Light, optics, motion. Fields where the result isn't measured in lines of " +
           "code, but in whether something moves or appears exactly the way you imagined.",
       },
       {

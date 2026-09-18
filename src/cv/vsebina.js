@@ -184,9 +184,9 @@ export const OMENI = {
     {
       tip: "sirok",
       oznaka: "Kam me vleče",
-      naslov: "Tja, kjer se računalništvo dotakne fizike",
+      naslov: "Stik računalništva s fiziko",
       telo:
-        "Svetloba, optika, gibanje, senzorji. Področja, kjer se rezultat ne " +
+        "Svetloba, optika, gibanje. Področja, kjer se rezultat ne " +
         "meri v vrsticah kode, ampak v tem, ali se na koncu nekaj premakne " +
         "ali prikaže tako, kot si zamislil.",
     },
