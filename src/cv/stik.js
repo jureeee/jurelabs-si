@@ -99,6 +99,7 @@ const ZEMLJA_ZAMIK_MS = 2600;
 export function installStik() {
   const koren = document.createElement("div");
   koren.className = "zapis stik";
+  koren.dataset.stran = "stik";
   koren.innerHTML = `
     <div class="zapis-zavesa"></div>
     <button class="zapis-zapri dg" type="button" aria-label="Zapri">${ZAPRI}</button>

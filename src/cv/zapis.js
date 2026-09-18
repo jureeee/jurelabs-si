@@ -209,6 +209,8 @@ export function installZapis(vsebina, kljuc) {
 
   const koren = document.createElement("div");
   koren.className = "zapis";
+  // Kljuc strani: po njem jo najde iskanje.
+  if (kljuc) koren.dataset.stran = kljuc;
   koren.innerHTML = `
     <div class="zapis-zavesa"></div>
     <button class="zapis-zapri dg" type="button" aria-label="Zapri">${ZAPRI}</button>

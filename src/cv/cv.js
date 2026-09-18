@@ -31,6 +31,7 @@ import { installSelectionGlow } from "./selection.js";
 import { zacniJezik, obJeziku, t as tr } from "./jezik.js";
 import { installIzbirnikJezika } from "./izbirnik-jezika.js";
 import { installArkada } from "./arkada.js";
+import { installIskanje } from "./iskanje.js";
 import { installOzvezdja } from "./ozvezdja.js";
 import { installDomov } from "./domov.js";
 
@@ -766,6 +767,7 @@ nav?.querySelectorAll('[role="tab"]').forEach((zavihek) => {
 
 installContextMenu(profil, plosca);
 installArkada();
+installIskanje();
 installDomov({
   obDrsenju(delez, sunek) {
     drs.delez = delez;
