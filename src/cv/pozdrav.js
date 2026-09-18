@@ -357,6 +357,19 @@ const SIRJENJE = 1.12;
 // ohrani, da gre po njih vsaj en znak.
 const DEBELINA = 0.03;
 
+/**
+ * Obris crk.
+ *
+ * Znaki ob robu poteze gorijo mocneje, proti sredini pa ugasajo - crka se
+ * tako bere po svojem obrisu, kot napis iz neonske cevi, in ne kot enakomerna
+ * packa. OBRIS_SIRINA je, kako globoko v potezo sega svetli rob (delez
+ * velikosti pisave); OBRIS_NOTRANJOST, koliko svetlobe ostane v sredini.
+ */
+const OBRIS_SIRINA = 0.06;
+const OBRIS_NOTRANJOST = 0.3;
+/** Rob gori mocneje kot prej cela crka; blisk ga le se dvigne do polne moci. */
+const OBRIS_ROB = 1.8;
+
 /** Kako mocno znak vlece proti tarci in koliko ga dusi. */
 const VZMET = 0.055;
 const DUSENJE = 0.86;
@@ -552,21 +565,73 @@ function tockeBesedila(vrstice, sirinaNaVoljo, velikostPisave, gostota = GOSTOTA
   ctx.restore();
 
   const slika = ctx.getImageData(0, 0, sirina, visina).data;
+  const doRoba = razdaljeDoRoba(slika, sirina, visina);
+  // Kako globoko v potezo sega svetli rob. Vezano na velikost pisave, da je
+  // obris enako debel pri velikem in malem napisu.
+  const sirinaRoba = Math.max(2, velikost * OBRIS_SIRINA);
   const tocke = [];
   for (let y = 0, vrstica = 0; y < visina; y += gostota, vrstica++) {
     const zamik = vrstica % 2 ? gostota / 2 : 0;
     for (let x = zamik; x < sirina; x += gostota) {
-      if (slika[((y | 0) * sirina + (x | 0)) * 4 + 3] > 128) {
+      const k = (y | 0) * sirina + (x | 0);
+      if (slika[k * 4 + 3] > 128) {
         const r = gostota * RAZSUTOST;
         tocke.push({
           x: x - sirina / 2 + nakljucno(-r, r),
           y: y - visina / 2 + nakljucno(-r, r),
           crka: crkaZa(obsegi, x),
+          // 1 na robu poteze, proti 0 v njeni notranjosti.
+          rob: Math.max(0, 1 - doRoba[k] / sirinaRoba),
         });
       }
     }
   }
   return tocke;
+}
+
+/**
+ * Za vsako piko crke: kako dalec je do najblizjega roba poteze.
+ *
+ * Dvoprehodna preslikava razdalj (3-4 chamfer): en prehod od zgoraj levo,
+ * drugi od spodaj desno. To je linearno v stevilu pik in dovolj natancno za
+ * odtenek - prava evklidska razdalja bi bila tu le pocasnejsa.
+ */
+function razdaljeDoRoba(slika, sirina, visina) {
+  const n = sirina * visina;
+  const d = new Float32Array(n);
+  const VELIKO = 1e6;
+  for (let i = 0; i < n; i++) d[i] = slika[i * 4 + 3] > 128 ? VELIKO : 0;
+  for (let y = 0; y < visina; y++) {
+    for (let x = 0; x < sirina; x++) {
+      const i = y * sirina + x;
+      if (!d[i]) continue;
+      let v = d[i];
+      if (x > 0) v = Math.min(v, d[i - 1] + 3);
+      if (y > 0) {
+        v = Math.min(v, d[i - sirina] + 3);
+        if (x > 0) v = Math.min(v, d[i - sirina - 1] + 4);
+        if (x < sirina - 1) v = Math.min(v, d[i - sirina + 1] + 4);
+      }
+      d[i] = v;
+    }
+  }
+  for (let y = visina - 1; y >= 0; y--) {
+    for (let x = sirina - 1; x >= 0; x--) {
+      const i = y * sirina + x;
+      if (!d[i]) continue;
+      let v = d[i];
+      if (x < sirina - 1) v = Math.min(v, d[i + 1] + 3);
+      if (y < visina - 1) {
+        v = Math.min(v, d[i + sirina] + 3);
+        if (x < sirina - 1) v = Math.min(v, d[i + sirina + 1] + 4);
+        if (x > 0) v = Math.min(v, d[i + sirina - 1] + 4);
+      }
+      d[i] = v;
+    }
+  }
+  // Koraki so 3 za ravno in 4 za posevno; deljeno s 3 je to v pikah.
+  for (let i = 0; i < n; i++) d[i] /= 3;
+  return d;
 }
 
 /**
@@ -597,6 +662,7 @@ function tockeVecVrstic(vrstice, sirinaNaVoljo, velikostPisave, gostota) {
         x: t.x,
         y: t.y + i * visina - zamik,
         crka: t.crka < 0 ? -1 : prvaCrka + t.crka,
+        rob: t.rob,
       });
       if (t.crka > najvecja) najvecja = t.crka;
     }
@@ -703,6 +769,7 @@ function poveziNajblizje(delci, kandidati, tocke, sredX, sredY) {
     d.ciljX = cx;
     d.ciljY = cy;
     d.crka = t.crka ?? -1;
+    d.rob = t.rob ?? 1;
     d.imaCilj = true;
   }
   return zaseden;
@@ -1179,7 +1246,11 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
     for (const d of polje) {
       // Osnovna moc plus tisto, kar prispeva blisk: 0,4 v mirovanju, 1 na vrhu.
       const moc = OSNOVNA_ALFA + (1 - OSNOVNA_ALFA) * d.sij;
-      const alfa = (d.imaCilj ? d.alfa * moc : d.alfa * 0.16) * mnozitelj;
+      // Znaki napisa imajo rob; drugi (ozadje, okrasa) ga nimajo in gorijo enako.
+      const obris = d.imaCilj && d.rob !== undefined
+        ? OBRIS_NOTRANJOST + (OBRIS_ROB - OBRIS_NOTRANJOST) * d.rob
+        : 1;
+      const alfa = Math.min(1, (d.imaCilj ? d.alfa * moc * obris : d.alfa * 0.16) * mnozitelj);
       // Kar je pod tem, se na zaslonu ne vidi; risanje bi bilo zastonj delo.
       if (alfa <= 0.004) continue;
       const s = sprite(d.z, d.velikost, barva);
