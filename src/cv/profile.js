@@ -35,8 +35,8 @@ const IKONA_VIDEO =
 const PODATKI = {
   ime: "blatnikjuree",
   pravo: "Jure",
-  // Opis je v turscini v vseh jezikih strani - tak je, ne prevaja se.
-  bio: "✨ Yıldızları yakalayamazsam, senin için gelirim.",
+  // Opis je v arabscini v vseh jezikih strani - tak je, ne prevaja se.
+  bio: "✨ إن لم ألتقط النجوم، سآتي من أجلك.",
   sledilcev: 325,
   sledi: 169,
 };
@@ -142,7 +142,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
             <span class="prof-stevec"><b>${PODATKI.sledilcev}</b><span class="prof-beseda">sledilcev</span></span>
             <span class="prof-stevec"><b>${PODATKI.sledi}</b><span class="prof-beseda">sledi</span></span>
           </div>
-          <div class="prof-bio">${PODATKI.bio}</div>
+          <div class="prof-bio" dir="rtl" lang="ar">${PODATKI.bio}</div>
           <div class="prof-gumbi">
             <button class="prof-gumb dg" type="button">Uredi profil</button>
             <button class="prof-gumb dg" type="button">Arhiv</button>

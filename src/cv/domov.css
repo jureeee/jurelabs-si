@@ -207,18 +207,6 @@
   letter-spacing: 0.04em;
   color: var(--muted);
 }
-.domov-pika {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #7ee2a8;
-  box-shadow: 0 0 0 4px rgba(126, 226, 168, 0.14), 0 0 12px rgba(126, 226, 168, 0.6);
-  animation: domovUtrip 2.6s var(--ease) infinite;
-}
-@keyframes domovUtrip {
-  0%, 100% { box-shadow: 0 0 0 4px rgba(126, 226, 168, 0.14), 0 0 12px rgba(126, 226, 168, 0.6); }
-  50% { box-shadow: 0 0 0 7px rgba(126, 226, 168, 0.04), 0 0 18px rgba(126, 226, 168, 0.35); }
-}
 .domov-gumbi { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
 .domov-gumbi.sredina { justify-content: center; }
 .domov-gumb {

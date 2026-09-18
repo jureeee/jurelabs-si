@@ -47,7 +47,7 @@ function html(v) {
       <h1 class="domov-pozdrav">${naslov(u.naslov)}</h1>
       <div class="domov-podrocja">${u.podrocja}</div>
       <div class="domov-uvod-telo">${odstavki(u.telo)}</div>
-      <div class="domov-kraj"><span class="domov-pika" aria-hidden="true"></span>${u.kraj.replace("{starost}", starost())}</div>
+      <div class="domov-kraj">${u.kraj.replace("{starost}", starost())}</div>
       <div class="domov-gumbi">${u.gumbi.map((g, i) => gumb(g, i === 0)).join("")}</div>
     </section>
 

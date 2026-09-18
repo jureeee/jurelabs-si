@@ -39,6 +39,9 @@ const PRIVZETI_IZBOR = "h1, h2, h3, h4, h5, p, li, blockquote, figcaption";
 
 const mirno = matchMedia("(prefers-reduced-motion: reduce)");
 
+/** Pisave, v katerih se crke med seboj povezujejo. */
+const POVEZANE = /[\u0590-\u08FF\u0900-\u0DFF\uFB1D-\uFDFF\uFE70-\uFEFF]/;
+
 /**
  * Besedilo v elementu razbije na besede in znake.
  *
@@ -60,7 +63,11 @@ function razdeli(el) {
           }
           const beseda = document.createElement("span");
           beseda.className = "beseda";
-          for (const znak of [...del]) {
+          // Pisave s povezanimi crkami (arabska, hebrejska, indijske) se ne
+          // smejo razbiti: crka v svoji skatli izgubi obliko, ki jo dobi od
+          // sosede. Taka beseda prileti cela, kot ena "crka".
+          const znaki = POVEZANE.test(del) ? [del] : [...del];
+          for (const znak of znaki) {
             const c = document.createElement("span");
             c.className = "crka";
             c.textContent = znak;
