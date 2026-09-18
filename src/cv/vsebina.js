@@ -163,11 +163,11 @@ export const OMENI = {
       tip: "par",
       obrnjen: true,
       oznaka: "Kaj počnem v prostem času",
-      naslov: "Tudi to stran\nsem naredil sam.",
+      naslov: "Moja spletna stran",
       telo:
         "Zvezde v ozadju niso video. Brskalnik jih v živo izriše iz " +
-        "desettisočih točk, zato se odzivajo na miško. Naredil sem jo, da " +
-        "preverim, ali mi uspe.",
+        "desettisočih točk, zato se odzivajo na miško. Točno to, kar sem si " +
+        "zamislil. Izkušnja, ki presega besede.",
       znacke: ["Three.js", "WebGL", "Senčilniki", "Blender"],
       slika: 11,
     },

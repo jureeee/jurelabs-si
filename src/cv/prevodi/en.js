@@ -237,10 +237,11 @@ export default {
       },
       {
         oznaka: "What I do in my free time",
-        naslov: "I built this site\nmyself too.",
+        naslov: "My website",
         telo:
           "The stars in the background aren't a video. The browser draws them live from tens of " +
-          "thousands of points, so they react to your mouse. I made it to see whether I could.",
+          "thousands of points, so they react to your mouse. Exactly what I had in mind. " +
+          "An experience beyond words.",
         znacke: ["Three.js", "WebGL", "Shaders", "Blender"],
       },
       {
