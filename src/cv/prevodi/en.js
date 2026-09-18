@@ -246,11 +246,11 @@ export default {
       },
       {
         oznaka: "How I learn",
-        naslov: "Until it works,\nI don't stop.",
+        naslov: "It works, it runs, it impresses.",
         telo:
-          "Documentation matters, but it isn't enough. Solving a problem is analysis and " +
-          "choosing between options that all look bad. There is always a good one – the beauty " +
-          "is in finding it.",
+          "Documentation is an important foundation. Solving a problem is analysis and choosing " +
+          "between different options. I settle only for the best one – the beauty is in " +
+          "finding it.",
       },
       {
         oznaka: "Where I'm drawn",

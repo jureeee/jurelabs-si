@@ -174,11 +174,11 @@ export const OMENI = {
     {
       tip: "par",
       oznaka: "Kako se učim",
-      naslov: "Dokler ne dela,\nse ne ustavim.",
+      naslov: "Dela, funkcionira, navdušuje.",
       telo:
-        "Dokumentacija je pomembna, ni pa dovolj. Reševanje problema je " +
-        "analiza in odločanje med samimi slabimi možnostmi. Ena dobra vedno " +
-        "obstaja – čar je v tem, da jo najdeš.",
+        "Dokumentacija je pomembna osnova. Reševanje problema je analiza in " +
+        "odločanje med različnimi možnostmi. Zadovoljim se le z najboljšo – " +
+        "čar je v tem, da jo najdeš.",
       slika: 17,
     },
     {
