@@ -133,9 +133,7 @@
 /* Ovoj avatarja obstaja zaradi orbite v novem slogu; v starem ne sme
    vplivati na postavitev. */
 .prof-avatar-ovoj { display: contents; }
-.prof-orbita,
-.prof-vec,
-.prof-citat { display: none; }
+.prof-vec { display: none; }
 
 .prof-desno { flex: 1; min-width: 0; padding-top: 4px; }
 .prof-ime { font-size: 21px; font-weight: 700; letter-spacing: -0.016em; color: var(--ink); }
@@ -552,10 +550,10 @@
 /* =========================================================================
    NOVI SLOG PROFILA
 
-   Glava na sredini: avatar z orbito in ob njem ime s serifno pisavo, opis,
-   stevci z locnicami in gumbi v kapsulah. Ob straneh dva tiha stolpca -
-   levo zavihki v razprtih velikih crkah, desno navedek. Pod glavo bento
-   mreza: polja razlicnih velikosti, ki se zlozijo brez lukenj.
+   Glava malo levo od sredine: avatar in ob njem ime s serifno pisavo, opis,
+   stevci z locnicami in gumbi v kapsulah. Levo tih stolpec z zavihki v
+   razprtih velikih crkah. Pod glavo bento mreza: polja razlicnih velikosti,
+   ki se zlozijo brez lukenj.
 
    Oznake so iste kot v starem slogu; vse razlike so tu.
    ========================================================================= */
@@ -568,19 +566,22 @@
 }
 
 /* --- glava --- */
+/* Skupina avatarja in podatkov je malo levo od sredine: desni odmik jo
+   potisne, levi stolpec z zavihki pa ostane, kjer je. */
 .prof[data-slog="nov"] .prof-glava {
   position: relative;
   justify-content: center;
   align-items: center;
-  gap: 58px;
-  min-height: 270px;
+  gap: 44px;
+  min-height: 236px;
+  padding-right: 12%;
 }
 .prof[data-slog="nov"] .prof-avatar-ovoj {
   display: block;
   position: relative;
   flex: none;
-  width: 210px;
-  height: 210px;
+  width: 172px;
+  height: 172px;
 }
 .prof[data-slog="nov"] .prof-avatar {
   width: 100%;
@@ -588,38 +589,6 @@
   box-shadow:
     0 0 0 1.5px rgba(255, 255, 255, 0.22),
     0 24px 60px rgba(0, 0, 0, 0.5);
-}
-
-/* Orbita: nagnjena elipsa okoli avatarja s svetlo tocko spodaj levo. Tocka
-   pocasi dihne, sicer bi bila le pika na crti. */
-.prof[data-slog="nov"] .prof-orbita {
-  display: block;
-  position: absolute;
-  left: -34px;
-  top: 6px;
-  width: 262px;
-  height: 212px;
-  border-radius: 50%;
-  border: 1.4px solid rgba(255, 255, 255, 0.26);
-  transform: rotate(-24deg);
-  pointer-events: none;
-  -webkit-mask-image: linear-gradient(200deg, transparent 18%, #000 52%);
-  mask-image: linear-gradient(200deg, transparent 18%, #000 52%);
-}
-.prof[data-slog="nov"] .prof-orbita i {
-  position: absolute;
-  left: 13%;
-  bottom: 8%;
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: #f4f7ff;
-  box-shadow: 0 0 12px rgba(220, 232, 255, 0.9);
-  animation: profOrbitaDih 3.4s ease-in-out infinite;
-}
-@keyframes profOrbitaDih {
-  0%, 100% { box-shadow: 0 0 8px rgba(220, 232, 255, 0.6); }
-  50%      { box-shadow: 0 0 18px rgba(220, 232, 255, 1); }
 }
 
 .prof[data-slog="nov"] .prof-desno {
@@ -632,22 +601,22 @@
 .prof[data-slog="nov"] .prof-ime {
   order: 0;
   font-family: var(--prof-serif);
-  font-size: 42px;
+  font-size: 35px;
   font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1.05;
 }
 .prof[data-slog="nov"] .prof-pravo {
   order: 1;
-  margin-top: 6px;
+  margin-top: 5px;
   font-family: var(--prof-serif);
-  font-size: 19px;
+  font-size: 17px;
 }
 .prof[data-slog="nov"] .prof-bio {
   order: 2;
-  margin-top: 18px;
+  margin-top: 15px;
   font-family: var(--prof-serif);
-  font-size: 17px;
+  font-size: 15.5px;
   color: rgba(233, 237, 243, 0.86);
 }
 
@@ -662,35 +631,35 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: 0 30px;
+  padding: 0 24px;
   border-left: 1px solid rgba(255, 255, 255, 0.2);
   font-family: var(--prof-serif);
-  font-size: 15px;
+  font-size: 13.5px;
 }
 .prof[data-slog="nov"] .prof-stevec:first-child { border-left: none; padding-left: 12px; }
 .prof[data-slog="nov"] .prof-stevci b {
   margin-right: 0;
-  font-size: 23px;
+  font-size: 20px;
   font-weight: 600;
 }
 
 .prof[data-slog="nov"] .prof-gumbi {
   order: 4;
   align-items: center;
-  gap: 14px;
-  margin-top: 26px;
+  gap: 12px;
+  margin-top: 20px;
 }
 .prof[data-slog="nov"] .prof-gumb {
-  padding: 14px 30px;
+  padding: 11px 24px;
   border-radius: 999px;
   font-family: var(--prof-serif);
-  font-size: 16px;
+  font-size: 14.5px;
 }
 .prof[data-slog="nov"] .prof-vec {
   display: grid;
   place-items: center;
-  width: 50px;
-  height: 50px;
+  width: 42px;
+  height: 42px;
   border: none;
   border-radius: 50%;
   color: var(--ink);
@@ -700,36 +669,13 @@
 .prof[data-slog="nov"] .prof-vec:active { transform: scale(0.92); }
 .prof[data-slog="nov"] .prof-vec svg { width: 18px; height: 18px; display: block; }
 
-/* Navedek desno: lezece, poravnano desno, pod njim kratka crta. */
-.prof[data-slog="nov"] .prof-citat {
-  display: block;
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-40%);
-  font-family: var(--prof-serif);
-  font-style: italic;
-  font-size: 21px;
-  line-height: 1.3;
-  text-align: right;
-  color: rgba(233, 237, 243, 0.82);
-}
-.prof[data-slog="nov"] .prof-citat::after {
-  content: "";
-  display: block;
-  width: 32px;
-  height: 1px;
-  margin: 18px 0 0 auto;
-  background: rgba(233, 237, 243, 0.55);
-}
-
 /* Zavihki levo: navpicni seznam v razprtih velikih crkah, brez stekla.
    Izbrani je svetlejsi in pod njim je kratka crta. */
 .prof[data-slog="nov"] .prof-zgodbe { display: none; }
 .prof[data-slog="nov"] .prof-zavihki {
   position: absolute;
   left: 0;
-  top: 190px;
+  top: 170px;
   flex-direction: column;
   align-items: flex-start;
   gap: 12px;
@@ -776,13 +722,12 @@
     gap: 34px;
     margin-top: 34px;
   }
-  .prof[data-slog="nov"] .prof-citat { display: none; }
 }
 @media (max-width: 760px) {
   .prof[data-slog="nov"] .prof-glava { flex-direction: column; gap: 30px; }
   .prof[data-slog="nov"] .prof-desno { align-items: center; text-align: center; }
-  .prof[data-slog="nov"] .prof-avatar-ovoj { width: 160px; height: 160px; }
-  .prof[data-slog="nov"] .prof-orbita { left: -26px; width: 200px; height: 162px; }
+  .prof[data-slog="nov"] .prof-glava { padding-right: 0; }
+  .prof[data-slog="nov"] .prof-avatar-ovoj { width: 140px; height: 140px; }
   .prof[data-slog="nov"] .prof-ime { font-size: 32px; }
   .prof[data-slog="nov"] .prof-stevec { padding: 0 18px; }
   .prof[data-slog="nov"] .prof-zavihek { letter-spacing: 0.2em; }

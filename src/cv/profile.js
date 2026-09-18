@@ -132,7 +132,6 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
       <div class="prof-glava prof-del" style="--i:0">
         <div class="prof-avatar-ovoj">
           <div class="prof-avatar"><img alt="" src="${avatarUrl}" /></div>
-          <span class="prof-orbita" aria-hidden="true"><i></i></span>
         </div>
         <div class="prof-desno">
           <div class="prof-ime">${PODATKI.ime}</div>
@@ -149,7 +148,6 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
             <button class="prof-vec dg" type="button" aria-label="Razporeditev">${IKONA_VEC}</button>
           </div>
         </div>
-        <div class="prof-citat" aria-hidden="true">&ldquo;Same places,<br />different me.&rdquo;</div>
       </div>
 
       <div class="prof-zgodbe prof-del" style="--i:1"></div>
