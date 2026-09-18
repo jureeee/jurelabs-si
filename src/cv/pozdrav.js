@@ -43,7 +43,7 @@ const KOT_NAPIS = "jure labs";
  * obvestilo, ampak podoba. Rezervna je sistemska, ce se datoteka ne nalozi -
  * takrat je napis manj lep, a se vedno tam.
  */
-const PISAVA = '"Pozdrav", "Segoe UI Variable Display", "Segoe UI", system-ui, serif';
+const PISAVA = '"Pozdrav", "PozdravRezerva", "Segoe UI Variable Display", "Segoe UI", system-ui, serif';
 
 /**
  * Znaki, iz katerih so delci.
@@ -328,7 +328,9 @@ const VRSTICA = 1.12;
  * Razmik risemo sami, crko za crko, in ne prek ctx.letterSpacing: tega starejsi
  * brskalniki ne poznajo in bi ga tiho prezrli, napis pa bi ostal zbit.
  */
-const RAZMIK = 0.06;
+// Blackletter ima ze v svojih sirinah dovolj zraka ob strani; dodaten razmik
+// je crke razmetal po vrstici, kot bi bile vsaka zase.
+const RAZMIK = 0;
 
 /**
  * Raztezek crk po sirini.
@@ -339,17 +341,21 @@ const RAZMIK = 0.06;
  * majhnim razmikom se zlepijo v vrsto. Raztezemo ob izrisu na pomozno platno, zato so tocke ze v
  * pravih legah in vzmet nima s tem nobenega dela.
  */
-const SIRJENJE = 1.42;
+// Pri Eczarju je bilo 1.42. Blackletter je ozka in visoka po naravi; ce jo
+// raztegnemo toliko, izgubi znacaj in med crkami nastanejo luknje.
+const SIRJENJE = 1.12;
 
 /**
  * Debelina crk, kot delez velikosti pisave.
  *
- * Metamorphous ima le eno debelino, zato poteze zadebelimo sami: crko poleg
+ * Pisava ima le eno debelino, zato poteze zadebelimo sami: crko poleg
  * zapolnitve se obrisemo. To ni isto kot vecji znaki - vecji znaki naredijo
  * gostejso packo, debelejsa poteza pa siri samo crko, tako da gre po njeni
  * sirini vec znakov in stebla postanejo trdna.
  */
-const DEBELINA = 0.022;
+// Blackletter ima tanke lasnice med debelimi stebli; malo mocnejsi obris jih
+// ohrani, da gre po njih vsaj en znak.
+const DEBELINA = 0.03;
 
 /** Kako mocno znak vlece proti tarci in koliko ga dusi. */
 const VZMET = 0.055;
@@ -373,19 +379,30 @@ const KAZALEC_R = 150;
 const KAZALEC_MOC = 2.6;
 
 /**
- * Napis se kazalcu umakne po CELIH CRKAH in ne po posameznih znakih.
+ * Kazalec je crna luknja.
  *
- * Ce se umakne vsak znak zase, crka pod kazalcem razpade in se sesuje sama
- * vase; ko se umakne crka kot celota, ostane berljiva in gib je videti kot
- * odriv predmeta. Kazalec odrine po tri sosednje crke hkrati, da gib zajame
- * kos besede in ne le ene crke. Crka ima svojo vzmet: kazalec ji da pospesek stran,
- * vzmet jo vlece nazaj, dusenje pa poskrbi, da se ne trese.
+ * Ko se mu crka priblizja, jo zacne vleci vase - vso naenkrat, a ne enako:
+ * del crke, ki je blizje, gre dlje proti kazalcu kot oddaljeni, zato se crka
+ * raztegne proti njemu, kot bi jo srkalo. Zraven je rahel vrtinec, da vlek ni
+ * raven kot magnet, ampak zasuka kot snov okoli luknje.
+ *
+ * Znaki ostanejo na svojih vzmeteh; luknja jim le premakne tarce. Ko gre
+ * kazalec stran, vlek pojenja in vzmeti crko postavijo nazaj - z malo odboja,
+ * kot da se je iztrgala.
+ *
+ *   LUKNJA_R         kako dalec od roba crke se vlek zacne
+ *   LUKNJA_MOC       najvec, koliko poti do kazalca sme znak narediti
+ *   LUKNJA_SIRINA    kako hitro vlek pade z razdaljo od kazalca
+ *   LUKNJA_VRTINEC   delez vleka, ki gre v zasuk
+ *   LUKNJA_ZAJEM     kako hitro vlek naraste, ko se priblizas
+ *   LUKNJA_IZPUST    kako hitro pojenja, ko gres stran
  */
-const CRKA_R = 120;
-const CRKA_MOC = 3.4;
-const CRKA_VZMET = 0.045;
-const CRKA_DUSENJE = 0.87;
-const CRKA_NAJVEC = 95;
+const LUKNJA_R = 290;
+const LUKNJA_MOC = 0.93;
+const LUKNJA_SIRINA = 145;
+const LUKNJA_VRTINEC = 0.3;
+const LUKNJA_ZAJEM = 0.09;
+const LUKNJA_IZPUST = 0.045;
 
 /**
  * Blescanje.
@@ -399,8 +416,14 @@ const CRKA_NAJVEC = 95;
 const OSNOVNA_ALFA = 0.4;
 const BLESK_NAJKRAJ_S = 1.1;
 const BLESK_NAJDLJE_S = 5.5;
-/** Koliksen del sija ostane po sekundi. Visje = daljsi, bolj opazen blisk. */
-const BLESK_UPAD = 0.16;
+/**
+ * Kako dolgo traja en blisk, od prvega soja do teme.
+ *
+ * Blisk ne skoci na polno, ampak se prizge in ugasne po krivulji sin^2: najprej
+ * pocasi, na vrhu mehko, nato enako pocasi nazaj. Prej je skocil v hipu in
+ * ugasal hitro - to je bilo videti kot utrip, ne kot sij.
+ */
+const BLESK_TRAJANJE_S = 2.8;
 
 /**
  * Frekvence v ozadju.
@@ -897,7 +920,7 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
         c = crkeNapisa[d.crka] = {
           n: 0, sx: 0, sy: 0,
           levo: Infinity, desno: -Infinity, zgoraj: Infinity, spodaj: -Infinity,
-          cx: 0, cy: 0, r: 0, ox: 0, oy: 0, vx: 0, vy: 0,
+          cx: 0, cy: 0, r: 0, vlek: 0,
         };
       }
       c.n += 1;
@@ -913,55 +936,29 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
       c.cx = c.sx / c.n;
       c.cy = c.sy / c.n;
       c.r = Math.max(c.desno - c.levo, c.spodaj - c.zgoraj) * 0.5;
-      c.fx = 0;
-      c.fy = 0;
     }
-    // Soseda sta prejsnja in naslednja crka v isti vrstici.
-    vrsta.forEach((c, i) => {
-      const ista = (d) => d && Math.abs(d.cy - c.cy) < Math.max(c.r, d.r);
-      c.sosedi = [vrsta[i - 1], vrsta[i + 1]].filter(ista);
-    });
   }
 
-  /**
-   * Kazalec odrine skupino treh crk; vzmet jih prinese nazaj.
-   *
-   * Vsaka crka izracuna, s kaksno silo bi jo kazalec odrinil sama. Nato vzame
-   * najmocnejso silo med sabo in sosedoma - crka pod kazalcem tako potisne
-   * obe sosedi z isto silo in v isto smer, trojica se premakne kot en kos.
-   */
+  /** Zadnja lega luknje; ostane tudi, ko gre kazalec stran, da se crke vrnejo od tam. */
+  let luknjaX = 0;
+  let luknjaY = 0;
+
+  /** Vlek vsake crke: narasca, ko je kazalec blizu, in pojenja, ko ga ni. */
   function korakCrk(lok) {
-    for (const c of crkeNapisa) {
-      if (!c) continue;
-      c.fx = 0;
-      c.fy = 0;
-      if (!lok.ziv) continue;
-      const dx = c.cx + c.ox - lok.x;
-      const dy = c.cy + c.oy - lok.y;
-      const r = Math.hypot(dx, dy);
-      const doseg = c.r + CRKA_R;
-      if (r < doseg && r > 0.01) {
-        const moc = (1 - r / doseg) * CRKA_MOC;
-        c.fx = (dx / r) * moc;
-        c.fy = (dy / r) * moc;
-      }
+    if (lok.ziv) {
+      luknjaX = lok.x;
+      luknjaY = lok.y;
     }
     for (const c of crkeNapisa) {
       if (!c) continue;
-      let fx = c.fx;
-      let fy = c.fy;
-      for (const s of c.sosedi ?? []) {
-        if (s.fx * s.fx + s.fy * s.fy > fx * fx + fy * fy) {
-          fx = s.fx;
-          fy = s.fy;
-        }
+      let cilj = 0;
+      if (lok.ziv) {
+        const r = Math.hypot(c.cx - lok.x, c.cy - lok.y);
+        const doseg = c.r + LUKNJA_R;
+        if (r < doseg) cilj = Math.pow(1 - r / doseg, 1.4);
       }
-      c.vx += fx;
-      c.vy += fy;
-      c.vx = (c.vx - c.ox * CRKA_VZMET) * CRKA_DUSENJE;
-      c.vy = (c.vy - c.oy * CRKA_VZMET) * CRKA_DUSENJE;
-      c.ox = Math.max(-CRKA_NAJVEC, Math.min(CRKA_NAJVEC, c.ox + c.vx));
-      c.oy = Math.max(-CRKA_NAJVEC, Math.min(CRKA_NAJVEC, c.oy + c.vy));
+      c.vlek += (cilj - c.vlek) * (cilj > c.vlek ? LUKNJA_ZAJEM : LUKNJA_IZPUST);
+      if (c.vlek < 0.0005 && cilj === 0) c.vlek = 0;
     }
   }
 
@@ -1068,27 +1065,41 @@ export function installPozdrav(gnezdoOzadja, gnezdoBesedila, drsnik) {
 
   function korakPolja(polje, mere, dt, lok, sek, crke) {
     for (const d of polje) {
-      // Blescanje. Sij pade proti nic; ko pride cas, spet skoci na polno.
-      d.sij *= Math.pow(BLESK_UPAD, dt);
+      // Blescanje: sij se prizge in ugasne po mehki krivulji, nato pocaka.
+      if (d.sijOd !== undefined) {
+        const t = (sek - d.sijOd) / BLESK_TRAJANJE_S;
+        d.sij = t < 1 ? Math.sin(Math.PI * t) ** 2 : 0;
+      }
       if (sek >= d.sijOb) {
-        d.sij = 1;
-        d.sijOb = sek + nakljucno(BLESK_NAJKRAJ_S, BLESK_NAJDLJE_S);
+        d.sijOd = sek;
+        d.sijOb = sek + BLESK_TRAJANJE_S + nakljucno(BLESK_NAJKRAJ_S, BLESK_NAJDLJE_S);
       }
 
       if (d.cakaj > 0) {
         d.cakaj -= dt;
       } else if (d.imaCilj) {
-        // Tarca se premakne skupaj s crko, ki ji znak pripada.
+        let tx = d.ciljX;
+        let ty = d.ciljY;
+        // Crna luknja: tarca znaka se premakne proti kazalcu, toliko bolj,
+        // kolikor blizje mu je - crka se raztegne proti njemu.
         const c = crke && d.crka >= 0 ? crke[d.crka] : null;
-        d.vx += (d.ciljX + (c ? c.ox : 0) - d.x) * VZMET;
-        d.vy += (d.ciljY + (c ? c.oy : 0) - d.y) * VZMET;
+        if (c && c.vlek > 0) {
+          const dx = luknjaX - d.ciljX;
+          const dy = luknjaY - d.ciljY;
+          const r = Math.hypot(dx, dy) || 1;
+          const vpliv = (c.vlek * LUKNJA_MOC) / (1 + (r / LUKNJA_SIRINA) ** 2);
+          tx += dx * vpliv - dy * vpliv * LUKNJA_VRTINEC;
+          ty += dy * vpliv + dx * vpliv * LUKNJA_VRTINEC;
+        }
+        d.vx += (tx - d.x) * VZMET;
+        d.vy += (ty - d.y) * VZMET;
       } else {
         d.vx += nakljucno(-0.05, 0.05);
         d.vy += nakljucno(-0.07, 0.03);
       }
 
-      // Kjer se umikajo cele crke, posamezni znak kazalca ne cuti - sicer bi
-      // crka ob odrivu se razpadla.
+      // Kjer crke vlece luknja, posamezni znak odriva ne cuti - sicer bi se
+      // crka hkrati razlezla in raztegnila.
       if (lok.ziv && !crke) {
         const dx = d.x - lok.x;
         const dy = d.y - lok.y;

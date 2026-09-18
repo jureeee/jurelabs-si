@@ -30,8 +30,29 @@
  *
  * Dve podmnozici: prva nosi sumnike, druga vse ostalo.
  */
+/*
+ * Pisava pozdrava je lastnikova: Dusk Vesper Blackletter, ustvarjena na
+ * Mixfontu. Licenca dovoljuje vgradnjo in urejanje; datoteki so dodane crke
+ * Z, z s stresico in a s prevejem, ki jih pozdrav potrebuje (glej
+ * dopolnitev v zgodovini projekta).
+ *
+ * Datoteka ima eno samo debelino. Tu je prijavljena kot 800, ker pozdrav
+ * risse z debelino 800 - sicer bi brskalnik crke umetno odebelil in jim
+ * pokvaril obliko.
+ */
 @font-face {
   font-family: "Pozdrav";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("../assets/pisave/dusk-vesper.woff2") format("woff2");
+}
+
+/* Rezerva za znake, ki jih lastnikova pisava nima: prejsnja pisava pozdrava.
+   Brez nje bi manjkajoca crka prisla iz sistemske pisave in stala v napisu
+   kot tujek. */
+@font-face {
+  font-family: "PozdravRezerva";
   font-style: normal;
   font-weight: 800;
   font-display: swap;
@@ -41,7 +62,7 @@
     U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
-  font-family: "Pozdrav";
+  font-family: "PozdravRezerva";
   font-style: normal;
   font-weight: 800;
   font-display: swap;
