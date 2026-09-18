@@ -173,6 +173,15 @@ export default {
           "look. Instead of ten separate interfaces, one surface that handles them all.",
       },
       {
+        oznaka: "Project",
+        naslov: "PC Setup",
+        telo:
+          "A wizard that guides you through setting up a Windows workstation from start to finish: " +
+          "partitions, users, profile lockdown, software and backups. It checks every step before " +
+          "running it and ends with a report – what's done and what's left to do by hand.",
+        znacke: ["PowerShell", "WPF", "Windows 11", "Automation"],
+      },
+      {
         oznaka: "Personal projects",
         naslov: "Real-time computer vision",
         telo:
@@ -356,6 +365,14 @@ export default {
           "An app for discovering, configuring and controlling network cameras. It stores preset " +
           "positions for PTZ cameras, so a single click sends them back exactly where they need " +
           "to look.",
+      },
+      {
+        oznaka: "2026 · in development",
+        naslov: "PC Setup",
+        telo:
+          "A wizard for setting up Windows workstations and servers from a checklist. Partitions, " +
+          "users, profile lockdown and offline installs – every step checked before it runs.",
+        znacke: ["PowerShell", "WPF", "Windows 11"],
       },
       {
         oznaka: "2026 · live",

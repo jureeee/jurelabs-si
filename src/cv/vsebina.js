@@ -3,6 +3,7 @@ import traceSpaceSlika from "../assets/zapis/trace-space.webp";
 import vantageSlika from "../assets/zapis/vantage.webp";
 import ruletaSlika from "../assets/zapis/ruleta.webp";
 import yoloSlika from "../assets/zapis/yolo.webp";
+import pripravaSlika from "../assets/zapis/priprava-pc.webp";
 
 /**
  * Besedilo strani Delo, O meni in Arhiv.
@@ -79,6 +80,22 @@ export const DELO = {
       aplikacija: { pot: "demo/vantage/index.html", ime: "Vantage" },
       slika: vantageSlika,
       // Plakat je lezec, kot pri Trace Space.
+      razmerje: "3 / 2",
+    },
+    {
+      tip: "par",
+      obrnjen: true,
+      oznaka: "Projekt",
+      naslov: "Priprava PC",
+      telo:
+        "Čarovnik, ki vodi skozi celotno pripravo Windows postaje: particije, " +
+        "uporabniki, zaklep profila, programi in varnostne kopije. Vsak korak " +
+        "preveri, preden ga izvede, na koncu pa napiše poročilo – kaj je " +
+        "narejeno in kaj ostane za ročno.",
+      znacke: ["PowerShell", "WPF", "Windows 11", "Avtomatizacija"],
+      // Vmesnik izvirnika v brskalniku; nic se ne izvede, podatki so izmisljeni.
+      aplikacija: { pot: "demo/priprava-pc/index.html", ime: "Priprava PC" },
+      slika: pripravaSlika,
       razmerje: "3 / 2",
     },
     {
@@ -312,6 +329,20 @@ export const ARHIV = {
       razmerje: "3 / 2",
     },
     {
+      tip: "par",
+      oznaka: "2026 · v razvoju",
+      naslov: "Priprava PC",
+      telo:
+        "Čarovnik za pripravo Windows postaj in strežnikov po kontrolnem " +
+        "listu. Particije, uporabniki, zaklep profila in namestitve brez " +
+        "interneta – vsak korak preverjen, preden se izvede.",
+      znacke: ["PowerShell", "WPF", "Windows 11"],
+      aplikacija: { pot: "demo/priprava-pc/index.html", ime: "Priprava PC" },
+      slika: pripravaSlika,
+      razmerje: "3 / 2",
+    },
+    {
+      obrnjen: true,
       tip: "par",
       oznaka: "2026 · živo",
       naslov: "Ta stran",
