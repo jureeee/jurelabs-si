@@ -368,12 +368,53 @@ export function installOzvezdja(camera, renderer) {
       }
     }
 
-    najblizjeZdaj = najblizje;
+    podKazalcem = najblizje;
+    // Izbrano ozvezdje gori, dokler je izbrano; kazalec takrat le pove, na
+    // katero drugo bi kliknil.
+    najblizjeZdaj = fokus ?? najblizje;
     posodobiMoci();
   }
 
   /** Prehodi moci in postavitev napisa; tece vsako slicico. */
   let najblizjeZdaj = null;
+  /** Ozvezdje pod kazalcem - na to gre klik. */
+  let podKazalcem = null;
+
+  // --- fokus: kamera pred izbranim ozvezdjem --------------------------------
+  /** Izbrano ozvezdje; kamera ga gleda od blizu, dokler ga kdo ne spusti. */
+  let fokus = null;
+  const fokusPodatki = {
+    sredisce: new THREE.Vector3(),
+    normala: new THREE.Vector3(),
+    gor: new THREE.Vector3(),
+    polmer: 1,
+  };
+  const zacasniKvat = new THREE.Quaternion();
+  const zacasnoMerilo = new THREE.Vector3();
+
+  function fokusiraj(o) {
+    fokus = o ?? null;
+    sloj.classList.toggle("fokus", !!fokus);
+  }
+
+  /**
+   * Kje stoji izbrano ozvezdje in kam gleda, v svetovnem prostoru.
+   *
+   * Normala je lokalna os z gnezda - lik je obrnjen proc od sredisca galaksije,
+   * zato ga od spredaj vidimo z zunanje strani, z galaksijo za njim. Gor je
+   * lokalna os y: po njej kamera postavi lik pokonci, kot ga poznamo z neba.
+   */
+  function fokusLega() {
+    if (!fokus) return null;
+    fokus.gnezdo.getWorldPosition(fokusPodatki.sredisce);
+    fokus.gnezdo.getWorldDirection(fokusPodatki.normala);
+    fokus.gnezdo.getWorldQuaternion(zacasniKvat);
+    fokusPodatki.gor.set(0, 1, 0).applyQuaternion(zacasniKvat).normalize();
+    fokus.gnezdo.getWorldScale(zacasnoMerilo);
+    // Tocke lika so umerjene na polmer 1, zato je polmer kar merilo gnezda.
+    fokusPodatki.polmer = zacasnoMerilo.x;
+    return fokusPodatki;
+  }
   function posodobiMoci() {
     for (const o of vsa) {
       const cilj = o === najblizjeZdaj ? 1 : 0;
@@ -400,5 +441,13 @@ export function installOzvezdja(camera, renderer) {
     }
   }
 
-  return { korak, nastavi, postavi };
+  return {
+    korak,
+    nastavi,
+    postavi,
+    fokusiraj,
+    fokusLega,
+    podKazalcem: () => (vidno ? podKazalcem : null),
+    fokusiran: () => fokus,
+  };
 }

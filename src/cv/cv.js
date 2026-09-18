@@ -533,8 +533,104 @@ window.addEventListener(
   { passive: true }
 );
 
+// --- fokus na ozvezdje -------------------------------------------------------
+/**
+ * Klik na ozvezdje pripelje kamero predenj.
+ *
+ * Kamera ne skoci, ampak odplava: vzmet vodi delez poti od orbite do lege
+ * pred likom, pri 0 je navadni pogled, pri 1 fokus. Ker vzmet tece v obe
+ * smeri, je tudi vrnitev enaka pot nazaj. Orbita med tem tece naprej, zato se
+ * kamera vrne tja, kjer bi bila, in ne tja, od koder je odsla.
+ *
+ * Lik v prostoru miruje - videti se premika, ker kamera kroži okoli galaksije.
+ * Da ostane ziv tudi od blizu, ga kamera pocasi obkrozuje (FOKUS_KROG) in
+ * rahlo sledi kazalcu; galaksija za njim se zato premika s paralakso.
+ *
+ *   FOKUS_ZASLON    kolikšen del visine zaslona zavzame lik
+ *   FOKUS_MOC       vzmet poti; vecje = hitreje
+ *   FOKUS_KROG      kako dalec od osi lika kamera kroži (delez razdalje)
+ *   FOKUS_KROG_S    en obhod v sekundah
+ */
+const FOKUS_ZASLON = 0.46;
+const FOKUS_MOC = 6.5;
+const FOKUS_KROG = 0.2;
+const FOKUS_KROG_S = 38;
+
+let fokusDelez = 0;
+let fokusHitrost = 0;
+/** Zadnja lega fokusa - pot nazaj gre od nje, tudi ko lik ni vec izbran. */
+const fokusZadnji = {
+  sredisce: new THREE.Vector3(),
+  normala: new THREE.Vector3(0, 0, 1),
+  gor: new THREE.Vector3(0, 1, 0),
+  polmer: 1,
+};
+const fokusU = new THREE.Vector3();
+const fokusV = new THREE.Vector3();
+const fokusSmer = new THREE.Vector3();
+const fokusKamera = new THREE.Vector3();
+const fokusPogled = new THREE.Vector3();
+const NAVZGOR = new THREE.Vector3(0, 1, 0);
+
+function premakniFokus(dt, sek) {
+  const lega = ozvezdja.fokusLega();
+  if (lega) {
+    fokusZadnji.sredisce.copy(lega.sredisce);
+    fokusZadnji.normala.copy(lega.normala);
+    fokusZadnji.gor.copy(lega.gor);
+    fokusZadnji.polmer = lega.polmer;
+  }
+  const cilj = lega ? 1 : 0;
+  fokusHitrost += ((cilj - fokusDelez) * FOKUS_MOC - 2 * Math.sqrt(FOKUS_MOC) * fokusHitrost) * dt;
+  fokusDelez += fokusHitrost * dt;
+  if (!lega && fokusDelez < 0.0005 && Math.abs(fokusHitrost) < 0.0005) {
+    fokusDelez = 0;
+    fokusHitrost = 0;
+  }
+  if (fokusDelez <= 0) return;
+
+  const d = fokusZadnji;
+  // Dve osi pravokotno na pogled na lik; po njiju kamera kroži in sledi kazalcu.
+  fokusU.crossVectors(d.gor, d.normala).normalize();
+  fokusV.crossVectors(d.normala, fokusU).normalize();
+  const kot = (sek / FOKUS_KROG_S) * Math.PI * 2;
+  fokusSmer
+    .copy(d.normala)
+    .addScaledVector(fokusU, Math.cos(kot) * FOKUS_KROG + misX * 0.1)
+    .addScaledVector(fokusV, Math.sin(kot) * FOKUS_KROG * 0.6 - misY * 0.07)
+    .normalize();
+  const fovRad = (camera.fov * Math.PI) / 180;
+  const razdalja = (d.polmer * 2) / (FOKUS_ZASLON * 2 * Math.tan(fovRad / 2));
+  fokusKamera.copy(d.sredisce).addScaledVector(fokusSmer, razdalja);
+
+  // Pot: mehek zacetek in konec; vzmet lahko malo preskoci, zato omejimo.
+  const t = Math.min(1, Math.max(0, fokusDelez));
+  const e = t * t * (3 - 2 * t);
+  camera.position.lerp(fokusKamera, e);
+  fokusPogled.copy(target).lerp(d.sredisce, e);
+  camera.up.copy(NAVZGOR).lerp(d.gor, e).normalize();
+  camera.lookAt(fokusPogled);
+}
+
+/** Klik na ozvezdje ga izbere; klik kamor koli drugam vrne pogled. */
+addEventListener("click", (e) => {
+  if (!ready) return;
+  const el = e.target instanceof Element ? e.target : null;
+  // Gumbi, povezave, steklene ploskve in odprte strani imajo svoj klik.
+  const vmesnik = el?.closest(
+    "button, a, input, textarea, select, label, [role='dialog'], .dg, .zapis.odprt, .isk.odprt"
+  );
+  const lik = vmesnik ? null : ozvezdja.podKazalcem();
+  if (lik) ozvezdja.fokusiraj(lik);
+  else if (ozvezdja.fokusiran()) ozvezdja.fokusiraj(null);
+});
+addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && ozvezdja.fokusiran()) ozvezdja.fokusiraj(null);
+});
+
 /** Kamera na orbiti; model se ne dotaknemo. */
 function placeCamera(angle, distance, height) {
+  camera.up.copy(NAVZGOR);
   camera.position.set(
     target.x + Math.cos(angle) * distance,
     target.y + distance * height,
@@ -606,6 +702,11 @@ function tick(ts) {
     distance,
     ORBIT_HEIGHT_MUL + misY * PARALLAX_HEIGHT * e * misVklop - drsDelez * DRS_NIZJE * e
   );
+  premakniFokus(dt, ts_);
+  // Lege ozvezdij na zaslonu racunamo pred izrisom, zato mora biti matrika
+  // kamere ze sveza. lookAt jo osvezi PRED zasukom - brez tega bi imela novo
+  // lego in lanski pogled, in napis bi pri fokusu stal cisto drugje.
+  camera.updateMatrixWorld();
 
 
   ozvezdja.korak();
