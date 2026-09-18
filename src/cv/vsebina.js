@@ -89,8 +89,8 @@ export const DELO = {
       naslov: "Čarovnik za pripravo računalnika",
       telo:
         "Ponavljajoče nastavljanje računalnika, spremenjeno v čarovnika. Strežnik " +
-        "ali odjemalec: particije, uporabniki, nastavitve po meri, programi in " +
-        "varnostne kopije. Vsak korak preveri, preden ga izvede, na koncu pa " +
+        "ali odjemalec: diski, račun, nastavitve po meri, aplikacije in omrežje. " +
+        "Vsak korak preveri, preden ga izvede, na koncu pa " +
         "napiše poročilo – kaj je narejeno in kaj ostane za ročno.",
       znacke: ["PowerShell", "WPF", "Windows 11", "Avtomatizacija"],
       // Vmesnik izvirnika v brskalniku; nic se ne izvede, polja so prazna.
@@ -334,8 +334,8 @@ export const ARHIV = {
       naslov: "Čarovnik za pripravo računalnika",
       telo:
         "Ponavljajoče nastavljanje računalnika, spremenjeno v čarovnika. " +
-        "Particije, uporabniki, nastavitve po meri in namestitve brez " +
-        "interneta – vsak korak preverjen, preden se izvede.",
+        "Diski, račun, nastavitve po meri in aplikacije – vsak korak " +
+        "preverjen, preden se izvede.",
       znacke: ["PowerShell", "WPF", "Windows 11"],
       aplikacija: { pot: "demo/priprava-pc/index.html", ime: "Čarovnik za pripravo računalnika" },
       slika: pripravaSlika,

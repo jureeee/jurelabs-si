@@ -7,11 +7,9 @@
 <!--
   Predstavitvena razlicica carovnika za pripravo racunalnika.
 
-  Izvirnik je WPF okno v PowerShellu, ki vodi po fazah priprave Windows
-  postaje. Tu je isti videz in isti potek v brskalniku - s to razliko, da se
-  nic ne izvede in da je vse splosno: streznik ali odjemalec, prazna polja
-  za podatke in nastavitve uporabnika po meri. Izvirnik je nastal za sluzbo;
-  njegovi podatki in nastavitve v predstavitev ne sodijo in jih tu ni.
+  Vmesnik je WPF okno v PowerShellu, ki vodi po fazah priprave Windows
+  racunalnika. Tu je isti videz v brskalniku, s primerom priprave novega
+  racunalnika. Nic se ne izvede: vrstice so le prikaz, kaj bi se zgodilo.
 -->
 <style>
   :root {
@@ -343,26 +341,24 @@ const EPRUVETA = `<svg viewBox="0 0 420 470" aria-hidden="true">
 document.getElementById("epr-uvod").innerHTML = EPRUVETA;
 
 // --- stanje --------------------------------------------------------------------
-// Polja so prazna: vpise jih, kdor carovnik preizkusa. Diski so primer -
-// pravi carovnik jih prebere z Get-Disk.
+// Polja so prazna: vpise jih, kdor carovnik preizkusa. Diski so primer.
 const iz = {
   tip: "",
   ime: "",
   skupina: "",
   uporabnik: "",
-  izvajalec: "",
-  kopije: "",
-  namestitve: "",
+  jezik: "",
+  casovni: "",
+  porocilo: "",
 };
 /** Vrednost polja za izpis; prazno polje je pomisljaj. */
 const vr = (k) => (String(iz[k] ?? "").trim() || "—");
 const TIP = { streznik: "strežnik", odjemalec: "odjemalec (PC)" };
 const CRKE = ["D", "E", "F", "G", "H", "I", "J", "K"];
 const diski = [
-  { st: 1, gb: 477, sistem: true, naziv: "NVMe SSD", parts: [{ crka: "C", oznaka: "SISTEM", gb: 477 }] },
-  { st: 2, gb: 1863, naziv: "SATA SSD", parts: [{ crka: "D", oznaka: "PODATKI", gb: 1863 }] },
-  { st: 3, gb: 7452, naziv: "HDD 8 TB", parts: [{ crka: "E", oznaka: "KOPIJE", gb: 7452 }] },
-  { st: 4, gb: 7452, naziv: "HDD 8 TB", parts: [{ crka: "F", oznaka: "ARHIV-1", gb: 7452 }] },
+  { st: 1, gb: 954, sistem: true, naziv: "NVMe SSD", parts: [{ crka: "C", oznaka: "WINDOWS", gb: 954 }] },
+  { st: 2, gb: 931, naziv: "SSD 1 TB", parts: [{ crka: "D", oznaka: "PROJEKTI", gb: 931 }] },
+  { st: 3, gb: 3726, naziv: "HDD 4 TB", parts: [{ crka: "E", oznaka: "MEDIJI", gb: 3726 }] },
 ];
 let izbranDisk = 2;
 const nacrti = {};
@@ -378,10 +374,9 @@ const podvojene = () => {
   return vse.filter((c, i) => vse.indexOf(c) !== i);
 };
 const prosteCrke = (razen) => CRKE.filter((c) => !zasedene(razen).includes(c));
-const REZERVA = 0;
 const prostor = () => {
   const d = disk();
-  const naVoljo = d.gb - REZERVA;
+  const naVoljo = d.gb;
   const vsota = vsotaGb(d);
   return { naVoljo, vsota, prevec: vsota > naVoljo, ostane: Math.max(0, naVoljo - vsota) };
 };
@@ -395,37 +390,36 @@ const FAZE = [
   {
     pill: "Tip",
     naslov: "Kakšen računalnik je to?",
-    namig: "Od te izbire je odvisno, kdaj se izklopijo diski:\nOdjemalec (PC) - diski se izklopijo po 20 minutah.\nStrežnik - diski se NIKOLI ne izklopijo.\n\nMonitor in spanje sta v obeh primerih izklopljena za vedno.",
+    namig: "Od te izbire je odvisno, kako se računalnik obnaša, ko ga nihče ne uporablja:\nOdjemalec (PC) - varčuje z energijo, posodobitve ponoči.\nStrežnik - vedno prižgan, posodobitve ob uri, ki jo izbereš.",
     kontrole: "tip",
     vrstice: () =>
       !iz.tip ? [] : [
         iz.tip === "streznik"
-          ? { v: "ok", t: "Strežnik – diski se NIKOLI ne izklopijo." }
-          : { v: "ok", t: "Odjemalec (PC) – diski se izklopijo po 20 minutah." },
-        { v: "ok", t: "Monitor in spanje sta v obeh primerih izklopljena za vedno." },
-        { v: "info", t: "Izbira velja za vse nadaljnje faze." },
+          ? { v: "ok", t: "Strežnik – ostane vedno prižgan, posodobitve ob izbrani uri." }
+          : { v: "ok", t: "Odjemalec (PC) – varčevanje z energijo, posodobitve ponoči." },
+        { v: "info", t: "Izbira velja za vse nadaljnje korake." },
       ],
   },
   {
     pill: "Podatki",
     naslov: "Kateri računalnik pripravljaš?",
-    podnaslov: "Vpiši, kar veš – podatki gredo v končno poročilo. Polja lahko ostanejo prazna.",
-    namig: "Vnesejo se enkrat, vse nadaljnje faze jih preberejo same.\n\nShranijo se na disk in preživijo ponovne zagone in menjave uporabnika, zato lahko postopek nadaljuješ po zagonu.",
+    podnaslov: "Vpiši, kar veš. Polja lahko ostanejo prazna.",
+    namig: "Vnesejo se enkrat, vsi nadaljnji koraki jih preberejo sami.\n\nPreživijo ponovni zagon, zato lahko postopek nadaljuješ tam, kjer si ostal.",
     kontrole: "podatki",
     vrstice: () => [
       { v: "ok", t: `Tip: ${TIP[iz.tip] ?? "—"}` },
       { v: "ok", t: `Ime računalnika: ${vr("ime")},  delovna skupina: ${vr("skupina")}` },
       { v: "ok", t: `Uporabnik: ${vr("uporabnik")}` },
-      { v: "ok", t: `Varnostne kopije v ${vr("kopije")},  namestitvene datoteke iz ${vr("namestitve")}` },
-      { v: "ok", t: `Izvajal: ${vr("izvajalec")},  datum: ${new Date().toLocaleDateString("sl-SI")}` },
+      { v: "ok", t: `Jezik: ${vr("jezik")},  časovni pas: ${vr("casovni")}` },
+      { v: "ok", t: `Poročilo pošlji na: ${vr("porocilo")}` },
       ...(!iz.ime.trim() ? [{ v: "info", t: "Brez imena računalnik obdrži ime, ki ga ima zdaj." }] : []),
     ],
   },
   {
-    pill: "Particije",
-    naslov: "Kako razdelim diske?",
+    pill: "Diski",
+    naslov: "Kako naj razdelim diske?",
     podnaslov: "Vsako particijo lahko urejaš posebej. Tri pikice ali desni klik odpreta meni.",
-    namig: "Sistemskega diska se ni mogoče dotakniti.\n\nČe dodaš ali razdeliš particijo, bo izbrani disk pobrisan – pred tem dobiš načrt in moraš vtipkati BRISI DISK <številka>.\n\nČe nič ne dodaš, se disk NE briše: spremenijo se samo črke in oznake.",
+    namig: "Disk z Windows ostane nedotaknjen.\n\nČe dodaš ali razdeliš particijo, se disk pred tem izprazni – zato čarovnik najprej pokaže načrt in zahteva še eno potrditev.\n\nČe samo preimenuješ ali zamenjaš črke, podatki ostanejo.",
     kontrole: "particije",
     vrstice: () => {
       const d = disk();
@@ -433,84 +427,84 @@ const FAZE = [
       const nove = d.parts.filter((p) => p.nova);
       const st = prostor();
       const r = [
-        { v: "ok", t: `Disk ${sis.st} (sistemski, ${sis.gb} GB, C:) je zaščiten – ni ga mogoče izbrati.` },
+        { v: "ok", t: `Disk ${sis.st} z Windows (${sis.gb} GB, C:) ostane nedotaknjen.` },
         { v: "ok", t: `Disk ${d.st}: ` + d.parts.map((p) => `${p.crka || "–"}: ${p.oznaka} ${p.gb} GB`).join(",  ") },
       ];
-      for (const n of nove) r.push({ v: "ok", t: `NOVA particija ${n.crka || "?"}: ${n.oznaka}, ${n.gb} GB – bo ustvarjena in formatirana v NTFS.` });
-      if (podvojene().length) r.push({ v: "alert", t: `Črka ${[...new Set(podvojene())].join(", ")} je uporabljena dvakrat.`, p: "Črka pogona je ena sama za cel računalnik. Dokler sta dve particiji na isti črki, načrta ni mogoče potrditi." });
-      if (st.prevec) r.push({ v: "alert", t: `Particije zahtevajo ${st.vsota} GB, disk ima na voljo ${st.naVoljo} GB.`, p: "Vsota velikosti vseh particij ne sme preseči kapacitete diska. Dokler je preseganje, potrditev in Naprej ne delujeta." });
-      else if (st.ostane > 0) r.push({ v: "info", t: `Ostane ${st.ostane} GB nerazporejenega prostora.` });
-      if (nove.length) r.push({ v: "alert", t: "Ker dodajaš particije, bo disk pobrisan.", p: "Pred brisanjem skripta izpiše načrt in seznam vsega, kar bo izgubljeno (črka, oznaka, velikost, zasedeno). Šele ko vtipkaš točno »BRISI DISK <številka>«, se izvede." });
-      else r.push({ v: "info", t: "Nič novega nisi dodal – disk se NE briše, spremenijo se samo črke in oznake." });
+      for (const n of nove) r.push({ v: "ok", t: `Nova particija ${n.crka || "?"}: ${n.oznaka}, ${n.gb} GB.` });
+      if (podvojene().length) r.push({ v: "alert", t: `Črka ${[...new Set(podvojene())].join(", ")} je uporabljena dvakrat.`, p: "Črka pogona je ena sama za cel računalnik. Dokler sta dve particiji na isti črki, načrta ni mogoče shraniti." });
+      if (st.prevec) r.push({ v: "alert", t: `Particije zahtevajo ${st.vsota} GB, disk ima ${st.naVoljo} GB.`, p: "Vsota particij ne sme preseči velikosti diska. Dokler je preveč, shranjevanje in Naprej ne delujeta." });
+      else if (st.ostane > 0) r.push({ v: "info", t: `Ostane ${st.ostane} GB prostega prostora.` });
+      if (nove.length) r.push({ v: "alert", t: "Ker dodajaš particije, se bo disk izpraznil.", p: "Pred tem dobiš povzetek vsega, kar bo izgubljeno, in še eno potrditev." });
+      else r.push({ v: "info", t: "Nič novega – podatki na disku ostanejo, spremenijo se le črke in imena." });
       const n = nacrti[d.st];
-      if (n) r.push({ v: "ok", t: `Načrt je potrjen ob ${n} in shranjen.`, p: "Prave skripte ta načrt preberejo in ga izvedejo. Ta zaslon diskov ne spreminja." });
-      else r.push({ v: "warn", t: "Načrt še ni potrjen – pritisni »Uporabi načrt na disku«." });
+      if (n) r.push({ v: "ok", t: `Načrt shranjen ob ${n}.` });
+      else r.push({ v: "warn", t: "Načrt še ni shranjen." });
       return r;
     },
   },
   {
-    pill: "Uporabniki",
-    naslov: "Uporabniki in sistem",
-    podnaslov: "Lokalni računi, ime računalnika, Windows posodobitve.",
+    pill: "Sistem",
+    naslov: "Račun in sistem",
+    podnaslov: "Uporabniški račun, ime, jezik in posodobitve.",
     tece: true,
     vrstice: () => [
-      { v: "ok", t: `Lokalni račun ${iz.uporabnik.trim() ? `»${iz.uporabnik.trim()}« ` : ""}ustvarjen, skrbniški račun ločen od njega.` },
+      { v: "ok", t: `Račun ${iz.uporabnik.trim() ? `»${iz.uporabnik.trim()}« ` : ""}ustvarjen – geslo si izbere ob prvi prijavi.` },
       iz.ime.trim()
-        ? { v: "ok", t: `Računalnik preimenovan v ${iz.ime.trim()}${iz.skupina.trim() ? `, delovna skupina ${iz.skupina.trim()}` : ""}.` }
+        ? { v: "ok", t: `Računalnik preimenovan v ${iz.ime.trim()}.` }
         : { v: "info", t: "Ime računalnika ostane, kakršno je." },
-      { v: "ok", t: "Nameščenih 14 Windows posodobitev." },
-      { v: "warn", t: "Nastavitve v BIOS-u nisi potrdil – ostane na seznamu ročnih korakov." },
-      { v: "info", t: "Potreben je ponovni zagon, nato prijava v uporabnikov račun." },
+      { v: "ok", t: `Jezik ${iz.jezik.trim() || "sistema"} in časovni pas ${iz.casovni.trim() || "po lokaciji"} nastavljena.` },
+      { v: "ok", t: "Nameščenih 9 posodobitev, gonilniki so posodobljeni." },
+      { v: "warn", t: "Aktivacijo Windows preveri sam." },
     ],
   },
   {
-    pill: "Nastavitve",
-    naslov: "Nastavitve uporabnika",
-    podnaslov: "Računalnik se prilagodi uporabniku – po meri, ne po privzetem.",
+    pill: "Po meri",
+    naslov: "Nastavitve po meri",
+    podnaslov: "Stvari, ki jih vsak nastavi sam – tu se nastavijo same.",
     tece: true,
     vrstice: () => [
-      { v: "ok", t: "Monitor in spanje nastavljena, ohranjevalnik zaslona izklopljen." },
-      { v: "ok", t: `Diski: ${iz.tip === "streznik" ? "se nikoli ne izklopijo" : "izklop po 20 minutah"}.` },
-      { v: "ok", t: "Tema, ozadje in razpored opravilne vrstice po meri." },
-      { v: "ok", t: "Start meni in namizje počiščena, pripete samo potrebne bližnjice." },
-      { v: "ok", t: "Privzeti brskalnik in bralnik PDF nastavljena." },
-      { v: "ok", t: "Obvestila in predlogi Windows utišani." },
-      { v: "alert", t: "Pripomočkov (Widgets) ni bilo mogoče odstraniti – gumb bo še viden.", p: "Paket je sistemski in ga ta različica Windows ne dovoli odstraniti. Rešitev: Nastavitve › Prilagoditev › Opravilna vrstica › Pripomočki = izklopljeno." },
+      { v: "ok", t: "Temna tema, poudarna barva modra." },
+      { v: "ok", t: "Opravilna vrstica poravnana levo, iskalno polje skrito." },
+      { v: "ok", t: "Nočna lučka od 21:00 do 7:00." },
+      { v: "ok", t: "Miška: večji kazalec, hitrejše drsenje." },
+      { v: "ok", t: "Ob zagonu se odpre samo tisto, kar si izbral." },
+      { v: "warn", t: "Ozadja zaklenjenega zaslona ni bilo mogoče nastaviti.", p: "Nekatere izdaje Windows ga določajo same. Nastaviš ga v Nastavitve › Prilagoditev › Zaklenjeni zaslon." },
     ],
   },
   {
     pill: "Aplikacije",
     naslov: "Aplikacije",
-    podnaslov: "Obvezni programi s kontrolnega lista.",
+    podnaslov: "Nameščene samodejno – brez klikanja skozi namestitvene čarovnike.",
     tece: true,
     vrstice: () => [
-      { v: "ok", t: "Google Chrome, Adobe Acrobat Reader in OpenOffice so nameščeni." },
-      { v: "ok", t: "Raziskovalec pokaže skrite datoteke in končnice." },
-      { v: "warn", t: "Ročno še: programi, ki jih uporabnik potrebuje posebej." },
+      { v: "ok", t: "Firefox, VLC, 7-Zip in Visual Studio Code nameščeni." },
+      { v: "ok", t: "Spotify in Discord nameščena." },
+      { v: "ok", t: "Vse aplikacije se bodo posodabljale same." },
+      { v: "warn", t: "Spotify ob prvem zagonu zahteva prijavo." },
     ],
   },
   {
-    pill: "Kopije",
-    naslov: "Varnostne kopije",
-    podnaslov: "Namestitev brez interneta.",
+    pill: "Omrežje",
+    naslov: "Omrežje in tiskalniki",
+    podnaslov: "Povezave, ki jih računalnik potrebuje od prvega dne.",
     tece: true,
     vrstice: () => [
-      { v: "ok", t: `Strežnik in odjemalec za kopije nameščena iz ${iz.namestitve} – podpis potrjen.` },
-      { v: "info", t: "Brez interneta: namestitev je šla iz lokalnih datotek." },
-      { v: "ok", t: `Mapa ${iz.kopije} ustvarjena, dodana izjema v protivirusni program.` },
-      { v: "warn", t: "Nastavitve v spletnem vmesniku za kopije vpiši ročno." },
+      { v: "ok", t: "Omrežje Wi-Fi shranjeno, povezava se vzpostavi sama." },
+      { v: "ok", t: "Tiskalnik najden v omrežju in dodan kot privzeti." },
+      { v: "ok", t: "Mapa v skupni rabi povezana kot pogon Z:." },
+      { v: "info", t: "Omrežje je nastavljeno kot zasebno." },
     ],
   },
   {
-    pill: "Zaključek",
+    pill: "Konec",
     naslov: "Zaključek",
-    podnaslov: "Zadnje nastavitve in končno poročilo.",
+    podnaslov: "Pospravljanje in poročilo.",
     tece: true,
     vrstice: () => [
-      { v: "ok", t: "Obnovitvene točke vklopljene, 10 % na C:." },
-      { v: "ok", t: "Čiščenje diska končano, sproščenih 4,2 GB." },
-      { v: "ok", t: "Končno poročilo shranjeno." },
-      { v: "warn", t: "Še ročno: IP naslov in maska, nastavitev v BIOS-u, popis strojne opreme." },
+      { v: "ok", t: "Začasne datoteke počiščene, sproščenih 2,7 GB." },
+      { v: "ok", t: "Točka za obnovitev sistema ustvarjena." },
+      { v: "ok", t: iz.porocilo.trim() ? `Poročilo shranjeno na namizje in poslano na ${iz.porocilo.trim()}.` : "Poročilo shranjeno na namizje." },
+      { v: "warn", t: "Še sam: prijava v brskalnik in e-pošto." },
     ],
   },
 ];
@@ -564,8 +558,8 @@ function odigraj() {
 function kontroleHtml(f) {
   if (f.kontrole === "tip") {
     return `<div class="izbire">
-      <button class="izbira${iz.tip === "odjemalec" ? " izbrana" : ""}" data-tip="odjemalec" type="button"><b>Odjemalec (PC)</b><span>Računalnik za delo. Diski se izklopijo po 20 minutah.</span></button>
-      <button class="izbira${iz.tip === "streznik" ? " izbrana" : ""}" data-tip="streznik" type="button"><b>Strežnik</b><span>Teče ves čas. Diski se nikoli ne izklopijo.</span></button>
+      <button class="izbira${iz.tip === "odjemalec" ? " izbrana" : ""}" data-tip="odjemalec" type="button"><b>Odjemalec (PC)</b><span>Za vsakdanje delo. Varčuje z energijo.</span></button>
+      <button class="izbira${iz.tip === "streznik" ? " izbrana" : ""}" data-tip="streznik" type="button"><b>Strežnik</b><span>Vedno prižgan, dosegljiv v omrežju.</span></button>
     </div>`;
   }
   if (f.kontrole === "podatki") {
@@ -573,8 +567,8 @@ function kontroleHtml(f) {
       `<div class="polje"><label>${l}</label><input data-k="${k}" value="${ubezi(iz[k])}" placeholder="${primer}" /></div>`;
     return `<div class="kartica"><div class="polja">
       ${p("ime", "Ime računalnika", "npr. PC-01")}${p("skupina", "Delovna skupina", "npr. WORKGROUP")}
-      ${p("uporabnik", "Uporabnik", "npr. ana")}${p("izvajalec", "Izvajalec", "tvoje ime")}
-      ${p("kopije", "Pot za varnostne kopije", "npr. E:\\Kopije")}${p("namestitve", "Namestitvene datoteke", "npr. D:\\Namestitev")}
+      ${p("uporabnik", "Uporabnik", "npr. ana")}${p("jezik", "Jezik", "npr. slovenščina")}
+      ${p("casovni", "Časovni pas", "npr. Europe/Ljubljana")}${p("porocilo", "Poročilo pošlji na", "npr. ime@primer.si")}
     </div></div>`;
   }
   if (f.kontrole === "particije") return `<div class="kartica" id="part"></div>`;
@@ -590,11 +584,11 @@ function narisiParticije() {
   const moznosti = diski.map((x) => {
     const crke = x.parts.map((p) => p.crka).filter(Boolean).join(", ");
     let t = `Disk ${x.st}  –  ${x.gb} GB`;
-    if (x.sistem) t += `  (SISTEMSKI, zaščiten: ${crke})`;
+    if (x.sistem) t += `  (Windows, nedotaknjen: ${crke})`;
     else {
       if (crke) t += `  –  ${crke}`;
       if (x.parts.some((p) => p.nova)) t += "  *načrt*";
-      if (nacrti[x.st]) t += "  ✓ potrjeno";
+      if (nacrti[x.st]) t += "  ✓ shranjeno";
     }
     return `<option value="${x.st}"${x.sistem ? " disabled" : ""}${x.st === izbranDisk ? " selected" : ""}>${t}</option>`;
   }).join("");
@@ -614,7 +608,7 @@ function narisiParticije() {
       </div>`).join("")}
     <div class="gumbi-particij">
       <button class="gumb" id="dodaj" type="button"${st.ostane < 1 ? " disabled" : ""}>+ Dodaj particijo</button>
-      <button class="gumb poudarek" id="uporabi" type="button"${st.prevec || dvojne.length ? " disabled" : ""}>Uporabi načrt na disku</button>
+      <button class="gumb poudarek" id="uporabi" type="button"${st.prevec || dvojne.length ? " disabled" : ""}>Shrani načrt</button>
     </div>`;
 }
 

@@ -176,8 +176,8 @@ export default {
         oznaka: "Project",
         naslov: "Computer setup wizard",
         telo:
-          "Repetitive computer setup, turned into a wizard. Server or client: partitions, users, " +
-          "custom settings, software and backups. It checks every step before running it and ends " +
+          "Repetitive computer setup, turned into a wizard. Server or client: disks, account, " +
+          "custom settings, apps and network. It checks every step before running it and ends " +
           "with a report – what's done and what's left to do by hand.",
         znacke: ["PowerShell", "WPF", "Windows 11", "Automation"],
       },
@@ -370,8 +370,8 @@ export default {
         oznaka: "2026 · in development",
         naslov: "Computer setup wizard",
         telo:
-          "Repetitive computer setup, turned into a wizard. Partitions, users, custom settings " +
-          "and offline installs – every step checked before it runs.",
+          "Repetitive computer setup, turned into a wizard. Disks, account, custom settings " +
+          "and apps – every step checked before it runs.",
         znacke: ["PowerShell", "WPF", "Windows 11"],
       },
       {
