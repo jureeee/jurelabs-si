@@ -49,6 +49,8 @@ export const nastavitve = {
   hitrostOrbite: 42,
   sij: 46,
   velikostZvezd: 21,
+  /** Postavitev profila: "nov" (glava na sredini, bento mreza) ali "star". */
+  profilSlog: "nov",
 };
 
 /** Val pod prstom. Izvira iz tocke dotika, ne iz sredisca ploskve. */
@@ -301,6 +303,18 @@ function stranGlavna(pojdi) {
               s.innerHTML = IKONA_PUSC;
               return s;
             })(),
+          },
+        ],
+      },
+      {
+        naslovek: t("nast.profil", "Profil"),
+        vrstice: [
+          {
+            ime: t("nast.profilSlog", "Slog profila"),
+            kontrola: spust("profilSlog", [
+              { vrednost: "nov", ime: t("nast.profilNov", "Novi") },
+              { vrednost: "star", ime: t("nast.profilStar", "Stari") },
+            ]),
           },
         ],
       },

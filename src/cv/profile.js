@@ -18,6 +18,7 @@ import { mediji } from "./mediji.js";
 import { obJeziku, t } from "./jezik.js";
 import { namestiLebdenje } from "./lebdenje.js";
 import { oziviBesedilo } from "./crke.js";
+import { nastavitve } from "./settings.js";
 
 const IKONA_ZAPRI =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
@@ -26,6 +27,8 @@ const IKONA_KLJUKICA =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l6 6L20 6"/></svg>';
 const IKONA_RAZPORED =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M4 7h16M6.5 12h11M9.5 17h5"/></svg>';
+const IKONA_VEC =
+  '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="18.5" cy="12" r="1.9"/></svg>';
 const IKONA_VIDEO =
   '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4.5v15l15-7.5z"/></svg>';
 
@@ -127,7 +130,10 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     <button class="prof-zapri dg" type="button" aria-label="Zapri">${IKONA_ZAPRI}</button>
     <div class="prof-vsebina">
       <div class="prof-glava prof-del" style="--i:0">
-        <div class="prof-avatar"><img alt="" src="${avatarUrl}" /></div>
+        <div class="prof-avatar-ovoj">
+          <div class="prof-avatar"><img alt="" src="${avatarUrl}" /></div>
+          <span class="prof-orbita" aria-hidden="true"><i></i></span>
+        </div>
         <div class="prof-desno">
           <div class="prof-ime">${PODATKI.ime}</div>
           <div class="prof-pravo">${PODATKI.pravo}</div>
@@ -140,8 +146,10 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
           <div class="prof-gumbi">
             <button class="prof-gumb dg" type="button">Uredi profil</button>
             <button class="prof-gumb dg" type="button">Arhiv</button>
+            <button class="prof-vec dg" type="button" aria-label="Razporeditev">${IKONA_VEC}</button>
           </div>
         </div>
+        <div class="prof-citat" aria-hidden="true">&ldquo;Same places,<br />different me.&rdquo;</div>
       </div>
 
       <div class="prof-zgodbe prof-del" style="--i:1"></div>
@@ -156,6 +164,9 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
       <div class="prof-mreza prof-del" style="--i:3"></div>
     </div>`;
   document.body.appendChild(koren);
+  // Slog profila iz nastavitev: "nov" ali "star". Vse razlike so v slogu,
+  // oznake so iste - zato menjava ne potrebuje ponovne gradnje.
+  koren.dataset.slog = nastavitve.profilSlog;
 
   const mreza = koren.querySelector(".prof-mreza");
   const zgodbe = koren.querySelector(".prof-zgodbe");
@@ -501,6 +512,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     { kljuc: "mozaik", ime: "Mozaik" },
     { kljuc: "stopnice", ime: "Stopnice" },
     { kljuc: "gost", ime: "Gosto (6-7)" },
+    { kljuc: "bento", ime: "Bento" },
     { kljuc: "trak", ime: "Trak" },
     { kljuc: "izvirno", ime: "Izvirna razmerja" },
     { kljuc: "izvirnoxl", ime: "Izvirna razmerja XL" },
@@ -523,7 +535,9 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
   ];
   // Privzeto: gosta mreza cez sredino zaslona. Naenkrat je videti veliko slik,
   // hkrati pa imajo ob straneh zrak - galerija tako ne pritiska na robove.
-  let razpored = "gost";
+  // Novi slog ima svojo privzeto mrezo: bento, polja razlicnih velikosti.
+  const privzetiRazpored = () => (nastavitve.profilSlog === "nov" ? "bento" : "gost");
+  let razpored = privzetiRazpored();
   let razmik = "da";
   let sirina = "cez";
   mreza.dataset.razpored = razpored;
@@ -590,6 +604,7 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     });
     koren.querySelector(".prof-zapri")?.setAttribute("aria-label", t("prof.zapri", "Zapri"));
     koren.querySelector(".prof-razpored")?.setAttribute("aria-label", t("prof.razporeditev", "Razporeditev"));
+    koren.querySelector(".prof-vec")?.setAttribute("aria-label", t("prof.razporeditev", "Razporeditev"));
     osveziSeznam();
     // Prevod besedilo prepise, zato ga razbijemo znova.
     oziviProfil();
@@ -599,15 +614,35 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
   function zapriSeznam() {
     seznam.classList.remove("odprt");
     gumbRazpored.classList.remove("odprt");
+    koren.querySelector(".prof-vec")?.classList.remove("odprt");
   }
 
-  gumbRazpored.addEventListener("click", (e) => {
+  // Menjava sloga v nastavitvah. Ce uporabnik mreze ni sam izbral, gre z
+  // novim slogom tudi njegova privzeta mreza.
+  document.addEventListener("nast-sprememba", (e) => {
+    if (e.detail?.kljuc !== "profilSlog") return;
+    const staraPrivzeta = razpored === (nastavitve.profilSlog === "nov" ? "gost" : "bento");
+    koren.dataset.slog = nastavitve.profilSlog;
+    if (staraPrivzeta) {
+      razpored = privzetiRazpored();
+      mreza.dataset.razpored = razpored;
+      osveziSeznam();
+      uskladiProstor();
+    }
+  });
+
+  gumbRazpored.addEventListener("click", (e) => odpriRazpored(e, gumbRazpored));
+  // V novem slogu je razporeditev za gumbom s tremi pikami ob "Uredi profil".
+  const gumbVec = koren.querySelector(".prof-vec");
+  gumbVec.addEventListener("click", (e) => odpriRazpored(e, gumbVec));
+
+  function odpriRazpored(e, sidro) {
     e.stopPropagation();
     const odpiramo = !seznam.classList.contains("odprt");
     zapriSeznam();
     if (!odpiramo) return;
 
-    const r = gumbRazpored.getBoundingClientRect();
+    const r = sidro.getBoundingClientRect();
     seznam.style.visibility = "hidden";
     seznam.style.top = "0px";
     // Najprej sprostimo omejitev, da izmerimo pravo visino vsebine.
@@ -622,8 +657,8 @@ export function installProfile({ onOdprt, onZaprt } = {}) {
     seznam.style.transformOrigin = navzgor ? "bottom right" : "top right";
     seznam.style.visibility = "";
     seznam.classList.add("odprt");
-    gumbRazpored.classList.add("odprt");
-  });
+    sidro.classList.add("odprt");
+  }
 
   seznam.addEventListener("click", (e) => {
     const b = e.target instanceof Element ? e.target.closest(".spust-izbira") : null;
