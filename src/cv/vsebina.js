@@ -47,7 +47,7 @@ export const DELO = {
       telo:
         "Strežniško okolje, omrežja in tehnični sistemi na eni strani, celovit " +
         "razvoj aplikacij na drugi. Najboljše rešitve nastanejo tam, kjer " +
-        "se srečata – zato obvladam oboje.",
+        "se srečata oba spektra.",
       slika: strojnaSlika,
     },
     {
