@@ -228,7 +228,7 @@ export default {
     odseki: [
       {
         oznaka: "What I like doing",
-        naslov: "Things you can\nlook at and turn around.",
+        naslov: "Things you notice right away.\nYou know they're good – just not why.",
         telo:
           "I like working where code ends in something visible – an image, motion, a device that " +
           "responds. A screen that shows something says more than terminal output.",

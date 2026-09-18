@@ -150,7 +150,7 @@ export const OMENI = {
     {
       tip: "par",
       oznaka: "Kaj rad delam",
-      naslov: "Stvari, ki jih je mogoče\npogledati in obrniti.",
+      naslov: "Stvari, ki jih opaziš takoj.\nVeš, da so dobre – ne veš pa, zakaj.",
       telo:
         "Najraje delam tam, kjer se koda konča v nečem vidnem – v sliki, v " +
         "gibanju, v napravi, ki se odzove. Zaslon, ki nekaj pokaže, pove " +
