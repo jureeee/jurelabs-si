@@ -367,29 +367,45 @@
   from { opacity: 0; transform: translate(-50%, 10px); }
   to   { opacity: 1; transform: translate(-50%, 0); }
 }
-.domov-miska {
+/* 3D metulj namesto miske (metulj.js). Platno se prikaze, ko je model tu. */
+.domov-metulj {
   display: block;
-  width: 22px;
-  height: 34px;
-  border-radius: 12px;
-  box-shadow: inset 0 0 0 1.5px currentColor;
-  position: relative;
+  width: 170px;
+  height: 92px;
 }
-.domov-miska i {
-  position: absolute;
-  left: 50%;
-  top: 7px;
-  width: 3px;
-  height: 7px;
-  margin-left: -1.5px;
-  border-radius: 2px;
-  background: currentColor;
-  animation: domovKolescek 1.8s var(--ease) infinite;
+.domov-metulj canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition:
+    opacity 900ms var(--ease),
+    transform 700ms var(--ease),
+    filter 600ms var(--ease);
 }
-@keyframes domovKolescek {
-  0% { transform: translateY(0); opacity: 1; }
-  70% { transform: translateY(9px); opacity: 0; }
-  100% { transform: translateY(0); opacity: 0; }
+.domov-metulj canvas.nalozen { opacity: 1; }
+/* Pod kazalcem metulj zdrsne navzdol in izgine - pokaze, kam naprej. */
+.domov-metulj:hover canvas.nalozen {
+  opacity: 0;
+  transform: translateY(34px) scale(0.86);
+  filter: blur(8px);
+  transition:
+    opacity 520ms var(--ease),
+    transform 620ms cubic-bezier(0.55, 0, 0.75, 0.3),
+    filter 520ms var(--ease);
+}
+
+/* Napis v zanki: zabrise se in zdrsne navzdol, nato se na svojem mestu
+   spet izostri - kot bi sam sel naprej in se vrnil povabit se enkrat. */
+.domov-namig-besedilo {
+  display: block;
+  animation: domovNapis 3.2s var(--ease) infinite;
+}
+@keyframes domovNapis {
+  0%, 12%  { opacity: 1; transform: translateY(0); filter: blur(0); }
+  48%      { opacity: 0; transform: translateY(16px); filter: blur(7px); }
+  52%      { opacity: 0; transform: translateY(0); filter: blur(7px); }
+  80%, 100% { opacity: 1; transform: translateY(0); filter: blur(0); }
 }
 /* Na telefonu sta spodaj kapsuli - namig gre malo visje. */
 @media (max-width: 560px) {
@@ -397,5 +413,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .domov-miska i { animation: none; }
+  .domov-metulj canvas { transition: none; }
+  .domov-namig-besedilo { animation: none; }
 }

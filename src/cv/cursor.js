@@ -62,7 +62,9 @@ const MENJAVA_S = 4.5;
  * Slik namenoma ni: kazalec bi se zlil z vsebino polja in fotografije ne bi
  * bilo vec videti. Lepljenje sodi na kontrole, ne na vsebino.
  */
-const LEPLJIVO = "button, a, .nast-vrstica.klikna, .spust-izbira";
+// Namig na prvem zaslonu je gumb, a velik in brez ploskve - prilepljen
+// kazalec bi cez metulja narisal siv pravokotnik.
+const LEPLJIVO = "button:not(.domov-namig), a, .nast-vrstica.klikna, .spust-izbira";
 /** Besedilo, nad katerim postane crtica. */
 const BESEDILO = "p, h1, h2, h3, .nast-ime, .nast-opis, .prof-bio, .prof-ime, .prof-pravo";
 

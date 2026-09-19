@@ -169,12 +169,20 @@ export function installDomov({ obDrsenju }) {
     <div class="domov-tok"></div>
     <button type="button" class="domov-namig" aria-hidden="true" tabindex="-1">
       <span class="domov-namig-besedilo"></span>
-      <span class="domov-miska"><i></i></span>
+      <span class="domov-metulj"></span>
     </button>`;
   document.body.insertBefore(koren, document.querySelector(".nav"));
 
   const tok = koren.querySelector(".domov-tok");
   const namig = koren.querySelector(".domov-namig");
+  // 3D metulj v namigu pride, ko je stran ze nalozena: model je tezji od
+  // vsega ostalega na prvem zaslonu in ne sme cakati pred galaksijo.
+  const naloziMetulja = () =>
+    import("./metulj.js")
+      .then((m) => m.installMetulj(namig.querySelector(".domov-metulj"), namig))
+      .catch(() => null);
+  if (document.readyState === "complete") naloziMetulja();
+  else addEventListener("load", naloziMetulja, { once: true });
   document.body.insertBefore(namig, koren.nextSibling);
 
   // Zabrisana robova zaslona: zunaj drsece plasti, da imata kaj zabrisati.
