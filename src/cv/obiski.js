@@ -4,8 +4,8 @@
  * Stevilke so prave. Stejemo pri javnem stevcu Abacus, ki ne rabi racuna ne
  * kljuca - brskalnik ga poklice neposredno.
  *
- *   Obiskov skupaj: vsak obiskovalec steje enkrat na dan (datum zadnjega
- *   stetja si zapomni brskalnik).
+ *   Obiskov skupaj: vsako odprtje strani je en obisk, stevilo samo raste.
+ *   Stevec je nastal, ko je stran ze tekla; obiski pred njim so ZACETEK.
  *
  *   Zdaj gleda: cas je razdeljen na okna po OKNO_S sekund. Vsak odprt in
  *   viden zavihek se v vsakem oknu oglasi natanko enkrat, v stevec tega okna.
@@ -21,7 +21,8 @@ import { jezik, obJeziku, t } from "./jezik.js";
 const STEVEC = "https://abacus.jasoncameron.dev";
 const PROSTOR = "jurelabs-si";
 const OKNO_S = 120;
-const DAN_KLJUC = "jl-obisk-dan";
+/** Obiski, preden je stevec obstajal. Pristeje se vsemu, kar izmeri. */
+const ZACETEK = 35;
 
 const lokalno = /^(localhost|127\.|192\.168\.)/.test(location.hostname);
 
@@ -74,24 +75,9 @@ function narisi() {
 }
 
 async function prestejObisk() {
-  const danes = new Date().toISOString().slice(0, 10);
-  let zadnji = null;
-  try {
-    zadnji = localStorage.getItem(DAN_KLJUC);
-  } catch {
-    // Zasebni nacin: stejemo, a si ne zapomnimo - tak obisk steje vsakic.
-  }
-  const stej = !lokalno && zadnji !== danes;
-  const v = stej ? await hit("obiski") : await get("obiski");
+  const v = lokalno ? await get("odprtja") : await hit("odprtja");
   if (v === null) return;
-  if (stej) {
-    try {
-      localStorage.setItem(DAN_KLJUC, danes);
-    } catch {
-      // glej zgoraj
-    }
-  }
-  stanje.skupaj = v;
+  stanje.skupaj = ZACETEK + v;
   narisi();
 }
 
